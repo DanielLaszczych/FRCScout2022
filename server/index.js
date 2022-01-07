@@ -13,6 +13,7 @@ const resolvers = require('./graphql/resolvers');
 
 const app = express();
 
+app.enable('trust proxy');
 const PORT = process.env.PORT || 5000;
 
 const corsPolicy = async (req, res, next) => {
