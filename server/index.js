@@ -27,11 +27,16 @@ app.use(corsPolicy);
 app.use(
     session({
         secret: process.env.SESSION_SECRET,
-        resave: false,
+        resave: true,
         saveUninitialized: false,
-        store: MongoStore.create({
-            mongoUrl: process.env.DATABASE_URL,
-        }),
+        // store: MongoStore.create({
+        //     mongoUrl: process.env.DATABASE_URL,
+        // }),
+        cookie: {
+            sameSite: `${process.env.NODE_ENV === 'production' ? 'none' : 'lax'}`, // cross site // set lax while working with http:localhost, but none when in prod
+            secure: `${process.env.NODE_ENV === 'production' ? 'true' : 'auto'}`, // only https // auto when in development, true when in prod
+            maxAge: 1000 * 60 * 60 * 24 * 14, // expiration time
+        },
     })
 );
 

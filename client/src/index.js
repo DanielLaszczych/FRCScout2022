@@ -7,6 +7,9 @@ import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
 import { ColorModeScript } from '@chakra-ui/react';
 import theme from './theme';
 
+// Importing the Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 const cache = new InMemoryCache();
 
 const client = new ApolloClient({
