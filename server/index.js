@@ -4,7 +4,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const passport = require('passport');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
 const path = require('path');
 require('dotenv').config();
 require('./auth/passport');
@@ -14,7 +13,6 @@ const resolvers = require('./graphql/resolvers');
 
 const app = express();
 
-app.enable('trust proxy');
 const PORT = process.env.PORT || 5000;
 
 const corsPolicy = async (req, res, next) => {
@@ -33,9 +31,6 @@ app.use(
         secret: process.env.SESSION_SECRET,
         resave: true,
         saveUninitialized: false,
-        // store: MongoStore.create({
-        //     mongoUrl: process.env.DATABASE_URL,
-        // }),
         cookie: {
             sameSite: `${process.env.NODE_ENV === 'production' ? 'none' : 'lax'}`, // cross site // set lax while working with http:localhost, but none when in prod
             secure: `${process.env.NODE_ENV === 'production' ? 'true' : 'auto'}`, // only https // auto when in development, true when in prod
