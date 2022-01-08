@@ -7,6 +7,8 @@ import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
 import { ColorModeScript } from '@chakra-ui/react';
 import theme from './theme';
 
+import { AuthProvider } from './context/auth';
+
 // Importing the Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 
@@ -23,7 +25,9 @@ ReactDOM.render(
     <React.StrictMode>
         <ColorModeScript initialColorMode={theme.config.initialColorMode} />
         <ApolloProvider client={client}>
-            <App />
+            <AuthProvider>
+                <App />
+            </AuthProvider>
         </ApolloProvider>
     </React.StrictMode>,
     document.getElementById('root')
