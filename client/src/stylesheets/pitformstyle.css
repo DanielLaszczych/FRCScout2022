@@ -1,0 +1,4 @@
+.chakra-checkbox__input[data-focus-visible-added] + .chakra-checkbox__control[data-focus] {
+    box-shadow: none;
+    outline: none;
+}

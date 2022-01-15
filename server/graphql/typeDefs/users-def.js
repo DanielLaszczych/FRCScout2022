@@ -10,6 +10,7 @@ module.exports = gql`
         email: String!
         displayName: String!
         iconImage: String!
+        admin: Boolean!
         createdAt: String!
     }
 

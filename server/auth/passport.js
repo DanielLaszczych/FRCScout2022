@@ -13,6 +13,7 @@ passport.use(
         async (accessToken, refreshToken, profile, done) => {
             if (!(profile._json.hd && profile._json.hd === 'robotigers1796.com')) {
                 done('Not a robotigers account');
+                return;
             }
             const newUser = new User({
                 googleId: profile.id,
@@ -22,6 +23,7 @@ passport.use(
                 email: profile.emails[0].value,
                 displayName: profile.displayName,
                 iconImage: profile.photos[0].value,
+                admin: false,
             });
 
             try {

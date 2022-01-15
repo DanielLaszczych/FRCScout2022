@@ -1,8 +1,7 @@
 import { React, useContext } from 'react';
 import { AuthContext } from '../context/auth';
 import { config } from '../util/constants';
-import { Button, Center, VStack } from '@chakra-ui/react';
-// import { Image } from '@chakra-ui/react';
+import { Button, Center, VStack, Image } from '@chakra-ui/react';
 
 function HomePage() {
     const { user } = useContext(AuthContext);
@@ -11,7 +10,7 @@ function HomePage() {
         <Center marginTop={'100px'}>
             <VStack spacing={'25px'}>
                 <div>{user.displayName}</div>
-                <img src={user.iconImage}></img>
+                <Image src={user.iconImage}></Image>
 
                 <div>
                     {user === 'NoUser' ? (

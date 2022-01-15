@@ -1,6 +1,8 @@
 const { gql } = require('apollo-server-express');
 
 const users = require('./users-def');
+const pitforms = require('./pitform-def');
+const events = require('./event-def');
 
 const setup = gql`
     type Query {
@@ -14,4 +16,4 @@ const setup = gql`
     }
 `;
 
-module.exports = [setup, users];
+module.exports = [setup, users, pitforms, events];

@@ -12,7 +12,9 @@ import { AuthProvider } from './context/auth';
 // Importing the Bootstrap CSS
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const cache = new InMemoryCache();
+const cache = new InMemoryCache({
+    addTypename: false,
+});
 
 const client = new ApolloClient({
     uri: '/graphql',

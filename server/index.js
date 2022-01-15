@@ -7,6 +7,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const MongoStore = require('connect-mongo');
 const path = require('path');
+const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 require('./auth/passport');
 
@@ -59,6 +60,13 @@ serverOptions(app);
 app.use('/auth', require('./routes/auth'));
 app.use('/getuser', (req, res) => {
     res.send(req.user);
+});
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET,
+    secure: true,
 });
 
 const server = new ApolloServer({
