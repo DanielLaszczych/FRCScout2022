@@ -2,8 +2,8 @@ import { createRef, React, useContext, useEffect, useState } from 'react';
 import { AuthContext } from '../context/auth';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
-import { Button, Center, Box, Grid, GridItem, Text, Flex, extendTheme } from '@chakra-ui/react';
-import { GET_EVENTS_NAMES } from '../graphql/queries';
+import { Button, Center, Box, Grid, GridItem, Text, Flex, extendTheme, Circle } from '@chakra-ui/react';
+import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
 import { CREATE_EVENT } from '../graphql/mutations';
 import { ArrowUpIcon } from '@chakra-ui/icons';
 import { createBreakpoints } from '@chakra-ui/theme-tools';
@@ -53,7 +53,6 @@ function AdminPage() {
     function handleScrollAction(id) {
         let targetEle = refs[id].current;
         window.scrollTo(0, findPos(targetEle));
-        console.log(findPos(refs['links'].current));
     }
 
     useEffect(() => {
@@ -74,19 +73,17 @@ function AdminPage() {
         }
     }, [events]);
 
-    const { loading, error, data } = useQuery(GET_EVENTS_NAMES, {
+    const { loading, error, data } = useQuery(GET_EVENTS_KEYS_NAMES, {
         skip: !user.admin,
         fetchPolicy: 'network-only',
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
         },
         onCompleted({ getEvents: events }) {
-            console.log('got query');
             setEvents(events);
             fetch(`https://www.thebluealliance.com/api/v3/events/2022?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`)
                 .then((response) => response.json())
                 .then((data) => {
-                    console.log(events);
                     let filteredData = data.filter((event) => !events.some((e) => e.name === event.name));
                     setBlueAllianceEvents(filteredData);
                     setSetUpDone(true);
@@ -133,9 +130,9 @@ function AdminPage() {
         setupDone ? (
             <Box margin={'0 auto'} width={{ base: '90%', md: '66%', lg: '66%' }}>
                 {position > findPos(refs['links'].current) ? (
-                    <Box zIndex={2} position={'fixed'} cursor={'pointer'} onClick={() => handleScrollAction('links')} left={'10px'} padding={'5px'} borderRadius={'50%'} border={'2px solid black'}>
+                    <Circle backgroundColor={'gray.200'} zIndex={2} position={'fixed'} cursor={'pointer'} onClick={() => handleScrollAction('links')} left={'10px'} padding={'5px'} borderRadius={'50%'} border={'2px solid black'}>
                         <ArrowUpIcon fontSize={'150%'} />
-                    </Box>
+                    </Circle>
                 ) : null}
                 {events.length > 0 ? (
                     <Box margin='0 auto' marginBottom={'25px'}>

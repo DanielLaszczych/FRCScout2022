@@ -2,7 +2,7 @@ import { React, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { Button, Center, Box, Grid, GridItem, Menu, MenuButton, MenuList, MenuItem, Spinner, Text, extendTheme } from '@chakra-ui/react';
-import { GET_EVENT, GET_EVENTS_NAMES, GET_EVENT_PITFORMS } from '../graphql/queries';
+import { GET_EVENT, GET_EVENTS_KEYS_NAMES, GET_EVENT_PITFORMS } from '../graphql/queries';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { createBreakpoints } from '@chakra-ui/theme-tools';
 
@@ -19,20 +19,20 @@ extendTheme({ breakpoints });
 function PitPage() {
     let navigate = useNavigate();
 
-    const [currentEvent, setCurrentEvent] = useState('');
+    const [currentEvent, setCurrentEvent] = useState({ name: '', key: '' });
 
     const {
         loading: loadingEvents,
         error: eventsError,
         data: { getEvents: events } = {},
-    } = useQuery(GET_EVENTS_NAMES, {
+    } = useQuery(GET_EVENTS_KEYS_NAMES, {
         fetchPolicy: 'network-only',
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
         },
         onCompleted({ getEvents: events }) {
             if (events.length > 0) {
-                setCurrentEvent(events[0].name);
+                setCurrentEvent({ name: events[0].name, key: events[0].key });
             }
         },
     });
@@ -42,16 +42,13 @@ function PitPage() {
         error: pitFormsError,
         data: { getEventPitForms: pitforms } = {},
     } = useQuery(GET_EVENT_PITFORMS, {
-        skip: currentEvent === '',
+        skip: currentEvent.key === '',
         fetchPolicy: 'network-only',
         variables: {
-            event: currentEvent,
+            eventKey: currentEvent.key,
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-        },
-        onCompleted({ getEventPitForms: pitforms }) {
-            console.log('Got PitForms From Event');
         },
     });
 
@@ -60,16 +57,13 @@ function PitPage() {
         error: eventError,
         data: { getEvent: event } = {},
     } = useQuery(GET_EVENT, {
-        skip: currentEvent === '',
+        skip: currentEvent.key === '',
         fetchPolicy: 'network-only',
         variables: {
-            name: currentEvent,
+            key: currentEvent.key,
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-        },
-        onCompleted({ getEvent: event }) {
-            console.log('Got Team From Event');
         },
     });
 
@@ -103,18 +97,18 @@ function PitPage() {
             <Center marginBottom={'25px'}>
                 <Menu>
                     <MenuButton _focus={{ outline: 'none' }} textOverflow={'ellipsis'} whiteSpace={'nowrap'} overflow={'hidden'} textAlign={'center'} as={Button} rightIcon={<ChevronDownIcon />}>
-                        {currentEvent}
+                        {currentEvent.name}
                     </MenuButton>
                     <MenuList textAlign={'center'}>
                         {events.map((event, index) => (
-                            <MenuItem maxW={'75vw'} textAlign={'center'} key={index} onClick={() => setCurrentEvent(event.name)}>
+                            <MenuItem maxW={'75vw'} textAlign={'center'} key={index} onClick={() => setCurrentEvent({ name: event.name, key: event.key })}>
                                 {event.name}
                             </MenuItem>
                         ))}
                     </MenuList>
                 </Menu>
             </Center>
-            {currentEvent === '' || loadingEvent || loadingPitForms ? (
+            {currentEvent.key === '' || loadingEvent || loadingPitForms ? (
                 <Center>
                     <Spinner></Spinner>
                 </Center>
@@ -123,7 +117,7 @@ function PitPage() {
                     {event.teams
                         .sort((a, b) => a.number - b.number)
                         .map((team, index) => (
-                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='1fr 2fr 1fr 1fr' gap={'5px'}>
+                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='1fr 2fr 1fr' gap={'5px'}>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                         {team.number}
@@ -134,14 +128,9 @@ function PitPage() {
                                         {team.name}
                                     </Text>
                                 </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                <GridItem padding={'10px 0px 10px 0px'} marginRight={'10px'} marginLeft={'10px'} textAlign={'center'}>
+                                    <Button size='sm' onClick={() => navigate(`/pitform/${currentEvent.key}/${team.number}`)}>
                                         {getPitFormStatus(team.name)}
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                    <Button size='sm' onClick={() => navigate(`/pitform/${currentEvent}/${team.number}`)}>
-                                        PitForm
                                     </Button>
                                 </GridItem>
                             </Grid>

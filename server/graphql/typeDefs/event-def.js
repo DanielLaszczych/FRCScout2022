@@ -29,7 +29,7 @@ module.exports = gql`
 
     extend type Query {
         getEvents: [Event]
-        getEvent(name: String!): Event
+        getEvent(key: String!): Event
     }
 
     extend type Mutation {

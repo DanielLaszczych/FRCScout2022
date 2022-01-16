@@ -19,7 +19,8 @@ module.exports = gql`
 
     type PitForm {
         _id: ID!
-        event: String!
+        eventKey: String!
+        eventName: String!
         teamNumber: Int!
         teamName: String!
         scouter: String!
@@ -57,7 +58,8 @@ module.exports = gql`
     }
 
     input PitFormInput {
-        event: String!
+        eventKey: String!
+        eventName: String!
         teamNumber: Int!
         teamName: String!
         weight: Float
@@ -77,8 +79,8 @@ module.exports = gql`
     }
 
     extend type Query {
-        getPitForm(event: String!, teamNumber: Int!): PitForm
-        getEventPitForms(event: String!): [PitForm]
+        getPitForm(eventKey: String!, teamNumber: Int!): PitForm
+        getEventPitForms(eventKey: String!): [PitForm]
     }
 
     extend type Mutation {

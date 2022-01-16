@@ -1,9 +1,10 @@
 import { gql } from '@apollo/client';
 
 export const GET_PITFORM = gql`
-    query ($event: String!, $teamNumber: Int!) {
-        getPitForm(event: $event, teamNumber: $teamNumber) {
-            event
+    query ($eventKey: String!, $teamNumber: Int!) {
+        getPitForm(eventKey: $eventKey, teamNumber: $teamNumber) {
+            eventKey
+            eventName
             teamNumber
             teamName
             weight
@@ -35,9 +36,10 @@ export const GET_PITFORM = gql`
 `;
 
 export const GET_EVENT_PITFORMS = gql`
-    query ($event: String!) {
-        getEventPitForms(event: $event) {
-            event
+    query ($eventKey: String!) {
+        getEventPitForms(eventKey: $eventKey) {
+            eventKey
+            eventName
             teamNumber
             teamName
             followUp
@@ -61,8 +63,8 @@ export const GET_EVENTS = gql`
 `;
 
 export const GET_EVENT = gql`
-    query ($name: String!) {
-        getEvent(name: $name) {
+    query ($key: String!) {
+        getEvent(key: $key) {
             name
             year
             teams {
@@ -75,9 +77,10 @@ export const GET_EVENT = gql`
     }
 `;
 
-export const GET_EVENTS_NAMES = gql`
+export const GET_EVENTS_KEYS_NAMES = gql`
     {
         getEvents {
+            key
             name
         }
     }

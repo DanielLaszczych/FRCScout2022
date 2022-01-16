@@ -53,6 +53,7 @@ function PitForm() {
     const [setupDone, setSetupDone] = useState(false);
     const [dataLoaded, setDataLoaded] = useState(false);
     const [teamName, setTeamName] = useState('');
+    const [eventName, setEventName] = useState('');
     const [weight, setWeight] = useState('');
     const [height, setHeight] = useState('');
     const [driveTrain, setDriveTrain] = useState('');
@@ -226,16 +227,23 @@ function PitForm() {
     } = useQuery(GET_PITFORM, {
         fetchPolicy: 'network-only',
         variables: {
-            event: event,
+            eventKey: event,
             teamNumber: parseInt(team),
         },
         onError(err) {
             if (err.message === 'Error: Pitform does not exist') {
-                fetch(`https://www.thebluealliance.com/api/v3/team/frc${parseInt(team)}/simple
-?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`)
+                fetch(`https://www.thebluealliance.com/api/v3/team/frc${parseInt(team)}/simple?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`)
                     .then((response) => response.json())
                     .then((data) => {
                         setTeamName(data.nickname);
+                    })
+                    .catch((error) => {
+                        console.error('Error:', error);
+                    });
+                fetch(`https://www.thebluealliance.com/api/v3/event/${event}/simple?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        setEventName(data.name);
                         setDataLoaded(true);
                     })
                     .catch((error) => {
@@ -247,6 +255,7 @@ function PitForm() {
         },
         onCompleted({ getPitForm: pitForm }) {
             setTeamName(pitForm.teamName);
+            setEventName(pitForm.eventName);
             setWeight(pitForm.weight || '');
             setHeight(pitForm.height || '');
             setDriveTrain(pitForm.driveTrain);
@@ -293,7 +302,8 @@ function PitForm() {
         updatePitForm({
             variables: {
                 pitFormInput: {
-                    event: event,
+                    eventKey: event,
+                    eventName: eventName,
                     teamNumber: parseInt(team),
                     teamName: teamName,
                     weight: parseFloat(weight),
@@ -323,7 +333,7 @@ function PitForm() {
         <Box margin={'0 auto'} width={{ base: '75%', md: '66%', lg: '50%' }}>
             <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
-                    Competition: {event}
+                    Competition: {eventName}
                 </Text>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
                     Team Number: {team}
@@ -365,7 +375,7 @@ function PitForm() {
                     value={height}
                     marginLeft={'15px'}
                     min={0}
-                    max={125}
+                    max={52}
                     precision={2}
                     isInvalid={submitAttempted && !markedFollowUp && height === ''}
                     width={{ base: '75%', md: '66%', lg: '50%' }}

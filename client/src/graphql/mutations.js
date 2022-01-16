@@ -3,7 +3,7 @@ import { gql } from '@apollo/client';
 export const UPDATE_PITFORM = gql`
     mutation ($pitFormInput: PitFormInput!) {
         updatePitForm(pitFormInput: $pitFormInput) {
-            event
+            eventName
             teamNumber
         }
     }

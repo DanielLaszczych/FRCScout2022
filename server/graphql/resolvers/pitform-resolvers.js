@@ -3,12 +3,12 @@ const cloudinary = require('cloudinary').v2;
 
 module.exports = {
     Query: {
-        async getPitForm(_, { event, teamNumber }, context) {
+        async getPitForm(_, { eventKey, teamNumber }, context) {
             if (!context.req.user) {
                 throw new Error('You must be logged in');
             }
             try {
-                const pitform = await PitForm.findOne({ event: event, teamNumber: teamNumber }).exec();
+                const pitform = await PitForm.findOne({ eventKey: eventKey, teamNumber: teamNumber }).exec();
                 if (!pitform) {
                     throw new Error('Pitform does not exist');
                 }
@@ -17,12 +17,12 @@ module.exports = {
                 throw new Error(err);
             }
         },
-        async getEventPitForms(_, { event }, context) {
+        async getEventPitForms(_, { eventKey }, context) {
             if (!context.req.user) {
                 throw new Error('You must be logged in');
             }
             try {
-                const pitforms = await PitForm.find({ event: event }).exec();
+                const pitforms = await PitForm.find({ eventKey: eventKey }).exec();
                 return pitforms;
             } catch (err) {
                 throw new Error(err);
@@ -49,7 +49,7 @@ module.exports = {
                 pitFormInput.image = imageUrl;
                 pitFormInput.scouter = context.req.user.displayName;
 
-                const pitform = await PitForm.findOneAndUpdate({ event: pitFormInput.event, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true });
+                const pitform = await PitForm.findOneAndUpdate({ eventKey: pitFormInput.eventKey, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true });
                 return pitform;
             } catch (err) {
                 throw new Error(err);

@@ -13,12 +13,12 @@ module.exports = {
                 throw new Error(err);
             }
         },
-        async getEvent(_, { name }, context) {
+        async getEvent(_, { key }, context) {
             if (!context.req.user) {
                 throw new Error('You must be logged in');
             }
             try {
-                const event = await Event.findOne({ name: name }).exec();
+                const event = await Event.findOne({ key: key }).exec();
                 if (!event) {
                     throw new Error('Event is not registered inside database');
                 }
@@ -36,7 +36,7 @@ module.exports = {
                 throw new Error('You must be an admin to create an event');
             }
             try {
-                const event = await Event.findOneAndUpdate({ name: eventInput.name }, eventInput, { new: true, upsert: true });
+                const event = await Event.findOneAndUpdate({ key: eventInput.key }, eventInput, { new: true, upsert: true });
                 return event;
             } catch (err) {
                 throw new Error(err);

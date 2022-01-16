@@ -39,7 +39,11 @@ const abilitySchema = new Schema({
 
 const pitFormSchema = new Schema(
     {
-        event: {
+        eventKey: {
+            type: String,
+            required: true,
+        },
+        eventName: {
             type: String,
             required: true,
         },
