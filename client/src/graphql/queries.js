@@ -37,12 +37,24 @@ export const GET_PITFORM = gql`
 
 export const GET_EVENT_PITFORMS = gql`
     query ($eventKey: String!) {
-        getEventPitForms(eventKey: $eventKey) {
+        getEventsPitForms(eventKey: $eventKey) {
             eventKey
             eventName
             teamNumber
             teamName
             followUp
+        }
+    }
+`;
+
+export const GET_EVENT_MATCHFORMS = gql`
+    query ($eventKey: String!) {
+        getEventsMatchForms(eventKey: $eventKey) {
+            eventKey
+            eventName
+            matchNumber
+            teamNumber
+            teamName
         }
     }
 `;
@@ -82,6 +94,47 @@ export const GET_EVENTS_KEYS_NAMES = gql`
         getEvents {
             key
             name
+            currentEvent
+        }
+    }
+`;
+
+export const GET_CURRENT_EVENT = gql`
+    {
+        getCurrentEvent {
+            key
+            name
+        }
+    }
+`;
+
+export const GET_MATCHFORM_STATION_QUERY = gql`
+    query ($eventKey: String!, $matchNumber: String!, $station: String!) {
+        getMatchForm(eventKey: $eventKey, matchNumber: $matchNumber, station: $station) {
+            eventKey
+            eventName
+            station
+            teamNumber
+            teamName
+            preLoadedCargo
+            startingPosition {
+                x
+                y
+            }
+            lowerCargoAuto
+            upperCargoAuto
+            crossTarmac
+            autoComment
+            lowerCargoTele
+            upperCargoTele
+            climbTime
+            climbRung
+            defenseRating
+            loseCommunication
+            robotBreak
+            yellowCard
+            redCard
+            endComment
         }
     }
 `;

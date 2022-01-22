@@ -8,22 +8,22 @@ module.exports = {
                 throw new Error('You must be logged in');
             }
             try {
-                const pitform = await PitForm.findOne({ eventKey: eventKey, teamNumber: teamNumber }).exec();
-                if (!pitform) {
-                    throw new Error('Pitform does not exist');
+                const pitForm = await PitForm.findOne({ eventKey: eventKey, teamNumber: teamNumber }).exec();
+                if (!pitForm) {
+                    throw new Error('Pit form does not exist');
                 }
-                return pitform;
+                return pitForm;
             } catch (err) {
                 throw new Error(err);
             }
         },
-        async getEventPitForms(_, { eventKey }, context) {
+        async getEventsPitForms(_, { eventKey }, context) {
             if (!context.req.user) {
                 throw new Error('You must be logged in');
             }
             try {
-                const pitforms = await PitForm.find({ eventKey: eventKey }).exec();
-                return pitforms;
+                const pitForms = await PitForm.find({ eventKey: eventKey }).exec();
+                return pitForms;
             } catch (err) {
                 throw new Error(err);
             }
@@ -49,8 +49,8 @@ module.exports = {
                 pitFormInput.image = imageUrl;
                 pitFormInput.scouter = context.req.user.displayName;
 
-                const pitform = await PitForm.findOneAndUpdate({ eventKey: pitFormInput.eventKey, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true });
-                return pitform;
+                const pitForm = await PitForm.findOneAndUpdate({ eventKey: pitFormInput.eventKey, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true });
+                return pitForm;
             } catch (err) {
                 throw new Error(err);
             }

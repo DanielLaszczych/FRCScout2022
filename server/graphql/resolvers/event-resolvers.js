@@ -27,6 +27,31 @@ module.exports = {
                 throw new Error(err);
             }
         },
+        async getCurrentEvent(_, {}, context) {
+            if (!context.req.user) {
+                throw new Error('You must be logged in');
+            }
+            try {
+                const event = await Event.findOne({ currentEvent: true }).exec();
+                if (!event) {
+                    throw new Error('There is no current event');
+                }
+                return event;
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
+        async getTeamsEvents(_, { teamNumber }, context) {
+            if (!context.req.user) {
+                throw new Error('You must be logged in');
+            }
+            try {
+                const events = await Event.find({ teams: { $elemMatch: { number: teamNumber } } }).exec();
+                return events;
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
     },
     Mutation: {
         async createEvent(_, { eventInput }, context) {

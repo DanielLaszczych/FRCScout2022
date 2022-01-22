@@ -58,6 +58,7 @@ serverOptions(app);
 
 //routes
 app.use('/auth', require('./routes/auth'));
+app.use('/blueAlliance', require('./routes/blueAlliance'));
 app.use('/getuser', (req, res) => {
     res.send(req.user);
 });

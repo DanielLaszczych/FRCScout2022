@@ -1,11 +1,9 @@
-import { createRef, React, useEffect, useState } from 'react';
-import { AuthContext } from '../context/auth';
+import { React, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_PITFORM } from '../graphql/queries';
 import { UPDATE_PITFORM } from '../graphql/mutations';
 import {
-    extendTheme,
     Text,
     Textarea,
     Checkbox,
@@ -25,32 +23,20 @@ import {
     HStack,
     Stack,
     Image,
+    Spinner,
 } from '@chakra-ui/react';
-import { createBreakpoints } from '@chakra-ui/theme-tools';
-import '../stylesheets/pitformstyle.css';
-
-const breakpoints = createBreakpoints({
-    sm: '320px',
-    md: '768px',
-    lg: '960px',
-    xl: '1200px',
-    '2xl': '1536px',
-});
 
 let driveTrains = ['Tank', 'Swerve', 'Mecanum', 'H-Drive'];
 let programmingLanguages = ['Java', 'C++', 'LabView'];
 let startingPositions = ['Left', 'Center', 'Right'];
 
-let imgHeader = null;
-let hiddenImageInput = createRef(null);
-
-extendTheme({ breakpoints });
-
 function PitForm() {
     let navigate = useNavigate();
-    let { event, team } = useParams();
+    let { eventKey, teamNumber } = useParams();
+    const hiddenImageInput = useRef(null);
 
-    const [setupDone, setSetupDone] = useState(false);
+    const [error, setError] = useState(false);
+    const [imgHeader, setImgHeader] = useState('Same Image');
     const [dataLoaded, setDataLoaded] = useState(false);
     const [teamName, setTeamName] = useState('');
     const [eventName, setEventName] = useState('');
@@ -91,12 +77,6 @@ function PitForm() {
     const [image, setImage] = useState('');
     const [markedFollowUp, setMarkedFollowUp] = useState(false);
     const [submitAttempted, setSubmitAttempted] = useState(false);
-
-    useEffect(() => {
-        imgHeader = 'Same Image';
-        hiddenImageInput = createRef(null);
-        setSetupDone(true);
-    }, []);
 
     function handleSetWeight(value) {
         if (value.trim() !== '') {
@@ -201,7 +181,7 @@ function PitForm() {
             fr.readAsDataURL(tempImg);
             fr.onload = () => {
                 tempImg = fr.result;
-                imgHeader = 'New Image';
+                setImgHeader('New Image');
                 setImage(tempImg);
             };
         }
@@ -220,37 +200,50 @@ function PitForm() {
         return weight !== '' && height !== '' && driveTrain !== '' && validWheels() && programmingLanguage !== '' && startingPosition !== '' && abilities.filter((ability) => ability.value).length !== 0;
     }
 
-    const {
-        loading,
-        error,
-        data: { getPitForm: pitForm } = {},
-    } = useQuery(GET_PITFORM, {
+    const { loading: loadingPitForm } = useQuery(GET_PITFORM, {
         fetchPolicy: 'network-only',
         variables: {
-            eventKey: event,
-            teamNumber: parseInt(team),
+            eventKey: eventKey,
+            teamNumber: parseInt(teamNumber),
         },
         onError(err) {
-            if (err.message === 'Error: Pitform does not exist') {
-                fetch(`https://www.thebluealliance.com/api/v3/team/frc${parseInt(team)}/simple?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`)
+            if (err.message === 'Error: Pit form does not exist') {
+                fetch(`/blueAlliance/team/frc${parseInt(teamNumber)}/simple`)
                     .then((response) => response.json())
                     .then((data) => {
-                        setTeamName(data.nickname);
+                        if (!data.Error) {
+                            setTeamName(data.nickname);
+                        } else {
+                            console.error('Error:', data.Error);
+                            setError(true);
+                        }
                     })
-                    .catch((error) => {
-                        console.error('Error:', error);
+                    .catch((err) => {
+                        console.error(err);
+                        setError(true);
                     });
-                fetch(`https://www.thebluealliance.com/api/v3/event/${event}/simple?X-TBA-Auth-Key=VcTpa99nIEsT44AsrzSXFzdlS7efZ1wWCrnkMMFyBWQ3tXbp0KFRHSJTLhx96ukP`)
+                fetch(`/blueAlliance/team/frc${parseInt(teamNumber)}/events/2022/simple`)
                     .then((response) => response.json())
                     .then((data) => {
-                        setEventName(data.name);
-                        setDataLoaded(true);
+                        if (!data.Error) {
+                            let event = data.find((event) => event.key === eventKey);
+                            if (event === undefined) {
+                                setError(true);
+                            } else {
+                                setEventName(event.name);
+                            }
+                        } else {
+                            console.error('Error:', data.Error);
+                            setError(true);
+                        }
                     })
-                    .catch((error) => {
-                        console.error('Error:', error);
+                    .catch((err) => {
+                        console.error(err);
+                        setError(true);
                     });
             } else {
                 console.log(JSON.stringify(err, null, 2));
+                setError(true);
             }
         },
         onCompleted({ getPitForm: pitForm }) {
@@ -302,9 +295,9 @@ function PitForm() {
         updatePitForm({
             variables: {
                 pitFormInput: {
-                    eventKey: event,
+                    eventKey: eventKey,
                     eventName: eventName,
-                    teamNumber: parseInt(team),
+                    teamNumber: parseInt(teamNumber),
                     teamName: teamName,
                     weight: parseFloat(weight),
                     height: parseFloat(height),
@@ -325,18 +318,26 @@ function PitForm() {
         });
     }
 
-    if (!setupDone || loading || !dataLoaded) {
-        return null;
+    if (error) {
+        return <Center>Error occurred</Center>;
+    }
+
+    if (loadingPitForm || (!dataLoaded ? eventName === '' || teamName === '' : false)) {
+        return (
+            <Center>
+                <Spinner></Spinner>
+            </Center>
+        );
     }
 
     return (
-        <Box margin={'0 auto'} width={{ base: '75%', md: '66%', lg: '50%' }}>
+        <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
             <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
                     Competition: {eventName}
                 </Text>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
-                    Team Number: {team}
+                    Team Number: {teamNumber}
                 </Text>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
                     Team Name: {teamName}
@@ -355,7 +356,7 @@ function PitForm() {
                     max={125}
                     precision={2}
                     isInvalid={submitAttempted && !markedFollowUp && weight === ''}
-                    width={{ base: '75%', md: '66%', lg: '50%' }}
+                    width={{ base: '85%', md: '66%', lg: '50%' }}
                 >
                     <NumberInputField _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Weight (lbs)' />
                     <NumberInputStepper>
@@ -378,7 +379,7 @@ function PitForm() {
                     max={52}
                     precision={2}
                     isInvalid={submitAttempted && !markedFollowUp && height === ''}
-                    width={{ base: '75%', md: '66%', lg: '50%' }}
+                    width={{ base: '85%', md: '66%', lg: '50%' }}
                 >
                     <NumberInputField _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Height (in)' />
                     <NumberInputStepper>
@@ -395,7 +396,7 @@ function PitForm() {
                 <Text marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
                     Type:
                 </Text>
-                <RadioGroup marginLeft={'15px'} onChange={setDriveTrain} value={driveTrain}>
+                <RadioGroup paddingLeft={'15px'} onChange={setDriveTrain} value={driveTrain}>
                     <Stack direction={['column', 'row']}>
                         {driveTrains.map((driveTrainLabel, index) => (
                             <Radio isInvalid={submitAttempted && !markedFollowUp && driveTrain === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={driveTrainLabel}>
@@ -411,13 +412,13 @@ function PitForm() {
                     <VStack>
                         {motors.map((motor, index) => (
                             <HStack key={index}>
-                                <Button colorScheme={'red'} onClick={() => handleDecrementMotor(motor.label)} _focus={{ outline: 'none' }}>
+                                <Button paddingBottom={'4px'} colorScheme={'red'} onClick={() => handleDecrementMotor(motor.label)} _focus={{ outline: 'none' }}>
                                     -
                                 </Button>
-                                <Text minW={{ base: '100px', md: '200px', lg: '300px' }} textAlign={'center'}>
+                                <Text minW={{ base: '130px', md: '200px', lg: '300px' }} textAlign={'center'}>
                                     {motor.label}: {motor.value}
                                 </Text>
-                                <Button maxW={'40px'} colorScheme={'green'} onClick={() => handleIncrementMotor(motor.label)} _focus={{ outline: 'none' }}>
+                                <Button paddingBottom={'4px'} maxW={'40px'} colorScheme={'green'} onClick={() => handleIncrementMotor(motor.label)} _focus={{ outline: 'none' }}>
                                     +
                                 </Button>
                             </HStack>
@@ -431,7 +432,7 @@ function PitForm() {
                     {wheels.map((wheel, index) => (
                         <Grid key={index} templateColumns='1fr 2fr 1fr'>
                             <GridItem>
-                                <Text marginTop='10px' marginBottom='10px' fontSize={{ base: '80%', md: '100%', lg: '100%' }} textAlign={'center'}>
+                                <Text marginTop='10px' marginBottom='10px' fontSize={{ base: '90%', md: '100%', lg: '100%' }} textAlign={'center'}>
                                     {wheel.label}
                                 </Text>
                             </GridItem>
@@ -452,7 +453,7 @@ function PitForm() {
                                             _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
                                             textAlign={'center'}
                                             padding={'0px 0px 0px 0px'}
-                                            fontSize={{ base: '80%', md: '100%', lg: '100%' }}
+                                            fontSize={{ base: '90%', md: '100%', lg: '100%' }}
                                             placeholder='Size (in)'
                                         />
                                     </NumberInput>
@@ -460,11 +461,11 @@ function PitForm() {
                             </GridItem>
                             <GridItem>
                                 <HStack marginTop='10px' marginBottom='10px'>
-                                    <Button size='xs' colorScheme={'red'} onClick={() => handleDecrementWheel(wheel.label)} _focus={{ outline: 'none' }}>
+                                    <Button paddingBottom={'2px'} size='xs' colorScheme={'red'} onClick={() => handleDecrementWheel(wheel.label)} _focus={{ outline: 'none' }}>
                                         -
                                     </Button>
                                     <Text>{wheel.value}</Text>
-                                    <Button size={'xs'} colorScheme={'green'} onClick={() => handleIncrementWheel(wheel.label)} _focus={{ outline: 'none' }}>
+                                    <Button paddingBottom={'2px'} size={'xs'} colorScheme={'green'} onClick={() => handleIncrementWheel(wheel.label)} _focus={{ outline: 'none' }}>
                                         +
                                     </Button>
                                 </HStack>
@@ -478,7 +479,7 @@ function PitForm() {
                         onChange={(event) => setDriveTrainComment(event.target.value)}
                         value={driveTrainComment}
                         placeholder='Any additional comments about drive train'
-                        w={'75%'}
+                        w={'85%'}
                     ></Textarea>
                 </Center>
             </Box>
@@ -516,7 +517,7 @@ function PitForm() {
                         onChange={(event) => setAutoComment(event.target.value)}
                         value={autoComment}
                         placeholder='What is their usual strategy in auto?'
-                        w={'75%'}
+                        w={'85%'}
                     ></Textarea>
                 </Center>
             </Box>
@@ -544,7 +545,7 @@ function PitForm() {
                     ))}
                 </VStack>
             </Box>
-            <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
+            <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'20px'}>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
                     Closing:{' '}
                 </Text>
@@ -554,11 +555,11 @@ function PitForm() {
                         onChange={(event) => setWorkingComment(event.target.value)}
                         value={workingComment}
                         placeholder='Anything the team is still working on?'
-                        w={'75%'}
+                        w={'85%'}
                     ></Textarea>
                 </Center>
                 <Center marginTop={'20px'}>
-                    <Textarea _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} onChange={(event) => setClosingComment(event.target.value)} value={closingComment} placeholder='Any additional comments' w={'75%'}></Textarea>
+                    <Textarea _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} onChange={(event) => setClosingComment(event.target.value)} value={closingComment} placeholder='Any additional comments' w={'85%'}></Textarea>
                 </Center>
                 <VStack marginTop={'20px'}>
                     {/* <img
@@ -569,7 +570,7 @@ function PitForm() {
                         }}
                         src={image}
                     /> */}
-                    <Image w={{ base: '50%', md: '35%', lg: '25%' }} maxW={{ base: '50%', md: '35%', lg: '25%' }} src={image} />
+                    <Image w={{ base: '60%', md: '35%', lg: '25%' }} maxW={{ base: '60%', md: '35%', lg: '25%' }} src={image} />
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     <Button variant='outline' borderColor='gray.300' _focus={{ outline: 'none' }} onClick={() => hiddenImageInput.current.click()}>
                         Upload Image
@@ -594,7 +595,7 @@ function PitForm() {
             </Box>
 
             <Center>
-                <Button _focus={{ outline: 'none' }} marginBottom={'25px'} onClick={() => submit()}>
+                <Button _focus={{ outline: 'none' }} marginBottom={'20px'} onClick={() => submit()}>
                     Submit
                 </Button>
             </Center>

@@ -32,6 +32,11 @@ const eventSchema = new Schema({
         type: String,
         required: true,
     },
+    currentEvent: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
 });
 
 const Event = model('Event', eventSchema);

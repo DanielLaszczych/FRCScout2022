@@ -21,6 +21,7 @@
     "express-session": "^1.17.2",
     "graphql": "^16.2.0",
     "mongoose": "^6.1.5",
+    "node-fetch": "^2.6.7",
     "nodemon": "^2.0.15",
     "passport": "^0.5.2",
     "passport-google-oauth20": "^2.0.0",

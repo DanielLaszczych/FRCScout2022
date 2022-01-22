@@ -17,3 +17,12 @@ export const CREATE_EVENT = gql`
         }
     }
 `;
+
+export const UPDATE_MATCHFORM = gql`
+    mutation ($matchFormInput: MatchFormInput!) {
+        updateMatchForm(matchFormInput: $matchFormInput) {
+            eventName
+            teamNumber
+        }
+    }
+`;

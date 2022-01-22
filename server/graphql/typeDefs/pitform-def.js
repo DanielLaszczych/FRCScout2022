@@ -80,7 +80,7 @@ module.exports = gql`
 
     extend type Query {
         getPitForm(eventKey: String!, teamNumber: Int!): PitForm
-        getEventPitForms(eventKey: String!): [PitForm]
+        getEventsPitForms(eventKey: String!): [PitForm]
     }
 
     extend type Mutation {

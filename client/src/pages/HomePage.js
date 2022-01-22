@@ -1,6 +1,7 @@
 import { React, useContext } from 'react';
 import { AuthContext } from '../context/auth';
 import { config } from '../util/constants';
+import { Link } from 'react-router-dom';
 import { Button, Center, VStack, Image } from '@chakra-ui/react';
 
 function HomePage() {
@@ -23,6 +24,9 @@ function HomePage() {
                         </a>
                     )}
                 </div>
+                <Button as={Link} to={'/matchForm'}>
+                    Match Form
+                </Button>
             </VStack>
         </Center>
     );

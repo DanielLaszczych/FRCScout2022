@@ -25,7 +25,7 @@ const client = new ApolloClient({
 
 ReactDOM.render(
     <React.StrictMode>
-        <ColorModeScript initialColorMode={theme.config.initialColorMode} />
+        {/* <ColorModeScript /> */}
         <ApolloProvider client={client}>
             <AuthProvider>
                 <App />

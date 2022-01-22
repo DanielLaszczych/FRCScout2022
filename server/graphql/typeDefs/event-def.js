@@ -12,6 +12,7 @@ module.exports = gql`
         year: Int!
         teams: [Team]
         key: String!
+        currentEvent: Boolean!
     }
 
     input TeamInput {
@@ -30,6 +31,8 @@ module.exports = gql`
     extend type Query {
         getEvents: [Event]
         getEvent(key: String!): Event
+        getCurrentEvent: Event
+        getTeamsEvents(teamNumber: Int!): [Event]
     }
 
     extend type Mutation {
