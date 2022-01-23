@@ -1,18 +1,15 @@
 import { React, useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Button, Center, Flex, HStack, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea, useUpdateEffect } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { ChevronDownIcon } from '@chakra-ui/icons';
 import Field from '../images/Field.png';
 import CustomMinusButton from '../components/CustomMinusButton';
 import CustomPlusButton from '../components/CustomPlusButton';
 import StopWatch from '../components/StopWatch';
 import { UPDATE_MATCHFORM } from '../graphql/mutations';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_MATCHFORM_STATION_QUERY } from '../graphql/queries';
+import { GET_EVENT, GET_MATCHFORM_BY_STATION } from '../graphql/queries';
 
 let tabs = ['Auto', 'Teleop', 'Post'];
-let stations = ['Red Station 1', 'Red Station 2', 'Red Station 3', 'Blue Station 1', 'Blue Station 2', 'Blue Station 3'];
-let matchTypes = ['Quals', 'Quarters', 'Semis', 'Finals'];
 let rungs = ['Low Rung', 'Mid Rung', 'High Rung', 'Traversal Rung', 'Failed'];
 let defenseRatings = [0, 1, 2, 3, 4, 5];
 
@@ -22,23 +19,18 @@ function MatchForm() {
     const canvas = useRef(null);
 
     const [validMatch, setValidMatch] = useState(false);
-    const [error, setError] = useState(false);
-    const [tab, setTab] = useState('Auto');
+    const [validEvent, setValidEvent] = useState(false);
+    const [error, setError] = useState(null);
+    const [tab, setTab] = useState(null);
     const [imagePrevDimensions, _setImagePrevDimensions] = useState({ x: 810, y: 414 });
     const imagePrevDimensionsRef = useRef(imagePrevDimensions);
     const setImagePrevDimensions = (data) => {
         imagePrevDimensionsRef.current = data;
         _setImagePrevDimensions(data);
     };
-    const [station, setStation] = useState('');
-    const [focusedStation, setFocusedStation] = useState('');
-    const [matchType, setMatchType] = useState('');
-    const [focusedMatchType, setFocusedMatchType] = useState('');
-    const [matchNumber1, setMatchNumber1] = useState('');
-    const [matchNumber2, setMatchNumber2] = useState('');
+    const [eventName, setEventName] = useState('');
     const [teamNumber, setTeamNumber] = useState('');
     const [teamName, setTeamName] = useState('');
-    const [teamConfirmed, setTeamConfirmed] = useState(false);
     const [preLoadedCargo, setPreLoadedCargo] = useState('');
     const [startingPosition, _setStartingPosition] = useState({ x: null, y: null });
     const startingPositionRef = useRef(startingPosition);
@@ -62,8 +54,8 @@ function MatchForm() {
     const [endComment, setEndComment] = useState('');
     const [submitAttempted, setSubmitAttempted] = useState(false);
 
-    const { loading: loadingMatchData } = useQuery(GET_MATCHFORM_STATION_QUERY, {
-        skip: !validMatch,
+    const { loading: loadingMatchData, error: matchDataError } = useQuery(GET_MATCHFORM_BY_STATION, {
+        skip: !validEvent || !validMatch,
         fetchPolicy: 'network-only',
         variables: {
             eventKey: eventKeyParam,
@@ -71,26 +63,80 @@ function MatchForm() {
             station: stationParam,
         },
         onError(err) {
-            if (err.message !== 'Error: Match form does not exist') {
+            if (err.message === 'Error: Match form does not exist') {
+                setTab('Auto');
+                fetch(`/blueAlliance/team/frc${teamNumber}/simple`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        if (!data.Error) {
+                            setTeamName(data.nickname);
+                        } else {
+                            setError(data.Error);
+                        }
+                    })
+                    .catch((error) => {
+                        setError(error);
+                    });
+            } else {
                 console.log(JSON.stringify(err, null, 2));
-                setError(true);
+                setError('Apollo error, check console for logs');
             }
         },
-        onCompleted({ getMatchForm: matchForm }) {
-            setStation(matchForm.station);
-            setMatchType(matchForm.matchType);
+        onCompleted({ getMatchFormByStation: matchForm }) {
+            setTeamName(matchForm.teamName);
+            setPreLoadedCargo(matchForm.preLoadedCargo);
+            setImagePrevDimensions({ x: matchForm.startingPosition.width, y: matchForm.startingPosition.height });
+            setStartingPosition({ x: matchForm.startingPosition.x, y: matchForm.startingPosition.y });
+            setLowerCargoAuto(matchForm.lowerCargoAuto);
+            setUpperCargoAuto(matchForm.upperCargoAuto);
+            setCrossTarmac(matchForm.crossTarmac);
+            setAutoComment(matchForm.autoComment);
+            setLowerCargoTele(matchForm.lowerCargoTele);
+            setUpperCargoTele(matchForm.upperCargoTele);
+            setClimbTime(matchForm.climbTime);
+            setClimbRung(matchForm.climbRung);
+            setDefenseRating(matchForm.defenseRating);
+            setLoseCommunication(matchForm.loseCommunication);
+            setRobotBreak(matchForm.robotBreak);
+            setYellowCard(matchForm.yellowCard);
+            setRedCard(matchForm.redCard);
+            setEndComment(matchForm.endComment);
+            setTab('Auto');
+        },
+    });
+
+    const { loading: loadingEvent, error: eventError } = useQuery(GET_EVENT, {
+        skip: !validMatch,
+        fetchPolicy: 'network-only',
+        variables: {
+            key: eventKeyParam,
+        },
+        onCompleted({ getEvent: event }) {
+            setEventName(event.name);
+            setValidEvent(true);
+        },
+        onError(err) {
+            if (err.message === 'Error: Event is not registered inside database') {
+                setError('We are not registered for this event');
+            } else {
+                console.log(JSON.stringify(err, null, 2));
+                setError('Apollo error, check console for logs');
+            }
         },
     });
 
     useEffect(() => {
-        fetch(`/blueAlliance/match/${eventKeyParam}_${convertMatchNumberToBlueAPI(matchNumberParam)}/simple`)
+        if (!/[rb][123]/.test(stationParam)) {
+            setError('Invalid station in the url');
+            return;
+        }
+        fetch(`/blueAlliance/match/${eventKeyParam}_${matchNumberParam}/simple`)
             .then((response) => response.json())
             .then((data) => {
                 if (!data.Error) {
-                    let stationColor = stationParam.charAt(0);
                     let stationNumber = parseInt(stationParam.charAt(1)) - 1;
                     let teamKey;
-                    if (stationColor === 'r') {
+                    if (stationParam.charAt(0) === 'r') {
                         teamKey = data.alliances.red.team_keys[stationNumber];
                     } else {
                         teamKey = data.alliances.blue.team_keys[stationNumber];
@@ -98,13 +144,11 @@ function MatchForm() {
                     setTeamNumber(teamKey.substring(3));
                     setValidMatch(true);
                 } else {
-                    console.error('Error:', data.Error);
-                    setError(true);
+                    setError(data.Error);
                 }
             })
             .catch((error) => {
-                console.error('Error:', error);
-                setError(true);
+                setError(error);
             });
     }, []);
 
@@ -137,13 +181,13 @@ function MatchForm() {
         } else {
             scale = 0.45;
         }
-        return (screenWidth / 60) * scale;
+        return (screenWidth / 40) * scale;
     }
 
     const drawPoint = useCallback((x, y) => {
         setStartingPosition({ x: x, y: y });
         let ctx = canvas.current.getContext('2d');
-        ctx.lineWidth = '1';
+        ctx.lineWidth = '4';
         ctx.strokeStyle = 'green';
         ctx.beginPath();
         ctx.arc(x, y, calculateCircleRadius(), 0, 2 * Math.PI);
@@ -181,95 +225,20 @@ function MatchForm() {
     const resizeCanvas = useCallback(() => {
         let doResize;
         clearTimeout(doResize);
-        doResize = setTimeout(drawImage, 250);
+        doResize = setTimeout(drawImage(null, null, true), 250);
     }, [drawImage]);
 
     useEffect(() => {
         if (tab === 'Auto') {
             drawImage(null, null, true);
         }
-    }, [tab, teamConfirmed, drawImage]);
+    }, [tab, drawImage]);
 
     useEffect(() => {
         window.addEventListener('resize', resizeCanvas);
 
         return () => window.removeEventListener('resize', resizeCanvas);
     }, [resizeCanvas]);
-
-    useEffect(() => {
-        function getTeamNumber() {
-            if (station === '' || matchType === '') return;
-            let matchKey;
-            switch (matchType) {
-                case 'Quals':
-                    if (matchNumber1 === '') {
-                        setTeamNumber('');
-                        return;
-                    }
-                    matchKey = `qm${matchNumber1}`;
-                    break;
-                case 'Quarters':
-                    if (matchNumber1 === '' || matchNumber2 === '') {
-                        setTeamNumber('');
-                        return;
-                    }
-                    matchKey = `qf${matchNumber1}m${matchNumber2}`;
-                    break;
-                case 'Semis':
-                    if (matchNumber1 === '' || matchNumber2 === '') {
-                        setTeamNumber('');
-                        return;
-                    }
-                    matchKey = `sf${matchNumber1}m${matchNumber2}`;
-                    break;
-                case 'Finals':
-                    if (matchNumber1 === '' || matchNumber2 === '') {
-                        setTeamNumber('');
-                        return;
-                    }
-                    matchKey = `f${matchNumber1}m${matchNumber2}`;
-                    break;
-                default:
-                    setTeamNumber('');
-                    return;
-            }
-            fetch(`blueAlliance/match/2019nyny_${matchKey}`)
-                .then((response) => response.json())
-                .then((data) => {
-                    switch (station) {
-                        case 'Red Station 1':
-                            setTeamNumber(data.alliances.red.team_keys[0].substring(3));
-                            break;
-                        case 'Red Station 2':
-                            setTeamNumber(data.alliances.red.team_keys[1].substring(3));
-                            break;
-                        case 'Red Station 3':
-                            setTeamNumber(data.alliances.red.team_keys[2].substring(3));
-                            break;
-                        case 'Blue Station 1':
-                            setTeamNumber(data.alliances.blue.team_keys[0].substring(3));
-                            break;
-                        case 'Blue Station 2':
-                            setTeamNumber(data.alliances.blue.team_keys[1].substring(3));
-                            break;
-                        case 'Blue Station 3':
-                            setTeamNumber(data.alliances.blue.team_keys[2].substring(3));
-                            break;
-                        default:
-                            setTeamNumber('');
-                    }
-                })
-                .catch((error) => {
-                    setTeamNumber('');
-                    console.error('Error:', error);
-                });
-        }
-        getTeamNumber();
-    }, [station, matchType, matchNumber1, matchNumber2]);
-
-    function validSetup() {
-        return station !== '' && matchType !== '' && matchNumber1 !== '' && (matchType !== 'Quals' ? matchNumber2 !== '' : true) && teamNumber !== '';
-    }
 
     function validAuto() {
         return preLoadedCargo !== '' && startingPosition.x !== null && startingPosition.y !== null && crossTarmac !== '';
@@ -280,7 +249,7 @@ function MatchForm() {
     }
 
     function validForm() {
-        return validSetup() && validAuto() && validTele();
+        return validAuto() && validTele();
     }
 
     function validateTab(tab) {
@@ -293,42 +262,13 @@ function MatchForm() {
         }
     }
 
-    function convertMatchNumberToBlueAPI(matchNumber) {
-        try {
-            let matchParts = matchNumber.split('_');
-            let matchType = matchParts[0];
-            let matchNumber1 = matchParts[1];
-            let matchNumber2;
-            if (matchType !== 'Quals') {
-                matchNumber2 = matchParts[2];
-            }
-            if (matchType === 'Quals') {
-                return 'qm' + matchNumber2;
-            } else if (matchType === 'Quarters') {
-                return 'qf' + matchNumber1 + 'm' + matchNumber2;
-            } else if (matchType === 'Semis') {
-                return 'sf' + matchNumber1 + 'm' + matchNumber2;
-            } else if (matchType === 'Finals') {
-                return 'f' + matchNumber1 + 'm' + matchNumber2;
-            } else {
-                return 'Error';
-            }
-        } catch (err) {
-            console.error(err);
-            return 'Error';
-        }
-    }
-
-    function createMatchNumber() {
-        return matchType + '_' + matchNumber1 + (matchType !== 'Quals' ? '_' + matchNumber2 : '');
-    }
-
     const [updateMatchForm] = useMutation(UPDATE_MATCHFORM, {
         onCompleted() {
             navigate('/');
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
+            setError('Apollo error, check console for logs');
         },
     });
 
@@ -337,27 +277,17 @@ function MatchForm() {
         if (!validForm()) {
             return;
         }
-        if (teamName === '') {
-            fetch(`blueAlliance/team/frc${parseInt(teamNumber)}/simple`)
-                .then((response) => response.json())
-                .then((data) => {
-                    setTeamName(data.nickname);
-                })
-                .catch((error) => {
-                    console.error('Error:', error);
-                });
-        }
         updateMatchForm({
             variables: {
                 matchFormInput: {
-                    eventKey: '2022nyny',
-                    eventName: 'New York City Regional',
-                    station: station,
-                    matchNumber: createMatchNumber(),
+                    eventKey: eventKeyParam,
+                    eventName: eventName,
+                    station: stationParam,
+                    matchNumber: matchNumberParam,
                     teamNumber: parseInt(teamNumber),
                     teamName: teamName,
                     preLoadedCargo: preLoadedCargo,
-                    startingPosition: startingPosition,
+                    startingPosition: { ...startingPosition, width: imagePrevDimensions.x, height: imagePrevDimensions.y },
                     lowerCargoAuto: lowerCargoAuto,
                     upperCargoAuto: upperCargoAuto,
                     crossTarmac: crossTarmac,
@@ -584,125 +514,34 @@ function MatchForm() {
                     </Box>
                 );
             default:
-                return <Center>Error</Center>;
+                return null;
         }
+    }
+
+    if (error !== null) {
+        return <Center>{error}</Center>;
+    }
+
+    if (!validMatch || !validEvent || loadingMatchData || loadingEvent || matchDataError || eventError) {
+        return (
+            <Center>
+                <Spinner></Spinner>
+            </Center>
+        );
     }
 
     return (
         <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
-            {!teamConfirmed ? (
-                <Box>
-                    <Box border={'black solid'} borderRadius={'10px'} padding={'10px'}>
-                        <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Competition: New York City Regional
-                        </Text>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Alliance Station:
-                        </Text>
-                        <Menu>
-                            <MenuButton
-                                marginLeft={'10px'}
-                                onClick={() => setFocusedStation('')}
-                                _focus={{ outline: 'none' }}
-                                textOverflow={'ellipsis'}
-                                whiteSpace={'nowrap'}
-                                overflow={'hidden'}
-                                textAlign={'center'}
-                                as={Button}
-                                rightIcon={<ChevronDownIcon />}
-                            >
-                                {station === '' ? 'Choose Station' : station}
-                            </MenuButton>
-                            <MenuList textAlign={'center'}>
-                                {stations.map((stationItem, index) => (
-                                    <MenuItem
-                                        _focus={{ backgroundColor: 'none' }}
-                                        onMouseEnter={() => setFocusedStation(stationItem)}
-                                        backgroundColor={(station === stationItem && focusedStation === '') || focusedStation === stationItem ? 'gray.100' : 'none'}
-                                        maxW={'80vw'}
-                                        textAlign={'center'}
-                                        key={index}
-                                        onClick={() => setStation(stationItem)}
-                                    >
-                                        {stationItem}
-                                    </MenuItem>
-                                ))}
-                            </MenuList>
-                        </Menu>
-                        <Text marginTop={'20px'} marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Match Number:
-                        </Text>
-                        <Menu>
-                            <MenuButton
-                                marginLeft={'10px'}
-                                onClick={() => setFocusedMatchType('')}
-                                _focus={{ outline: 'none' }}
-                                textOverflow={'ellipsis'}
-                                whiteSpace={'nowrap'}
-                                overflow={'hidden'}
-                                textAlign={'center'}
-                                as={Button}
-                                rightIcon={<ChevronDownIcon />}
-                            >
-                                {matchType === '' ? 'Choose Match Type' : matchType}
-                            </MenuButton>
-                            <MenuList textAlign={'center'}>
-                                {matchTypes.map((matchTypeItem, index) => (
-                                    <MenuItem
-                                        _focus={{ backgroundColor: 'none' }}
-                                        onMouseEnter={() => setFocusedMatchType(matchTypeItem)}
-                                        backgroundColor={(matchType === matchTypeItem && focusedMatchType === '') || focusedMatchType === matchTypeItem ? 'gray.100' : 'none'}
-                                        maxW={'80vw'}
-                                        textAlign={'center'}
-                                        key={index}
-                                        onClick={() => {
-                                            setMatchNumber1('');
-                                            setMatchNumber2('');
-                                            setMatchType(matchTypeItem);
-                                        }}
-                                    >
-                                        {matchTypeItem}
-                                    </MenuItem>
-                                ))}
-                            </MenuList>
-                        </Menu>
-                        <HStack marginTop={'10px'}>
-                            {matchType !== '' ? (
-                                <NumberInput marginLeft={'10px'} onChange={(value) => setMatchNumber1(value)} value={matchNumber1} min={1} precision={0} width={{ base: matchType === 'Quals' ? '75%' : '45%', md: '66%', lg: '50%' }}>
-                                    <NumberInputField _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} textAlign={'center'} placeholder='Enter Match #' />
-                                </NumberInput>
-                            ) : null}
-                            {matchType === 'Quals' || matchType === '' ? null : <Text>-</Text>}
-                            {matchType === 'Quals' || matchType === '' ? null : (
-                                <NumberInput marginLeft={'10px'} onChange={(value) => setMatchNumber2(value)} value={matchNumber2} min={1} precision={0} width={{ base: matchType === 'Quals' ? '75%' : '45%', md: '66%', lg: '50%' }}>
-                                    <NumberInputField _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} textAlign={'center'} placeholder='Enter Match #' />
-                                </NumberInput>
-                            )}
-                        </HStack>
-                        <Text marginTop={'10px'} marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Team Number: {teamNumber}
-                        </Text>
-                    </Box>
-                    <Center>
-                        <Button disabled={!validSetup()} _focus={{ outline: 'none' }} marginBottom={'20px'} marginTop={'20px'} onClick={() => setTeamConfirmed(true)}>
-                            Confirm
+            <Center>
+                <HStack marginBottom={'25px'}>
+                    {tabs.map((tabItem, index) => (
+                        <Button border={submitAttempted && !validateTab(tabItem) ? '2px red solid' : 'none'} colorScheme={tab === tabItem ? 'green' : 'gray'} key={index} _focus={{ outline: 'none' }} onClick={() => setTab(tabItem)}>
+                            {tabItem}
                         </Button>
-                    </Center>
-                </Box>
-            ) : (
-                <Box>
-                    <Center>
-                        <HStack marginBottom={'25px'}>
-                            {tabs.map((tabItem, index) => (
-                                <Button border={submitAttempted && !validateTab(tabItem) ? '2px red solid' : 'none'} colorScheme={tab === tabItem ? 'green' : 'gray'} key={index} _focus={{ outline: 'none' }} onClick={() => setTab(tabItem)}>
-                                    {tabItem}
-                                </Button>
-                            ))}
-                        </HStack>
-                    </Center>
-                    {renderTab(tab)}
-                </Box>
-            )}
+                    ))}
+                </HStack>
+            </Center>
+            {renderTab(tab)}
         </Box>
     );
 }

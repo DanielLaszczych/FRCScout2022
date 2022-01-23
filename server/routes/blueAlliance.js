@@ -34,7 +34,6 @@ router.use('/:apiCall(*)', (req, res) => {
         res.send('Not signed in');
         return;
     }
-    console.log(req.params.apiCall);
     fetch(`https://www.thebluealliance.com/api/v3/${req.params.apiCall}?X-TBA-Auth-Key=${process.env.BLUEALLIANCE_API_KEY}`)
         .then((response) => response.json())
         .then((data) => {

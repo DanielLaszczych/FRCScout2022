@@ -25,6 +25,7 @@ import {
     Image,
     Spinner,
 } from '@chakra-ui/react';
+import { year } from '../util/constants';
 
 let driveTrains = ['Tank', 'Swerve', 'Mecanum', 'H-Drive'];
 let programmingLanguages = ['Java', 'C++', 'LabView'];
@@ -200,7 +201,7 @@ function PitForm() {
         return weight !== '' && height !== '' && driveTrain !== '' && validWheels() && programmingLanguage !== '' && startingPosition !== '' && abilities.filter((ability) => ability.value).length !== 0;
     }
 
-    const { loading: loadingPitForm } = useQuery(GET_PITFORM, {
+    const { loading: loadingPitForm, error: pitFormError } = useQuery(GET_PITFORM, {
         fetchPolicy: 'network-only',
         variables: {
             eventKey: eventKey,
@@ -222,7 +223,7 @@ function PitForm() {
                         console.error(err);
                         setError(true);
                     });
-                fetch(`/blueAlliance/team/frc${parseInt(teamNumber)}/events/2022/simple`)
+                fetch(`/blueAlliance/team/frc${parseInt(teamNumber)}/events/${year}/simple`)
                     .then((response) => response.json())
                     .then((data) => {
                         if (!data.Error) {
@@ -322,7 +323,7 @@ function PitForm() {
         return <Center>Error occurred</Center>;
     }
 
-    if (loadingPitForm || (!dataLoaded ? eventName === '' || teamName === '' : false)) {
+    if (loadingPitForm || pitFormError || (!dataLoaded ? eventName === '' || teamName === '' : false)) {
         return (
             <Center>
                 <Spinner></Spinner>

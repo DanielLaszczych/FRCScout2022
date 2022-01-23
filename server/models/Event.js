@@ -1,20 +1,5 @@
 const { model, Schema } = require('mongoose');
 
-const teamSchema = new Schema({
-    name: {
-        type: String,
-        required: true,
-    },
-    number: {
-        type: Number,
-        required: true,
-    },
-    key: {
-        type: String,
-        required: true,
-    },
-});
-
 const eventSchema = new Schema({
     name: {
         type: String,
@@ -24,10 +9,23 @@ const eventSchema = new Schema({
         type: Number,
         required: true,
     },
-    teams: {
-        type: [teamSchema],
-        required: true,
-    },
+    teams: [
+        {
+            name: {
+                type: String,
+                required: true,
+            },
+            number: {
+                type: Number,
+                required: true,
+            },
+            key: {
+                type: String,
+                required: true,
+            },
+            _id: false,
+        },
+    ],
     key: {
         type: String,
         required: true,

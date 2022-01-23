@@ -8,7 +8,8 @@ function StopWatch({ setParentTimer, initTime }) {
 
     useEffect(() => {
         if (!componentMounted) {
-            setTime(() => initTime, setComponentMounted(true));
+            setTime(() => initTime);
+            setComponentMounted(true);
         }
     }, [initTime, componentMounted]);
 

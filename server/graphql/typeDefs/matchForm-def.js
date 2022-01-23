@@ -4,6 +4,8 @@ module.exports = gql`
     type StartingPosition {
         x: Float!
         y: Float!
+        width: Float!
+        height: Float!
     }
 
     type MatchForm {
@@ -36,6 +38,8 @@ module.exports = gql`
     input StartingPositionInput {
         x: Float!
         y: Float!
+        width: Float!
+        height: Float!
     }
 
     input MatchFormInput {
@@ -45,27 +49,27 @@ module.exports = gql`
         matchNumber: String!
         teamNumber: Int!
         teamName: String!
-        preLoadedCargo: Boolean
-        startingPosition: StartingPositionInput
-        lowerCargoAuto: Int
-        upperCargoAuto: Int
-        crossTarmac: Boolean
-        autoComment: String
-        lowerCargoTele: Int
-        upperCargoTele: Int
-        climbTime: Int
-        climbRung: String
-        defenseRating: Int
-        loseCommunication: Boolean
-        robotBreak: Boolean
-        yellowCard: Boolean
-        redCard: Boolean
-        endComment: String
+        preLoadedCargo: Boolean!
+        startingPosition: StartingPositionInput!
+        lowerCargoAuto: Int!
+        upperCargoAuto: Int!
+        crossTarmac: Boolean!
+        autoComment: String!
+        lowerCargoTele: Int!
+        upperCargoTele: Int!
+        climbTime: Int!
+        climbRung: String!
+        defenseRating: Int!
+        loseCommunication: Boolean!
+        robotBreak: Boolean!
+        yellowCard: Boolean!
+        redCard: Boolean!
+        endComment: String!
     }
 
     extend type Query {
-        getMatchForm(eventKey: String!, matchNumber: String!, teamNumber: Int!): MatchForm
-        getMatchForm(eventKey: String!, matchNumber: String!, station: String!): MatchForm
+        getMatchFormByTeam(eventKey: String!, matchNumber: String!, teamNumber: Int!): MatchForm
+        getMatchFormByStation(eventKey: String!, matchNumber: String!, station: String!): MatchForm
         getTeamsMatchForms(eventKey: String!, teamNumber: Int!): [MatchForm]
         getMatchFormsFromMatch(eventKey: String!, matchNumber: String!): [MatchForm]
         getEventsMatchForms(eventKey: String!): [MatchForm]

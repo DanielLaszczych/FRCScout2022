@@ -108,9 +108,9 @@ export const GET_CURRENT_EVENT = gql`
     }
 `;
 
-export const GET_MATCHFORM_STATION_QUERY = gql`
+export const GET_MATCHFORM_BY_STATION = gql`
     query ($eventKey: String!, $matchNumber: String!, $station: String!) {
-        getMatchForm(eventKey: $eventKey, matchNumber: $matchNumber, station: $station) {
+        getMatchFormByStation(eventKey: $eventKey, matchNumber: $matchNumber, station: $station) {
             eventKey
             eventName
             station
@@ -120,6 +120,8 @@ export const GET_MATCHFORM_STATION_QUERY = gql`
             startingPosition {
                 x
                 y
+                width
+                height
             }
             lowerCargoAuto
             upperCargoAuto

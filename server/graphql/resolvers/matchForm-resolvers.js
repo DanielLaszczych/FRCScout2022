@@ -2,7 +2,7 @@ const MatchForm = require('../../models/MatchForm');
 
 module.exports = {
     Query: {
-        async getMatchForm(_, { eventKey, matchNumber, teamNumber }, context) {
+        async getMatchFormByTeam(_, { eventKey, matchNumber, teamNumber }, context) {
             if (!context.req.user) {
                 throw new Error('You must be logged in');
             }
@@ -16,7 +16,7 @@ module.exports = {
                 throw new Error(err);
             }
         },
-        async getMatchForm(_, { eventKey, matchNumber, station }, context) {
+        async getMatchFormByStation(_, { eventKey, matchNumber, station }, context) {
             if (!context.req.user) {
                 throw new Error('You must be logged in');
             }

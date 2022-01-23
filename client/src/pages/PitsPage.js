@@ -6,13 +6,19 @@ import { GET_EVENT, GET_EVENTS_KEYS_NAMES, GET_EVENT_PITFORMS } from '../graphql
 import { ChevronDownIcon } from '@chakra-ui/icons';
 
 function PitPage() {
+    const [error, setError] = useState(null);
     const [currentEvent, setCurrentEvent] = useState({ name: '', key: '' });
     const [focusedEvent, setFocusedEvent] = useState('');
 
-    const { loading: loadingEvents, data: { getEvents: events } = {} } = useQuery(GET_EVENTS_KEYS_NAMES, {
+    const {
+        loading: loadingEvents,
+        error: eventsError,
+        data: { getEvents: events } = {},
+    } = useQuery(GET_EVENTS_KEYS_NAMES, {
         fetchPolicy: 'network-only',
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
+            setError('Apollo error, check console for logs');
         },
         onCompleted({ getEvents: events }) {
             if (events.length > 0) {
@@ -28,7 +34,11 @@ function PitPage() {
         },
     });
 
-    const { loading: loadingPitForms, data: { getEventsPitForms: pitForms } = {} } = useQuery(GET_EVENT_PITFORMS, {
+    const {
+        loading: loadingPitForms,
+        error: pitFormsError,
+        data: { getEventsPitForms: pitForms } = {},
+    } = useQuery(GET_EVENT_PITFORMS, {
         skip: currentEvent.key === '',
         fetchPolicy: 'network-only',
         variables: {
@@ -36,10 +46,15 @@ function PitPage() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
+            setError('Apollo error, check console for logs');
         },
     });
 
-    const { loading: loadingEvent, data: { getEvent: event } = {} } = useQuery(GET_EVENT, {
+    const {
+        loading: loadingEvent,
+        error: eventError,
+        data: { getEvent: event } = {},
+    } = useQuery(GET_EVENT, {
         skip: currentEvent.key === '',
         fetchPolicy: 'network-only',
         variables: {
@@ -47,6 +62,7 @@ function PitPage() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
+            setError('Apollo error, check console for logs');
         },
     });
 
@@ -67,7 +83,11 @@ function PitPage() {
         }
     }
 
-    if (loadingEvents) {
+    if (error !== null) {
+        return <Center>{error}</Center>;
+    }
+
+    if (loadingEvents || eventsError) {
         return (
             <Center>
                 <Spinner></Spinner>
@@ -79,7 +99,7 @@ function PitPage() {
         return <Center>No events are registered</Center>;
     }
 
-    if (currentEvent.key === '' || loadingEvent || loadingPitForms) {
+    if (currentEvent.key === '' || loadingPitForms || loadingEvent || pitFormsError || eventError) {
         return (
             <Center>
                 <Spinner></Spinner>

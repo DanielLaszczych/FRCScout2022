@@ -24,7 +24,7 @@ function HomePage() {
                         </a>
                     )}
                 </div>
-                <Button as={Link} to={'/matchForm'}>
+                <Button as={Link} to={'/preMatchForm'}>
                     Match Form
                 </Button>
             </VStack>
