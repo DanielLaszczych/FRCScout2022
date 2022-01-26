@@ -30,6 +30,8 @@ function PitPage() {
                     setCurrentEvent({ name: currentEvent.name, key: currentEvent.key });
                     setFocusedEvent(currentEvent.name);
                 }
+            } else {
+                setError('No events registered in the database');
             }
         },
     });
@@ -83,23 +85,15 @@ function PitPage() {
         }
     }
 
-    if (error !== null) {
-        return <Center>{error}</Center>;
-    }
-
-    if (loadingEvents || eventsError) {
+    if (error) {
         return (
-            <Center>
-                <Spinner></Spinner>
-            </Center>
+            <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+                {error}
+            </Box>
         );
     }
 
-    if (events.length === 0) {
-        return <Center>No events are registered</Center>;
-    }
-
-    if (currentEvent.key === '' || loadingPitForms || loadingEvent || pitFormsError || eventError) {
+    if (loadingEvents || currentEvent.key === '' || (eventsError && error !== false)) {
         return (
             <Center>
                 <Spinner></Spinner>
@@ -110,7 +104,7 @@ function PitPage() {
     return (
         <Box margin={'0 auto'} width={{ base: '90%', md: '66%', lg: '66%' }}>
             <Center marginBottom={'25px'}>
-                <Menu>
+                <Menu placement='auto'>
                     <MenuButton onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} textOverflow={'ellipsis'} whiteSpace={'nowrap'} overflow={'hidden'} textAlign={'center'} as={Button} rightIcon={<ChevronDownIcon />}>
                         {currentEvent.name}
                     </MenuButton>
@@ -131,30 +125,35 @@ function PitPage() {
                     </MenuList>
                 </Menu>
             </Center>
-            <Box marginBottom={'25px'}>
-                {event.teams
-                    .sort((a, b) => a.number - b.number)
-                    .map((team, index) => (
-                        <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='1fr 2fr 1fr' gap={'5px'}>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    {team.number}
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    {team.name}
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'10px 0px 10px 0px'} marginRight={'10px'} marginLeft={'10px'} textAlign={'center'}>
-                                <Button size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`}>
-                                    {getPitFormStatus(team.name)}
-                                </Button>
-                            </GridItem>
-                        </Grid>
-                    ))}
-            </Box>
-            )
+            {loadingPitForms || loadingEvent || ((pitFormsError || eventError) && error !== false) ? (
+                <Center>
+                    <Spinner></Spinner>
+                </Center>
+            ) : (
+                <Box marginBottom={'25px'}>
+                    {event.teams
+                        .sort((a, b) => a.number - b.number)
+                        .map((team, index) => (
+                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='1fr 2fr 1fr' gap={'5px'}>
+                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        {team.number}
+                                    </Text>
+                                </GridItem>
+                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        {team.name}
+                                    </Text>
+                                </GridItem>
+                                <GridItem padding={'10px 0px 10px 0px'} marginRight={'10px'} marginLeft={'10px'} textAlign={'center'}>
+                                    <Button size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`}>
+                                        {getPitFormStatus(team.name)}
+                                    </Button>
+                                </GridItem>
+                            </Grid>
+                        ))}
+                </Box>
+            )}
         </Box>
     );
 }

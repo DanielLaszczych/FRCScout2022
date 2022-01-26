@@ -86,27 +86,31 @@ function PreMatchForm() {
                         }
                         setTeamNumber(teamNumber);
                     } else {
-                        console.error('Error', data.Error);
+                        setError(data.Error);
                     }
                     setFetchingTeam(false);
                 })
                 .catch((error) => {
                     setFetchingTeam(false);
-                    console.error('Error:', error);
+                    setError(error);
                 });
         }
         getTeamNumber();
-    }, [station, matchType, matchNumber1, matchNumber2]);
+    }, [station, matchType, matchNumber1, matchNumber2]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function validSetup() {
         return station !== '' && matchType !== '' && matchNumber1 !== '' && (matchType.value !== 'q' ? matchNumber2 !== '' : true) && teamNumber !== '';
     }
 
-    if (error !== null) {
-        return <Center>{error}</Center>;
+    if (error) {
+        return (
+            <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+                {error}
+            </Box>
+        );
     }
 
-    if (loadingCurrentEvent || currentEventError) {
+    if (loadingCurrentEvent || (currentEventError && error !== false)) {
         return (
             <Center>
                 <Spinner></Spinner>

@@ -1,65 +1,10 @@
-.profile {
-    position: absolute;
-    right: 10px;
-}
-
-.searchStack {
-    max-width: 40vw;
-    min-width: none;
-    margin-left: 10vw;
-}
-
-/* .menuButton {
-    margin-left: 10vw;
-} */
-
-.profileName {
-    visibility: hidden;
-}
-
-.menuButton {
-    margin-left: 4vw;
-    z-index: 2;
-}
-
-@media (min-width: 400px) {
-    .menuButton {
-        margin-left: 8vw;
-        z-index: 2;
-    }
-}
-
-@media (min-width: 840px) {
-    .profileName {
-        visibility: visible;
-    }
-}
-
-@media (min-width: 600px) {
-    .searchStack {
-        margin-left: 10vw;
-        min-width: 40vw;
-        max-width: none;
-    }
-}
-
-@media (min-width: 1200px) {
-    .disable-select.linkText {
-        font-size: 1.3vw;
+@media all and (max-width: 285px) {
+    .navbar {
+        flex-wrap: wrap;
     }
 
-    .searchStack {
-        margin-left: 18vw;
-        min-width: 40vw;
-        max-width: none;
+    .search {
+        order: 1;
+        min-width: 75%;
     }
-}
-
-/* Prevents element from being dragged/highlighted */
-.disable-select {
-    user-select: none; /* supported by Chrome and Opera */
-    -webkit-user-select: none; /* Safari */
-    -khtml-user-select: none; /* Konqueror HTML */
-    -moz-user-select: none; /* Firefox */
-    -ms-user-select: none; /* Internet Explorer/Edge */
 }

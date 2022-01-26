@@ -9,6 +9,14 @@ const eventSchema = new Schema({
         type: Number,
         required: true,
     },
+    startDate: {
+        type: String,
+        required: true,
+    },
+    endDate: {
+        type: String,
+        required: true,
+    },
     teams: [
         {
             name: {

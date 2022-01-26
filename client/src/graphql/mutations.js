@@ -14,6 +14,8 @@ export const CREATE_EVENT = gql`
         createEvent(eventInput: $eventInput) {
             name
             key
+            startDate
+            endDate
         }
     }
 `;

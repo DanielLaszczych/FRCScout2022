@@ -30,6 +30,10 @@ const userSchema = new Schema(
             type: String,
             required: true,
         },
+        role: {
+            type: String,
+            default: 'No Role',
+        },
         admin: {
             type: Boolean,
             default: false,

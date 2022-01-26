@@ -1,5 +1,5 @@
 import { React, useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Button, Center, Flex, HStack, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea, useUpdateEffect } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, HStack, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Field from '../images/Field.png';
 import CustomMinusButton from '../components/CustomMinusButton';
@@ -8,6 +8,11 @@ import StopWatch from '../components/StopWatch';
 import { UPDATE_MATCHFORM } from '../graphql/mutations';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_EVENT, GET_MATCHFORM_BY_STATION } from '../graphql/queries';
+import { Swiper, SwiperSlide } from 'swiper/react';
+import { Navigation } from 'swiper';
+import 'swiper/css';
+import 'swiper/css/navigation';
+import '../stylesheets/matchformstyle.css';
 
 let tabs = ['Auto', 'Teleop', 'Post'];
 let rungs = ['Low Rung', 'Mid Rung', 'High Rung', 'Traversal Rung', 'Failed'];
@@ -18,6 +23,8 @@ function MatchForm() {
     let { eventKey: eventKeyParam, matchNumber: matchNumberParam, station: stationParam } = useParams();
     const canvas = useRef(null);
 
+    const [sliding, setSliding] = useState(false);
+    const [activeIndex, setActiveIndex] = useState(null);
     const [validMatch, setValidMatch] = useState(false);
     const [validEvent, setValidEvent] = useState(false);
     const [error, setError] = useState(null);
@@ -54,6 +61,53 @@ function MatchForm() {
     const [endComment, setEndComment] = useState('');
     const [submitAttempted, setSubmitAttempted] = useState(false);
 
+    useEffect(() => {
+        if (!/[rb][123]/.test(stationParam)) {
+            setError('Invalid station in the url');
+            return;
+        }
+        fetch(`/blueAlliance/match/${eventKeyParam}_${matchNumberParam}/simple`)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.Error) {
+                    let stationNumber = parseInt(stationParam.charAt(1)) - 1;
+                    let teamKey;
+                    if (stationParam.charAt(0) === 'r') {
+                        teamKey = data.alliances.red.team_keys[stationNumber];
+                    } else {
+                        teamKey = data.alliances.blue.team_keys[stationNumber];
+                    }
+                    setTeamNumber(teamKey.substring(3));
+                    setValidMatch(true);
+                } else {
+                    setError(data.Error);
+                }
+            })
+            .catch((error) => {
+                setError(error);
+            });
+    }, [eventKeyParam, matchNumberParam, stationParam]);
+
+    const { loading: loadingEvent, error: eventError } = useQuery(GET_EVENT, {
+        skip: !validMatch,
+        fetchPolicy: 'network-only',
+        variables: {
+            key: eventKeyParam,
+        },
+        onCompleted({ getEvent: event }) {
+            setEventName(event.name);
+            setValidEvent(true);
+        },
+        onError(err) {
+            if (err.message === 'Error: Event is not registered inside database') {
+                setError('This event is not registered inside our database');
+            } else {
+                console.log(JSON.stringify(err, null, 2));
+                setError('Apollo error, check console for logs');
+            }
+        },
+    });
+
     const { loading: loadingMatchData, error: matchDataError } = useQuery(GET_MATCHFORM_BY_STATION, {
         skip: !validEvent || !validMatch,
         fetchPolicy: 'network-only',
@@ -64,6 +118,7 @@ function MatchForm() {
         },
         onError(err) {
             if (err.message === 'Error: Match form does not exist') {
+                setError(false);
                 setTab('Auto');
                 fetch(`/blueAlliance/team/frc${teamNumber}/simple`)
                     .then((response) => response.json())
@@ -104,53 +159,6 @@ function MatchForm() {
             setTab('Auto');
         },
     });
-
-    const { loading: loadingEvent, error: eventError } = useQuery(GET_EVENT, {
-        skip: !validMatch,
-        fetchPolicy: 'network-only',
-        variables: {
-            key: eventKeyParam,
-        },
-        onCompleted({ getEvent: event }) {
-            setEventName(event.name);
-            setValidEvent(true);
-        },
-        onError(err) {
-            if (err.message === 'Error: Event is not registered inside database') {
-                setError('We are not registered for this event');
-            } else {
-                console.log(JSON.stringify(err, null, 2));
-                setError('Apollo error, check console for logs');
-            }
-        },
-    });
-
-    useEffect(() => {
-        if (!/[rb][123]/.test(stationParam)) {
-            setError('Invalid station in the url');
-            return;
-        }
-        fetch(`/blueAlliance/match/${eventKeyParam}_${matchNumberParam}/simple`)
-            .then((response) => response.json())
-            .then((data) => {
-                if (!data.Error) {
-                    let stationNumber = parseInt(stationParam.charAt(1)) - 1;
-                    let teamKey;
-                    if (stationParam.charAt(0) === 'r') {
-                        teamKey = data.alliances.red.team_keys[stationNumber];
-                    } else {
-                        teamKey = data.alliances.blue.team_keys[stationNumber];
-                    }
-                    setTeamNumber(teamKey.substring(3));
-                    setValidMatch(true);
-                } else {
-                    setError(data.Error);
-                }
-            })
-            .catch((error) => {
-                setError(error);
-            });
-    }, []);
 
     useEffect(() => {
         if (climbTime === 0) {
@@ -229,10 +237,11 @@ function MatchForm() {
     }, [drawImage]);
 
     useEffect(() => {
-        if (tab === 'Auto') {
+        console.log(activeIndex);
+        if (activeIndex === 0) {
             drawImage(null, null, true);
         }
-    }, [tab, drawImage]);
+    }, [drawImage, activeIndex]);
 
     useEffect(() => {
         window.addEventListener('resize', resizeCanvas);
@@ -332,11 +341,16 @@ function MatchForm() {
                                 style={{ zIndex: 2 }}
                                 width={810 * calculateImageScale()}
                                 height={414 * calculateImageScale()}
-                                onPointerDown={(event) => {
-                                    var bounds = event.target.getBoundingClientRect();
-                                    var x = event.clientX - bounds.left;
-                                    var y = event.clientY - bounds.top;
-                                    drawImage(x, y);
+                                onClick={(event) => {
+                                    if (canvas.current !== undefined) {
+                                        console.log('put point down');
+                                        var bounds = event.target.getBoundingClientRect();
+                                        var x = event.clientX - bounds.left;
+                                        var y = event.clientY - bounds.top;
+                                        drawImage(x, y);
+                                    } else {
+                                        event.preventDefault();
+                                    }
                                 }}
                                 ref={canvas}
                             ></canvas>
@@ -518,11 +532,15 @@ function MatchForm() {
         }
     }
 
-    if (error !== null) {
-        return <Center>{error}</Center>;
+    if (error) {
+        return (
+            <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+                {error}
+            </Box>
+        );
     }
 
-    if (!validMatch || !validEvent || loadingMatchData || loadingEvent || matchDataError || eventError) {
+    if (!validMatch || !validEvent || loadingMatchData || loadingEvent || ((matchDataError || eventError) && error !== false)) {
         return (
             <Center>
                 <Spinner></Spinner>
@@ -531,18 +549,50 @@ function MatchForm() {
     }
 
     return (
-        <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
-            <Center>
-                <HStack marginBottom={'25px'}>
-                    {tabs.map((tabItem, index) => (
-                        <Button border={submitAttempted && !validateTab(tabItem) ? '2px red solid' : 'none'} colorScheme={tab === tabItem ? 'green' : 'gray'} key={index} _focus={{ outline: 'none' }} onClick={() => setTab(tabItem)}>
-                            {tabItem}
-                        </Button>
-                    ))}
-                </HStack>
-            </Center>
-            {renderTab(tab)}
-        </Box>
+        <Center>
+            <Box width={{ base: '85%', md: '66%', lg: '50%' }}>
+                <Center>
+                    <HStack marginBottom={'25px'}>
+                        {tabs.map((tabItem, index) => (
+                            <Button border={submitAttempted && !validateTab(tabItem) ? '2px red solid' : 'none'} colorScheme={tab === tabItem ? 'green' : 'gray'} key={index} _focus={{ outline: 'none' }} onClick={() => setTab(tabItem)}>
+                                {tabItem}
+                            </Button>
+                        ))}
+                    </HStack>
+                </Center>
+                <Button className='slider-button-prev'>Prev</Button>
+                <Button className='slider-button-next'>Next</Button>
+                <Swiper
+                    // install Swiper modules
+                    autoHeight={true}
+                    modules={[Navigation]}
+                    simulateTouch={true}
+                    spaceBetween={50}
+                    centeredSlides={true}
+                    slidesPerView={1}
+                    navigation={{ prevEl: '.slider-button-prev', nextEl: '.slider-button-next' }}
+                    onSwiper={(swiper) => {
+                        // console.log(swiper);
+                        setActiveIndex(swiper.activeIndex);
+                    }}
+                    onSlideChange={(swiper) => {
+                        // console.log(swiper);
+                        setActiveIndex(swiper.activeIndex);
+                        setSliding(false);
+                    }}
+                    onTouchMove={(touchmove) => {
+                        // console.log(touchmove);
+                        if (!sliding) {
+                            setSliding(true);
+                        }
+                    }}
+                >
+                    <SwiperSlide> {renderTab('Auto')}</SwiperSlide>
+                    <SwiperSlide> {renderTab('Teleop')}</SwiperSlide>
+                    <SwiperSlide> {renderTab('Post')}</SwiperSlide>
+                </Swiper>
+            </Box>
+        </Center>
     );
 }
 

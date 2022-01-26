@@ -95,6 +95,8 @@ export const GET_EVENTS_KEYS_NAMES = gql`
             key
             name
             currentEvent
+            startDate
+            endDate
         }
     }
 `;

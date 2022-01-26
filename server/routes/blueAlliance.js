@@ -15,6 +15,7 @@ router.use('/getEventsCustom/:year', (req, res) => {
                     name: event.name,
                     key: event.key,
                     week: event.week,
+                    event_type_string: event.event_type_string,
                     start_date: event.start_date,
                     end_date: event.end_date,
                     year: event.year,

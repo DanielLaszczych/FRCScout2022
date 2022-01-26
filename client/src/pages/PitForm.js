@@ -1,7 +1,7 @@
 import { React, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_PITFORM } from '../graphql/queries';
+import { GET_EVENT, GET_PITFORM } from '../graphql/queries';
 import { UPDATE_PITFORM } from '../graphql/mutations';
 import {
     Text,
@@ -33,10 +33,11 @@ let startingPositions = ['Left', 'Center', 'Right'];
 
 function PitForm() {
     let navigate = useNavigate();
-    let { eventKey, teamNumber } = useParams();
+    let { eventKey: eventKeyParam, teamNumber: teamNumberParam } = useParams();
     const hiddenImageInput = useRef(null);
 
-    const [error, setError] = useState(false);
+    const [error, setError] = useState(null);
+    const [validEvent, setValidEvent] = useState(false);
     const [imgHeader, setImgHeader] = useState('Same Image');
     const [dataLoaded, setDataLoaded] = useState(false);
     const [teamName, setTeamName] = useState('');
@@ -201,50 +202,66 @@ function PitForm() {
         return weight !== '' && height !== '' && driveTrain !== '' && validWheels() && programmingLanguage !== '' && startingPosition !== '' && abilities.filter((ability) => ability.value).length !== 0;
     }
 
-    const { loading: loadingPitForm, error: pitFormError } = useQuery(GET_PITFORM, {
+    const { loading: loadingEvent, error: eventError } = useQuery(GET_EVENT, {
         fetchPolicy: 'network-only',
         variables: {
-            eventKey: eventKey,
-            teamNumber: parseInt(teamNumber),
+            key: eventKeyParam,
+        },
+        onCompleted() {
+            setValidEvent(true);
+        },
+        onError(err) {
+            if (err.message === 'Error: Event is not registered inside database') {
+                setError('This event is not registered in the database or this event does not exist');
+            } else {
+                console.log(JSON.stringify(err, null, 2));
+                setError('Apollo error, check console for logs');
+            }
+        },
+    });
+
+    const { loading: loadingPitForm, error: pitFormError } = useQuery(GET_PITFORM, {
+        skip: !validEvent,
+        fetchPolicy: 'network-only',
+        variables: {
+            eventKey: eventKeyParam,
+            teamNumber: parseInt(teamNumberParam),
         },
         onError(err) {
             if (err.message === 'Error: Pit form does not exist') {
-                fetch(`/blueAlliance/team/frc${parseInt(teamNumber)}/simple`)
+                setError(false);
+                fetch(`/blueAlliance/team/frc${parseInt(teamNumberParam)}/simple`)
                     .then((response) => response.json())
                     .then((data) => {
                         if (!data.Error) {
                             setTeamName(data.nickname);
                         } else {
-                            console.error('Error:', data.Error);
-                            setError(true);
+                            setError(data.Error);
                         }
                     })
-                    .catch((err) => {
-                        console.error(err);
-                        setError(true);
+                    .catch((error) => {
+                        setError(error);
                     });
-                fetch(`/blueAlliance/team/frc${parseInt(teamNumber)}/events/${year}/simple`)
+                fetch(`/blueAlliance/team/frc${parseInt(teamNumberParam)}/events/${year}/simple`)
                     .then((response) => response.json())
                     .then((data) => {
                         if (!data.Error) {
-                            let event = data.find((event) => event.key === eventKey);
+                            let event = data.find((event) => event.key === eventKeyParam);
                             if (event === undefined) {
-                                setError(true);
+                                setError('This team is not competing in this event');
                             } else {
                                 setEventName(event.name);
                             }
                         } else {
-                            console.error('Error:', data.Error);
-                            setError(true);
+                            setError(data.Error);
                         }
                     })
-                    .catch((err) => {
-                        console.error(err);
-                        setError(true);
+                    .catch((error) => {
+                        setError(error);
                     });
             } else {
                 console.log(JSON.stringify(err, null, 2));
-                setError(true);
+                setError('Apollo error, check console for logs');
             }
         },
         onCompleted({ getPitForm: pitForm }) {
@@ -282,6 +299,7 @@ function PitForm() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
+            setError('Apollo error, check console for logs');
         },
     });
 
@@ -296,9 +314,9 @@ function PitForm() {
         updatePitForm({
             variables: {
                 pitFormInput: {
-                    eventKey: eventKey,
+                    eventKey: eventKeyParam,
                     eventName: eventName,
-                    teamNumber: parseInt(teamNumber),
+                    teamNumber: parseInt(teamNumberParam),
                     teamName: teamName,
                     weight: parseFloat(weight),
                     height: parseFloat(height),
@@ -320,10 +338,14 @@ function PitForm() {
     }
 
     if (error) {
-        return <Center>Error occurred</Center>;
+        return (
+            <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+                {error}
+            </Box>
+        );
     }
 
-    if (loadingPitForm || pitFormError || (!dataLoaded ? eventName === '' || teamName === '' : false)) {
+    if (!validEvent || loadingEvent || loadingPitForm || ((pitFormError || eventError) && error !== false) || (!dataLoaded ? eventName === '' || teamName === '' : false)) {
         return (
             <Center>
                 <Spinner></Spinner>
@@ -338,7 +360,7 @@ function PitForm() {
                     Competition: {eventName}
                 </Text>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
-                    Team Number: {teamNumber}
+                    Team Number: {teamNumberParam}
                 </Text>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
                     Team Name: {teamName}

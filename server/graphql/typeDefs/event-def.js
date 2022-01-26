@@ -10,6 +10,8 @@ module.exports = gql`
     type Event {
         name: String!
         year: Int!
+        startDate: String!
+        endDate: String!
         teams: [Team]
         key: String!
         currentEvent: Boolean!
@@ -24,6 +26,8 @@ module.exports = gql`
     input EventInput {
         name: String!
         year: Int!
+        startDate: String!
+        endDate: String!
         teams: [TeamInput]
         key: String!
     }

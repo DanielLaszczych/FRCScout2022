@@ -1,0 +1,36 @@
+.shrink-enter {
+    transform: scaleY(0);
+    transform-origin: 50% 0%;
+}
+.shrink-enter-active {
+    transform: scale(1);
+    transition: transform 500ms ease-in;
+    transform-origin: 50% 0%;
+}
+.shrink-exit {
+    transform: scaleY(1);
+    transform-origin: 50% 0%;
+}
+.shrink-exit-active {
+    transform: scaleY(0);
+    transform-origin: 50% 0%;
+    transition: transform 300ms ease-in;
+}
+
+.fade-enter div {
+    overflow-y: hidden;
+    max-height: 0;
+}
+
+.fade-enter-active div {
+    max-height: 50px;
+    transition: all 500ms ease-in;
+}
+.fade-exit div {
+    max-height: 50px;
+}
+.fade-exit-active div {
+    max-height: 0;
+    overflow-y: hidden;
+    transition: all 500ms ease-in;
+}
