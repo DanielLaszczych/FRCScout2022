@@ -16,6 +16,21 @@ export const CREATE_EVENT = gql`
             key
             startDate
             endDate
+            eventType
+        }
+    }
+`;
+
+export const REMOVE_EVENT = gql`
+    mutation ($key: String!) {
+        removeEvent(key: $key) {
+            name
+            key
+            week
+            eventType
+            startDate
+            endDate
+            year
         }
     }
 `;

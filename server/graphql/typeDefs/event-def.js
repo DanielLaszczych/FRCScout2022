@@ -10,6 +10,8 @@ module.exports = gql`
     type Event {
         name: String!
         year: Int!
+        week: Int
+        eventType: String!
         startDate: String!
         endDate: String!
         teams: [Team]
@@ -26,6 +28,8 @@ module.exports = gql`
     input EventInput {
         name: String!
         year: Int!
+        week: Int
+        eventType: String!
         startDate: String!
         endDate: String!
         teams: [TeamInput]
@@ -41,5 +45,6 @@ module.exports = gql`
 
     extend type Mutation {
         createEvent(eventInput: EventInput!): Event
+        removeEvent(key: String!): Event
     }
 `;

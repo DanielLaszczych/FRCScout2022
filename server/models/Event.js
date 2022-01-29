@@ -9,6 +9,14 @@ const eventSchema = new Schema({
         type: Number,
         required: true,
     },
+    week: {
+        type: Number,
+        required: true,
+    },
+    eventType: {
+        type: String,
+        required: true,
+    },
     startDate: {
         type: String,
         required: true,

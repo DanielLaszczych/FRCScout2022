@@ -72,7 +72,7 @@ module.exports = {
             try {
                 matchFormInput.scouter = context.req.user.displayName;
 
-                const matchForm = await MatchForm.findOneAndUpdate({ eventKey: matchFormInput.eventKey, matchNumber: matchFormInput.matchNumber, teamNumber: matchFormInput.teamNumber }, matchFormInput, { new: true, upsert: true });
+                const matchForm = await MatchForm.findOneAndUpdate({ eventKey: matchFormInput.eventKey, matchNumber: matchFormInput.matchNumber, teamNumber: matchFormInput.teamNumber }, matchFormInput, { new: true, upsert: true }).exec();
                 return matchForm;
             } catch (err) {
                 throw new Error(err);

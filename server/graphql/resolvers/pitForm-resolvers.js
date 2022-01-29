@@ -49,7 +49,7 @@ module.exports = {
                 pitFormInput.image = imageUrl;
                 pitFormInput.scouter = context.req.user.displayName;
 
-                const pitForm = await PitForm.findOneAndUpdate({ eventKey: pitFormInput.eventKey, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true });
+                const pitForm = await PitForm.findOneAndUpdate({ eventKey: pitFormInput.eventKey, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true }).exec();
                 return pitForm;
             } catch (err) {
                 throw new Error(err);

@@ -4,7 +4,7 @@ import { Button, Center, Box, Grid, GridItem, Text, Flex, Circle, Spinner } from
 import { TransitionGroup } from 'react-transition-group';
 import CSSTransition from '../components/CSSTransition';
 import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
-import { CREATE_EVENT } from '../graphql/mutations';
+import { CREATE_EVENT, REMOVE_EVENT } from '../graphql/mutations';
 import { ArrowUpIcon } from '@chakra-ui/icons';
 import { year } from '../util/constants';
 import '../stylesheets/adminstyle.css';
@@ -28,8 +28,7 @@ function AdminPage() {
         { name: 'Offseason', events: [], count: 0, ref: createRef() },
     ]);
     const [events, setEvents] = useState(false);
-    const [creatingEventKey, setCreatingEventKey] = useState(null);
-    const [alteredEventType, setAlteredEventType] = useState(null);
+    const [mutatingEventKey, setMutatingEventKey] = useState(null);
 
     const listenToScroll = () => {
         const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
@@ -104,7 +103,16 @@ function AdminPage() {
         } else {
             filteredEvents = events.filter((event) => event.event_type_string === 'Offseason');
         }
-        return filteredEvents.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+        return filteredEvents.sort((a, b) => {
+            let delta = new Date(a.start_date) - new Date(b.start_date);
+            if (delta === 0) {
+                delta = new Date(a.end_date) - new Date(b.end_date);
+                if (delta === 0) {
+                    delta = a.name.localeCompare(b.name);
+                }
+            }
+            return delta;
+        });
     }
 
     const [createEvent] = useMutation(CREATE_EVENT, {
@@ -115,7 +123,7 @@ function AdminPage() {
         onCompleted({ createEvent: createdEvent }) {
             setEventTypes((prevEventTypes) =>
                 prevEventTypes.map((eventType) => {
-                    if (alteredEventType === eventType.name) {
+                    if (createdEvent.eventType === eventType.name) {
                         let filteredEvents = eventType.events.filter((event) => event.name !== createdEvent.name);
                         return { ...eventType, events: filteredEvents, count: filteredEvents.length };
                     } else {
@@ -124,13 +132,14 @@ function AdminPage() {
                 })
             );
             setTimeout(() => {
+                setMutatingEventKey(null);
                 setEvents((prevEvents) => [...prevEvents, createdEvent]);
             }, 300);
         },
     });
 
-    function handleAddEvent(name, year, key, startDate, endDate, eventTypeName) {
-        setCreatingEventKey(key);
+    function handleAddEvent(name, year, week, eventType, key, startDate, endDate) {
+        setMutatingEventKey(key);
         fetch(`/blueAlliance/event/${key}/teams/simple`)
             .then((response) => response.json())
             .then((data) => {
@@ -141,12 +150,13 @@ function AdminPage() {
                     let event = {
                         name: name,
                         year: year,
+                        week: week,
+                        eventType: eventType,
                         startDate: startDate,
                         endDate: endDate,
                         key: key,
                         teams: teams,
                     };
-                    setAlteredEventType(eventTypeName);
                     createEvent({
                         variables: {
                             eventInput: event,
@@ -159,6 +169,56 @@ function AdminPage() {
             .catch((error) => {
                 setError(error);
             });
+    }
+
+    const [removeEvent] = useMutation(REMOVE_EVENT, {
+        onError(err) {
+            console.log(JSON.stringify(err, null, 2));
+            setError('Apollo error, check console for logs');
+        },
+        onCompleted({ removeEvent: removedEvent }) {
+            setEvents((prevEvents) => prevEvents.filter((event) => event.name !== removedEvent.name));
+            setMutatingEventKey(null);
+            setTimeout(() => {
+                setEventTypes((prevEventTypes) =>
+                    prevEventTypes.map((eventType) => {
+                        if (removedEvent.eventType === eventType.name) {
+                            let addedEvent = {
+                                name: removedEvent.name,
+                                key: removedEvent.key,
+                                week: removedEvent.week,
+                                event_type_string: removedEvent.eventType,
+                                start_date: removedEvent.startDate,
+                                end_date: removedEvent.endDate,
+                                year: removedEvent.year,
+                            };
+                            let newEvents = [...eventType.events, addedEvent].sort((a, b) => {
+                                let delta = new Date(a.start_date) - new Date(b.start_date);
+                                if (delta === 0) {
+                                    delta = new Date(a.end_date) - new Date(b.end_date);
+                                    if (delta === 0) {
+                                        delta = a.name.localeCompare(b.name);
+                                    }
+                                }
+                                return delta;
+                            });
+                            return { ...eventType, events: newEvents, count: eventType.count + 1 };
+                        } else {
+                            return eventType;
+                        }
+                    })
+                );
+            }, 300);
+        },
+    });
+
+    function handleRemoveEvent(key) {
+        setMutatingEventKey(key);
+        removeEvent({
+            variables: {
+                key: key,
+            },
+        });
     }
 
     if (error) {
@@ -184,35 +244,46 @@ function AdminPage() {
                     <ArrowUpIcon fontSize={'150%'} />
                 </Circle>
             ) : null}
-            {events.length > 0 ? (
-                <Box margin='0 auto' marginBottom={'25px'}>
-                    <Box marginBottom={'10px'}>
-                        <h2 style={{ fontWeight: '500', fontSize: '30px', lineHeight: '1.1' }}>
-                            Registered Events <small style={{ fontSize: '65%', color: '#777', lineHeight: '1' }}>{events.length} Events</small>
-                        </h2>
-                    </Box>
-                    <TransitionGroup>
-                        {events
-                            .sort((a, b) => new Date(a.startDate) - new Date(b.startDate))
-                            .map((event, index) => (
-                                <CSSTransition key={event.key} timeout={500} classNames='shrink'>
-                                    <Grid minHeight={'61px'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} templateColumns='2fr 1fr' gap={'15px'}>
-                                        <GridItem marginLeft={'5px'} padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                                {event.name}
-                                            </Text>
-                                        </GridItem>
-                                        <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                            <Button _focus={{ outline: 'none' }} disabled={true} size={'md'} marginLeft={'10px'} marginRight={'10px'}>
+            <Box margin='0 auto' marginBottom={'25px'}>
+                <Box marginBottom={'10px'}>
+                    <h2 style={{ fontWeight: '500', fontSize: '30px', lineHeight: '1.1' }}>
+                        Registered Events <small style={{ fontSize: '65%', color: '#777', lineHeight: '1' }}>{events.length} Events</small>
+                    </h2>
+                </Box>
+                <TransitionGroup>
+                    {events
+                        .sort((a, b) => {
+                            let delta = new Date(a.startDate) - new Date(b.startDate);
+                            if (delta === 0) {
+                                delta = new Date(a.endDate) - new Date(b.endDate);
+                                if (delta === 0) {
+                                    delta = a.name.localeCompare(b.name);
+                                }
+                            }
+                            return delta;
+                        })
+                        .map((event, index) => (
+                            <CSSTransition key={event.key} timeout={500} classNames='shrink'>
+                                <Grid minHeight={'61px'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} templateColumns='2fr 1fr' gap={'15px'}>
+                                    <GridItem marginLeft={'5px'} padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {event.name}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
+                                        {mutatingEventKey === event.key ? (
+                                            <Spinner marginTop={'8px'}></Spinner>
+                                        ) : (
+                                            <Button _focus={{ outline: 'none' }} onClick={() => handleRemoveEvent(event.key)} size={'md'} marginLeft={'10px'} marginRight={'10px'}>
                                                 Remove
                                             </Button>
-                                        </GridItem>
-                                    </Grid>
-                                </CSSTransition>
-                            ))}
-                    </TransitionGroup>
-                </Box>
-            ) : null}
+                                        )}
+                                    </GridItem>
+                                </Grid>
+                            </CSSTransition>
+                        ))}
+                </TransitionGroup>
+            </Box>
 
             <Center>
                 <Flex flexWrap={'wrap'} marginBottom={'25px'} justifyContent={'center'}>
@@ -241,10 +312,10 @@ function AdminPage() {
                                             </Text>
                                         </GridItem>
                                         <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                            {creatingEventKey === event.key ? (
+                                            {mutatingEventKey === event.key ? (
                                                 <Spinner marginTop={'8px'}></Spinner>
                                             ) : (
-                                                <Button _focus={{ outline: 'none' }} size={'md'} onClick={(clickEvent) => handleAddEvent(event.name, event.year, event.key, event.start_date, event.end_date, eventType.name)}>
+                                                <Button _focus={{ outline: 'none' }} size={'md'} onClick={() => handleAddEvent(event.name, event.year, event.week, eventType.name, event.key, event.start_date, event.end_date)}>
                                                     Add
                                                 </Button>
                                             )}
