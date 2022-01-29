@@ -1,5 +1,5 @@
-import { React, useContext, useEffect, useState } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { React, useContext, useEffect } from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/auth';
 import { Button, Icon, Input, HStack, Box, Image, Text, Avatar, Menu, MenuButton, MenuList, MenuItem, Flex } from '@chakra-ui/react';
 import { BsSearch } from 'react-icons/bs';
@@ -7,17 +7,17 @@ import logo from '../images/TigerOnlyLogo.png';
 import { config } from '../util/constants';
 import '../stylesheets/navbarstyle.css';
 
-function NavBar() {
-    let titleMap = [
-        { path: '/', title: 'Home' },
-        { path: '/pits', title: 'Pits' },
-        { path: '/matches', title: 'Matches' },
-        { path: '/pitForm', title: 'Pit Form' },
-        { path: '/preMatchForm', title: 'Pre Match Form' },
-        { path: '/matchForm', title: 'Match Form' },
-        { path: '/admin', title: 'Admin' },
-    ];
+let titleMap = [
+    { path: '/', title: 'Home' },
+    { path: '/pits', title: 'Pits' },
+    { path: '/matches', title: 'Matches' },
+    { path: '/pitForm', title: 'Pit Form' },
+    { path: '/preMatchForm', title: 'Pre Match Form' },
+    { path: '/matchForm', title: 'Match Form' },
+    { path: '/admin', title: 'Admin' },
+];
 
+function NavBar() {
     let curLoc = useLocation();
     useEffect(() => {
         const curTitle = titleMap.find((item) => item.path === `/${curLoc.pathname.split('/')[1]}`);
@@ -29,6 +29,8 @@ function NavBar() {
                     break;
                 case 'Match Form':
                     title += ' - ' + curLoc.pathname.split('/')[3] + ' - ' + curLoc.pathname.split('/')[2];
+                    break;
+                default:
                     break;
             }
             document.title = title;
@@ -97,6 +99,9 @@ function NavBar() {
                             </MenuItem>
                             <MenuItem as={Link} to={'/admin'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
                                 Admin
+                            </MenuItem>
+                            <MenuItem as={Link} to={'/tableau'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
+                                Tableau
                             </MenuItem>
                         </Box>
                         <a href={`${config.API_URL}/auth/logout`}>

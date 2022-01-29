@@ -35,8 +35,12 @@ function AuthProvider(props) {
         console.log('getting user data');
         fetch('/getuser')
             .then((res) => res.json())
-            .then((data) => login(data))
-            .catch((data) => login('NoUser'));
+            .then((data) => {
+                login(data);
+            })
+            .catch((data) => {
+                login('NoUser');
+            });
     }, []);
 
     function login(userData) {

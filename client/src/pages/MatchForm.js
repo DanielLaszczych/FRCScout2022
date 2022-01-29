@@ -1,5 +1,5 @@
 import { React, useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Button, Center, Flex, HStack, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea } from '@chakra-ui/react';
+import { Box, Button, Center, Flex, HStack, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea, useToast } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Field from '../images/Field.png';
 import CustomMinusButton from '../components/CustomMinusButton';
@@ -12,24 +12,25 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import '../stylesheets/matchformstyle.css';
 
-let tabs = ['Auto', 'Teleop', 'Post'];
+let tabs = ['Pre-Auto', 'Auto', 'Post-Auto', 'Teleop', 'Post-Game'];
 let rungs = ['Low Rung', 'Mid Rung', 'High Rung', 'Traversal Rung', 'Failed'];
 let defenseRatings = [0, 1, 2, 3, 4, 5];
+let doResize;
 
 function MatchForm() {
     let navigate = useNavigate();
+    const toast = useToast();
+    const toastRef = useRef();
     let { eventKey: eventKeyParam, matchNumber: matchNumberParam, station: stationParam } = useParams();
     const canvas = useRef(null);
+    const swiper = useRef(null);
 
-    const [sliding, setSliding] = useState(false);
-    const [activeIndex, setActiveIndex] = useState(null);
+    const [activeSlider, setActiveSlider] = useState(null);
     const [validMatch, setValidMatch] = useState(false);
     const [validEvent, setValidEvent] = useState(false);
     const [error, setError] = useState(null);
-    const [tab, setTab] = useState(null);
-    const [imagePrevDimensions, _setImagePrevDimensions] = useState({ x: 810, y: 414 });
+    const [imagePrevDimensions, _setImagePrevDimensions] = useState({ x: 414, y: 414 });
     const imagePrevDimensionsRef = useRef(imagePrevDimensions);
     const setImagePrevDimensions = (data) => {
         imagePrevDimensionsRef.current = data;
@@ -45,13 +46,15 @@ function MatchForm() {
         startingPositionRef.current = data;
         _setStartingPosition(data);
     };
+    const [pickedUpAuto, setPickedUpAuto] = useState(0);
     const [lowerCargoAuto, setLowerCargoAuto] = useState(0);
     const [upperCargoAuto, setUpperCargoAuto] = useState(0);
     const [crossTarmac, setCrossTarmac] = useState('');
     const [autoComment, setAutoComment] = useState('');
+    const [pickedUpTele, setPickedUpTele] = useState(0);
     const [lowerCargoTele, setLowerCargoTele] = useState(0);
     const [upperCargoTele, setUpperCargoTele] = useState(0);
-    const [climbTime, setClimbTime] = useState(0);
+    const [climbTime, setClimbTime] = useState(null);
     const [climbRung, setClimbRung] = useState('');
     const [defenseRating, setDefenseRating] = useState(0);
     const [loseCommunication, setLoseCommunication] = useState(false);
@@ -119,7 +122,8 @@ function MatchForm() {
         onError(err) {
             if (err.message === 'Error: Match form does not exist') {
                 setError(false);
-                setTab('Auto');
+                setActiveSlider(0);
+                setClimbTime(0);
                 fetch(`/blueAlliance/team/frc${teamNumber}/simple`)
                     .then((response) => response.json())
                     .then((data) => {
@@ -142,10 +146,12 @@ function MatchForm() {
             setPreLoadedCargo(matchForm.preLoadedCargo);
             setImagePrevDimensions({ x: matchForm.startingPosition.width, y: matchForm.startingPosition.height });
             setStartingPosition({ x: matchForm.startingPosition.x, y: matchForm.startingPosition.y });
+            setPickedUpAuto(matchForm.pickedUpAuto);
             setLowerCargoAuto(matchForm.lowerCargoAuto);
             setUpperCargoAuto(matchForm.upperCargoAuto);
             setCrossTarmac(matchForm.crossTarmac);
             setAutoComment(matchForm.autoComment);
+            setPickedUpTele(matchForm.pickedUpTele);
             setLowerCargoTele(matchForm.lowerCargoTele);
             setUpperCargoTele(matchForm.upperCargoTele);
             setClimbTime(matchForm.climbTime);
@@ -156,40 +162,50 @@ function MatchForm() {
             setYellowCard(matchForm.yellowCard);
             setRedCard(matchForm.redCard);
             setEndComment(matchForm.endComment);
-            setTab('Auto');
+            setActiveSlider(0);
         },
     });
 
     useEffect(() => {
+        if (climbTime === null) {
+            return;
+        }
         if (climbTime === 0) {
             setClimbRung('');
+            if (swiper.current) {
+                swiper.current.swiper.update();
+            }
+        } else if (climbTime > 0) {
+            if (swiper.current) {
+                swiper.current.swiper.update();
+            }
         }
     }, [climbTime]);
 
     function calculateImageScale() {
         let scale;
-        let screenWidth = document.documentElement.clientWidth || document.body.clientWidth;
+        let screenWidth = window.innerWidth;
         if (screenWidth < 768) {
             scale = 0.8;
         } else if (screenWidth < 992) {
-            scale = 0.61;
+            scale = 0.5;
         } else {
-            scale = 0.45;
+            scale = 0.2;
         }
-        return (screenWidth / 810) * scale;
+        return (screenWidth / 414) * scale;
     }
 
     function calculateCircleRadius() {
         let scale;
-        let screenWidth = document.documentElement.clientWidth || document.body.clientWidth;
+        let screenWidth = window.innerWidth;
         if (screenWidth < 768) {
             scale = 0.8;
         } else if (screenWidth < 992) {
-            scale = 0.61;
+            scale = 0.5;
         } else {
-            scale = 0.45;
+            scale = 0.2;
         }
-        return (screenWidth / 40) * scale;
+        return (screenWidth / 25) * scale;
     }
 
     const drawPoint = useCallback((x, y) => {
@@ -213,10 +229,10 @@ function MatchForm() {
                 img.src = Field;
                 img.onload = () => {
                     let scale = calculateImageScale();
-                    canvasElement.width = 810 * scale;
+                    canvasElement.width = 414 * scale;
                     canvasElement.height = 414 * scale;
                     setImagePrevDimensions({ x: canvasElement.width, y: canvasElement.height });
-                    ctx.drawImage(img, 0, 0, 810 * scale, 414 * scale);
+                    ctx.drawImage(img, 0, 0, 414 * scale, 414 * scale);
                     if (x && y) {
                         drawPoint(x, y);
                     } else if (startingPositionRef.current.x && startingPositionRef.current.y) {
@@ -231,17 +247,17 @@ function MatchForm() {
     );
 
     const resizeCanvas = useCallback(() => {
-        let doResize;
-        clearTimeout(doResize);
-        doResize = setTimeout(drawImage(null, null, true), 250);
-    }, [drawImage]);
+        if (activeSlider === 0) {
+            clearTimeout(doResize);
+            doResize = setTimeout(() => drawImage(null, null, true), 250);
+        }
+    }, [drawImage, activeSlider]);
 
     useEffect(() => {
-        console.log(activeIndex);
-        if (activeIndex === 0) {
+        if (activeSlider === 0) {
             drawImage(null, null, true);
         }
-    }, [drawImage, activeIndex]);
+    }, [drawImage, activeSlider]);
 
     useEffect(() => {
         window.addEventListener('resize', resizeCanvas);
@@ -249,21 +265,23 @@ function MatchForm() {
         return () => window.removeEventListener('resize', resizeCanvas);
     }, [resizeCanvas]);
 
-    function validAuto() {
-        return preLoadedCargo !== '' && startingPosition.x !== null && startingPosition.y !== null && crossTarmac !== '';
+    function validPreAuto() {
+        return preLoadedCargo !== '' && startingPosition.x !== null && startingPosition.y !== null;
+    }
+
+    function validPostAuto() {
+        return crossTarmac !== '';
     }
 
     function validTele() {
         return climbTime > 0 ? climbRung !== '' : true;
     }
 
-    function validForm() {
-        return validAuto() && validTele();
-    }
-
     function validateTab(tab) {
-        if (tab === 'Auto') {
-            return validAuto();
+        if (tab === 'Pre-Auto') {
+            return validPreAuto();
+        } else if (tab === 'Post-Auto') {
+            return validPostAuto();
         } else if (tab === 'Teleop') {
             return validTele();
         } else {
@@ -283,7 +301,24 @@ function MatchForm() {
 
     function submit() {
         setSubmitAttempted(true);
-        if (!validForm()) {
+        let toastText = [];
+        if (!validPreAuto()) {
+            toastText.push('Pre-Auto');
+        }
+        if (!validPostAuto()) {
+            toastText.push('Post-Auto');
+        }
+        if (!validTele()) {
+            toastText.push('Teleop');
+        }
+        if (toastText.length !== 0) {
+            toastRef.current = toast({
+                title: 'Error at:',
+                description: toastText.join(', '),
+                status: 'error',
+                duration: 2000,
+                isClosable: true,
+            });
             return;
         }
         updateMatchForm({
@@ -297,10 +332,12 @@ function MatchForm() {
                     teamName: teamName,
                     preLoadedCargo: preLoadedCargo,
                     startingPosition: { ...startingPosition, width: imagePrevDimensions.x, height: imagePrevDimensions.y },
+                    pickedUpAuto: pickedUpAuto,
                     lowerCargoAuto: lowerCargoAuto,
                     upperCargoAuto: upperCargoAuto,
                     crossTarmac: crossTarmac,
                     autoComment: autoComment,
+                    pickedUpTele: pickedUpTele,
                     lowerCargoTele: lowerCargoTele,
                     upperCargoTele: upperCargoTele,
                     climbTime: climbTime,
@@ -318,146 +355,193 @@ function MatchForm() {
 
     function renderTab(tab) {
         switch (tab) {
+            case 'Pre-Auto':
+                return (
+                    <Box minH={'calc(100vh - 200px)'}>
+                        <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Pre-Loaded Ball:
+                            </Text>
+                            <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
+                                <Button _focus={{ outline: 'none' }} colorScheme={preLoadedCargo === true ? 'green' : 'gray'} onClick={() => setPreLoadedCargo(true)}>
+                                    Yes
+                                </Button>
+                                <Button _focus={{ outline: 'none' }} colorScheme={preLoadedCargo === false ? 'green' : 'gray'} onClick={() => setPreLoadedCargo(false)}>
+                                    No
+                                </Button>
+                            </HStack>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Starting Position:
+                            </Text>
+                            <Center marginBottom={'10px'}>
+                                <Spinner pos={'absolute'} zIndex={-1}></Spinner>
+                                <canvas
+                                    width={414 * calculateImageScale()}
+                                    height={414 * calculateImageScale()}
+                                    style={{ zIndex: 2 }}
+                                    onClick={(event) => {
+                                        if (canvas.current !== undefined) {
+                                            var bounds = event.target.getBoundingClientRect();
+                                            var x = event.clientX - bounds.left;
+                                            var y = event.clientY - bounds.top;
+                                            drawImage(x, y);
+                                        }
+                                    }}
+                                    ref={canvas}
+                                ></canvas>
+                            </Center>
+                        </Box>
+                    </Box>
+                );
             case 'Auto':
                 return (
-                    <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Pre-Loaded Ball:
-                        </Text>
-                        <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                            <Button _focus={{ outline: 'none' }} colorScheme={preLoadedCargo === true ? 'green' : 'gray'} onClick={() => setPreLoadedCargo(true)}>
-                                Yes
-                            </Button>
-                            <Button _focus={{ outline: 'none' }} colorScheme={preLoadedCargo === false ? 'green' : 'gray'} onClick={() => setPreLoadedCargo(false)}>
-                                No
-                            </Button>
-                        </HStack>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Starting Position:
-                        </Text>
-                        <Center marginBottom={'20px'}>
-                            <Spinner pos={'absolute'} zIndex={-1}></Spinner>
-                            <canvas
-                                style={{ zIndex: 2 }}
-                                width={810 * calculateImageScale()}
-                                height={414 * calculateImageScale()}
-                                onClick={(event) => {
-                                    if (canvas.current !== undefined) {
-                                        console.log('put point down');
-                                        var bounds = event.target.getBoundingClientRect();
-                                        var x = event.clientX - bounds.left;
-                                        var y = event.clientY - bounds.top;
-                                        drawImage(x, y);
-                                    } else {
-                                        event.preventDefault();
-                                    }
-                                }}
-                                ref={canvas}
-                            ></canvas>
-                        </Center>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Lower Hub:
-                        </Text>
-                        <Center marginBottom={'20px'}>
-                            <HStack>
-                                <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
-                                <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                    {lowerCargoAuto}
-                                </Text>
-                                <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoAuto((prevCargo) => prevCargo + 1)} />
+                    <Box minH={'calc(100vh - 200px)'}>
+                        <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Pickup Up:
+                            </Text>
+                            <Center marginBottom={'20px'}>
+                                <HStack>
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {pickedUpAuto}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpAuto((prevCargo) => prevCargo + 1)} />
+                                </HStack>
+                            </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Lower Hub:
+                            </Text>
+                            <Center marginBottom={'20px'}>
+                                <HStack>
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {lowerCargoAuto}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoAuto((prevCargo) => prevCargo + 1)} />
+                                </HStack>
+                            </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Upper Hub:
+                            </Text>
+                            <Center marginBottom={'10px'}>
+                                <HStack>
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {upperCargoAuto}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoAuto((prevCargo) => prevCargo + 1)} />
+                                </HStack>
+                            </Center>
+                        </Box>
+                    </Box>
+                );
+            case 'Post-Auto':
+                return (
+                    <Box minH={'calc(100vh - 200px)'}>
+                        <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Cross Tarmac:
+                            </Text>
+                            <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
+                                <Button _focus={{ outline: 'none' }} colorScheme={crossTarmac === true ? 'green' : 'gray'} onClick={() => setCrossTarmac(true)}>
+                                    Yes
+                                </Button>
+                                <Button _focus={{ outline: 'none' }} colorScheme={crossTarmac === false ? 'green' : 'gray'} onClick={() => setCrossTarmac(false)}>
+                                    No
+                                </Button>
                             </HStack>
-                        </Center>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Upper Hub:
-                        </Text>
-                        <Center marginBottom={'20px'}>
-                            <HStack>
-                                <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
-                                <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                    {upperCargoAuto}
-                                </Text>
-                                <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoAuto((prevCargo) => prevCargo + 1)} />
-                            </HStack>
-                        </Center>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Cross Tarmac:
-                        </Text>
-                        <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                            <Button _focus={{ outline: 'none' }} colorScheme={crossTarmac === true ? 'green' : 'gray'} onClick={() => setCrossTarmac(true)}>
-                                Yes
-                            </Button>
-                            <Button _focus={{ outline: 'none' }} colorScheme={crossTarmac === false ? 'green' : 'gray'} onClick={() => setCrossTarmac(false)}>
-                                No
-                            </Button>
-                        </HStack>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Auto Comment:
-                        </Text>
-                        <Center marginBottom={'10px'}>
-                            <Textarea _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} onChange={(event) => setAutoComment(event.target.value)} value={autoComment} placeholder='Any comments about auto' w={'85%'}></Textarea>
-                        </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Auto Comment:
+                            </Text>
+                            <Center marginBottom={'10px'}>
+                                <Textarea
+                                    _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                    onChange={(event) => setAutoComment(event.target.value)}
+                                    value={autoComment}
+                                    placeholder='Any comments about auto'
+                                    w={'85%'}
+                                ></Textarea>
+                            </Center>
+                        </Box>
                     </Box>
                 );
             case 'Teleop':
                 return (
-                    <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Lower Hub:
-                        </Text>
-                        <Center marginBottom={'20px'}>
-                            <HStack>
-                                <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
-                                <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                    {lowerCargoTele}
-                                </Text>
-                                <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoTele((prevCargo) => prevCargo + 1)} />
-                            </HStack>
-                        </Center>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Upper Hub:
-                        </Text>
-                        <Center marginBottom={'20px'}>
-                            <HStack>
-                                <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
-                                <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                    {upperCargoTele}
-                                </Text>
-                                <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoTele((prevCargo) => prevCargo + 1)} />
-                            </HStack>
-                        </Center>
-                        <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Climb:
-                        </Text>
-                        <Center marginBottom={'10px'}>
-                            <StopWatch setParentTimer={setClimbTime} initTime={climbTime}></StopWatch>
-                        </Center>
-                        {climbTime > 0 ? (
-                            <Box>
-                                <Text marginBottom={'10px'} marginLeft={'10px'} fontWeight={'bold'} fontSize={'100%'}>
-                                    Where:
-                                </Text>
-                                <Center>
-                                    <Flex flexWrap={'wrap'} marginBottom={'2px'} justifyContent={'center'}>
-                                        {rungs.map((rung, index) => (
-                                            <Button maxW={'125px'} minW={'125px'} margin={'8px'} key={index} _focus={{ outline: 'none' }} colorScheme={climbRung === rung ? 'green' : 'gray'} onClick={() => setClimbRung(rung)}>
-                                                {rung}
-                                            </Button>
-                                        ))}
-                                    </Flex>
+                    <Box minH={'calc(100vh - 200px)'}>
+                        <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Pickup Up:
+                            </Text>
+                            <Center marginBottom={'20px'}>
+                                <HStack>
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {pickedUpTele}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpTele((prevCargo) => prevCargo + 1)} />
+                                </HStack>
+                            </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Lower Hub:
+                            </Text>
+                            <Center marginBottom={'20px'}>
+                                <HStack>
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {lowerCargoTele}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoTele((prevCargo) => prevCargo + 1)} />
+                                </HStack>
+                            </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Upper Hub:
+                            </Text>
+                            <Center marginBottom={'20px'}>
+                                <HStack>
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {upperCargoTele}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoTele((prevCargo) => prevCargo + 1)} />
+                                </HStack>
+                            </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Climb:
+                            </Text>
+                            {climbTime !== null ? (
+                                <Center marginBottom={'10px'}>
+                                    <StopWatch setParentTimer={setClimbTime} initTime={climbTime}></StopWatch>
                                 </Center>
-                            </Box>
-                        ) : null}
+                            ) : null}
+                            {climbTime > 0 ? (
+                                <Box>
+                                    <Text marginBottom={'10px'} marginLeft={'10px'} fontWeight={'bold'} fontSize={'100%'}>
+                                        Where:
+                                    </Text>
+                                    <Center>
+                                        <Flex flexWrap={'wrap'} marginBottom={'2px'} justifyContent={'center'}>
+                                            {rungs.map((rung, index) => (
+                                                <Button maxW={'125px'} minW={'125px'} margin={'8px'} key={index} _focus={{ outline: 'none' }} colorScheme={climbRung === rung ? 'green' : 'gray'} onClick={() => setClimbRung(rung)}>
+                                                    {rung}
+                                                </Button>
+                                            ))}
+                                        </Flex>
+                                    </Center>
+                                </Box>
+                            ) : null}
+                        </Box>
                     </Box>
                 );
             case 'Post':
                 return (
-                    <Box>
+                    <Box minH={'calc(100vh - 200px)'}>
                         <Box border={'black solid'} borderRadius={'10px'} padding={'10px'}>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Defense:
                             </Text>
                             <Center marginBottom={'30px'}>
-                                <Slider colorScheme={'green'} w={'80%'} value={defenseRating} min={0} max={5} step={1} onChange={(value) => setDefenseRating(value)}>
+                                <Slider className='swiper-no-swiping' colorScheme={'green'} w={'80%'} value={defenseRating} min={0} max={5} step={1} onChange={(value) => setDefenseRating(value)}>
                                     {defenseRatings.map((rating, index) => (
                                         <SliderMark mr={rating === 0 ? 'px' : '0px'} mt={'10px'} key={index} value={rating}>
                                             {rating === 0 ? 'None' : rating}
@@ -549,50 +633,43 @@ function MatchForm() {
     }
 
     return (
-        <Center>
-            <Box width={{ base: '85%', md: '66%', lg: '50%' }}>
-                <Center>
-                    <HStack marginBottom={'25px'}>
-                        {tabs.map((tabItem, index) => (
-                            <Button border={submitAttempted && !validateTab(tabItem) ? '2px red solid' : 'none'} colorScheme={tab === tabItem ? 'green' : 'gray'} key={index} _focus={{ outline: 'none' }} onClick={() => setTab(tabItem)}>
-                                {tabItem}
-                            </Button>
-                        ))}
-                    </HStack>
-                </Center>
-                <Button className='slider-button-prev'>Prev</Button>
-                <Button className='slider-button-next'>Next</Button>
-                <Swiper
-                    // install Swiper modules
-                    autoHeight={true}
-                    modules={[Navigation]}
-                    simulateTouch={true}
-                    spaceBetween={50}
-                    centeredSlides={true}
-                    slidesPerView={1}
-                    navigation={{ prevEl: '.slider-button-prev', nextEl: '.slider-button-next' }}
-                    onSwiper={(swiper) => {
-                        // console.log(swiper);
-                        setActiveIndex(swiper.activeIndex);
-                    }}
-                    onSlideChange={(swiper) => {
-                        // console.log(swiper);
-                        setActiveIndex(swiper.activeIndex);
-                        setSliding(false);
-                    }}
-                    onTouchMove={(touchmove) => {
-                        // console.log(touchmove);
-                        if (!sliding) {
-                            setSliding(true);
-                        }
-                    }}
-                >
-                    <SwiperSlide> {renderTab('Auto')}</SwiperSlide>
-                    <SwiperSlide> {renderTab('Teleop')}</SwiperSlide>
-                    <SwiperSlide> {renderTab('Post')}</SwiperSlide>
-                </Swiper>
-            </Box>
-        </Center>
+        <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+            <Center>
+                <HStack marginBottom={'25px'} spacing={'10px'}>
+                    <Button className='slider-button-prev' _focus={{ outline: 'none' }}>
+                        Prev
+                    </Button>
+                    <Text textAlign={'center'} color={submitAttempted && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
+                        {tabs[activeSlider]}
+                    </Text>
+                    <Button className='slider-button-next' _focus={{ outline: 'none' }}>
+                        Next
+                    </Button>
+                </HStack>
+            </Center>
+            <Swiper
+                // install Swiper modules
+                ref={swiper}
+                autoHeight={true}
+                modules={[Navigation]}
+                spaceBetween={50}
+                centeredSlides={true}
+                slidesPerView={'auto'}
+                simulateTouch={false}
+                noSwiping={true}
+                navigation={{ prevEl: '.slider-button-prev', nextEl: '.slider-button-next' }}
+                onSlideChange={(swiper) => {
+                    setActiveSlider(swiper.activeIndex);
+                }}
+            >
+                <SwiperSlide> {renderTab('Pre-Auto')}</SwiperSlide>
+                <SwiperSlide> {renderTab('Auto')}</SwiperSlide>
+                <SwiperSlide> {renderTab('Post-Auto')}</SwiperSlide>
+                <SwiperSlide> {renderTab('Teleop')}</SwiperSlide>
+                <SwiperSlide> {renderTab('Post')}</SwiperSlide>
+            </Swiper>
+            {/* {renderTab('Auto')} */}
+        </Box>
     );
 }
 

@@ -29,7 +29,8 @@ import { year } from '../util/constants';
 
 let driveTrains = ['Tank', 'Swerve', 'Mecanum', 'H-Drive'];
 let programmingLanguages = ['Java', 'C++', 'LabView'];
-let startingPositions = ['Left', 'Center', 'Right'];
+let startingPositions = ['Fender', 'Tarmac Middle', 'Tarmac Edge'];
+let holdingCapacities = ['0', '1', '2'];
 
 function PitForm() {
     let navigate = useNavigate();
@@ -74,6 +75,7 @@ function PitForm() {
         { label: 'Hang on Traversal Rung', value: false },
         { label: 'None', value: false },
     ]);
+    const [holdingCapacity, setHoldingCapacity] = useState('');
     const [workingComment, setWorkingComment] = useState('');
     const [closingComment, setClosingComment] = useState('');
     const [image, setImage] = useState('');
@@ -199,7 +201,7 @@ function PitForm() {
     }
 
     function validForm() {
-        return weight !== '' && height !== '' && driveTrain !== '' && validWheels() && programmingLanguage !== '' && startingPosition !== '' && abilities.filter((ability) => ability.value).length !== 0;
+        return weight !== '' && height !== '' && driveTrain !== '' && validWheels() && programmingLanguage !== '' && startingPosition !== '' && abilities.filter((ability) => ability.value).length !== 0 && holdingCapacity !== '';
     }
 
     const { loading: loadingEvent, error: eventError } = useQuery(GET_EVENT, {
@@ -280,6 +282,7 @@ function PitForm() {
             setStartingPosition(pitForm.startingPosition);
             setAutoComment(pitForm.autoComment);
             setAbilities(pitForm.abilities);
+            setHoldingCapacity(pitForm.holdingCapacity.toString());
             setWorkingComment(pitForm.workingComment);
             setClosingComment(pitForm.closingComment);
             setImage(pitForm.image);
@@ -328,6 +331,7 @@ function PitForm() {
                     startingPosition: startingPosition,
                     autoComment: autoComment,
                     abilities: abilities,
+                    holdingCapacity: parseInt(holdingCapacity),
                     workingComment: workingComment,
                     closingComment: closingComment,
                     image: image,
@@ -381,7 +385,7 @@ function PitForm() {
                     isInvalid={submitAttempted && !markedFollowUp && weight === ''}
                     width={{ base: '85%', md: '66%', lg: '50%' }}
                 >
-                    <NumberInputField _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Weight (lbs)' />
+                    <NumberInputField enterKeyHint='done' _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Weight (lbs)' />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
                         <NumberDecrementStepper />
@@ -404,7 +408,7 @@ function PitForm() {
                     isInvalid={submitAttempted && !markedFollowUp && height === ''}
                     width={{ base: '85%', md: '66%', lg: '50%' }}
                 >
-                    <NumberInputField _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Height (in)' />
+                    <NumberInputField enterKeyHint='done' _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Height (in)' />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
                         <NumberDecrementStepper />
@@ -473,6 +477,7 @@ function PitForm() {
                                         // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
                                     >
                                         <NumberInputField
+                                            enterKeyHint='done'
                                             _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
                                             textAlign={'center'}
                                             padding={'0px 0px 0px 0px'}
@@ -567,6 +572,18 @@ function PitForm() {
                         </Checkbox>
                     ))}
                 </VStack>
+                <Text marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
+                    Holding Capacity:
+                </Text>
+                <RadioGroup marginLeft={'15px'} onChange={setHoldingCapacity} value={holdingCapacity}>
+                    <Stack direction={['column', 'row']}>
+                        {holdingCapacities.map((carryingCapacityItem, index) => (
+                            <Radio isInvalid={submitAttempted && !markedFollowUp && holdingCapacity === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={carryingCapacityItem}>
+                                {carryingCapacityItem}
+                            </Radio>
+                        ))}
+                    </Stack>
+                </RadioGroup>
             </Box>
             <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'20px'}>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>

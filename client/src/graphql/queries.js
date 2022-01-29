@@ -27,6 +27,7 @@ export const GET_PITFORM = gql`
                 label
                 value
             }
+            holdingCapacity
             workingComment
             closingComment
             image
@@ -125,10 +126,12 @@ export const GET_MATCHFORM_BY_STATION = gql`
                 width
                 height
             }
+            pickedUpAuto
             lowerCargoAuto
             upperCargoAuto
             crossTarmac
             autoComment
+            pickedUpTele
             lowerCargoTele
             upperCargoTele
             climbTime

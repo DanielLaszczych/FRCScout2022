@@ -1,18 +1,18 @@
 import React, { useRef } from 'react';
-import { CSSTransition as _CSSTransition } from 'react-transition-group';
+import { CSSTransition as OrigCSSTransition } from 'react-transition-group';
 
 const CSSTransition = (props) => {
     const nodeRef = useRef(null);
 
     return (
-        <_CSSTransition {...props} nodeRef={nodeRef}>
+        <OrigCSSTransition {...props} nodeRef={nodeRef}>
             <>
                 {React.Children.map(props.children, (child) => {
                     // @ts-ignore
                     return React.cloneElement(child, { ref: nodeRef });
                 })}
             </>
-        </_CSSTransition>
+        </OrigCSSTransition>
     );
 };
 

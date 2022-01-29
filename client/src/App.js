@@ -11,6 +11,7 @@ import MatchesPage from './pages/MatchesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PreMatchForm from './pages/PreMatchForm';
 import NavBar from './components/NavBar';
+import WebDataConnector from './pages/WebDataConnector';
 // import { createBreakpoints } from '@chakra-ui/theme-tools';
 
 // const breakpoints = createBreakpoints({
@@ -51,6 +52,7 @@ function App() {
                     <Route exact path='/preMatchForm' element={<PreMatchForm />} />
                     <Route exact path='/matchForm/:eventKey/:matchNumber/:station' element={<MatchForm />} />
                     <Route exact path='/admin' element={user.admin ? <AdminPage /> : <Center>You must be an admin</Center>} />
+                    <Route exact path='/tableau' element={<WebDataConnector />} />
                     <Route path='*' element={<NotFoundPage />} />
                 </Routes>
             </Router>

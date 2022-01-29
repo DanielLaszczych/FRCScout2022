@@ -1,8 +1,7 @@
 .plus-button,
 .minus-button {
     height: 2.5em;
-    width: 2.5em;
-    border-radius: 999px;
+    width: 3.15em;
     position: relative;
 }
 

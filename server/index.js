@@ -59,6 +59,7 @@ serverOptions(app);
 //routes
 app.use('/auth', require('./routes/auth'));
 app.use('/blueAlliance', require('./routes/blueAlliance'));
+app.use('/matchData', require('./routes/matchData'));
 app.use('/getuser', (req, res) => {
     res.send(req.user);
 });
@@ -97,7 +98,7 @@ async function startServer() {
     }
 
     mongoose
-        .connect(process.env.DATABASE_URL, {
+        .connect(process.env.DATABASE_URL_LOCAL, {
             useNewUrlParser: true,
         })
         .then((m) => {

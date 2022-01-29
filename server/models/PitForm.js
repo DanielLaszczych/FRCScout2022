@@ -86,6 +86,9 @@ const pitFormSchema = new Schema(
                 _id: false,
             },
         ],
+        holdingCapacity: {
+            type: Number,
+        },
         workingComment: {
             type: String,
         },

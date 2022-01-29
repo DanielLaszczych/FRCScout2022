@@ -34,6 +34,7 @@ module.exports = gql`
         startingPosition: String
         autoComment: String
         abilities: [Ability]
+        holdingCapacity: Int
         workingComment: String
         closingComment: String
         image: String
@@ -72,6 +73,7 @@ module.exports = gql`
         startingPosition: String
         autoComment: String
         abilities: [AbilityInput]
+        holdingCapacity: Int
         workingComment: String
         closingComment: String
         image: String

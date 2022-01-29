@@ -1,6 +1,6 @@
 import { createRef, React, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { Button, Center, Box, Grid, GridItem, Text, Flex, Circle, Spinner, useEventCallback, filter, HStack } from '@chakra-ui/react';
+import { Button, Center, Box, Grid, GridItem, Text, Flex, Circle, Spinner } from '@chakra-ui/react';
 import { TransitionGroup } from 'react-transition-group';
 import CSSTransition from '../components/CSSTransition';
 import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
@@ -13,7 +13,6 @@ function AdminPage() {
     const linkRef = useRef();
 
     const [error, setError] = useState(null);
-    const [refs, setRefs] = useState([]);
     const [setupDone, setSetUpDone] = useState(false);
     const [position, setPosition] = useState(0);
     const [eventTypes, setEventTypes] = useState([
@@ -54,7 +53,6 @@ function AdminPage() {
 
     function handleScrollAction(ref) {
         let targetEle = ref.current;
-        console.log(targetEle);
         window.scrollTo({ top: findPos(targetEle), behavior: 'smooth' });
     }
 

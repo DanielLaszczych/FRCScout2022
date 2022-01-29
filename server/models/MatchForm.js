@@ -52,6 +52,10 @@ const matchFormSchema = new Schema({
         },
         _id: false,
     },
+    pickedUpAuto: {
+        type: Number,
+        required: true,
+    },
     lowerCargoAuto: {
         type: Number,
         required: true,
@@ -66,6 +70,10 @@ const matchFormSchema = new Schema({
     },
     autoComment: {
         type: String,
+        required: true,
+    },
+    pickedUpTele: {
+        type: Number,
         required: true,
     },
     lowerCargoTele: {

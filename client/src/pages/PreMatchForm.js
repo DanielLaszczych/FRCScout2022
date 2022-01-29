@@ -210,6 +210,7 @@ function PreMatchForm() {
                                 }}
                             >
                                 <NumberInputField
+                                    enterKeyHint='done'
                                     _focus={{
                                         outline: 'none',
                                         boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
@@ -234,6 +235,7 @@ function PreMatchForm() {
                                 }}
                             >
                                 <NumberInputField
+                                    enterKeyHint='done'
                                     _focus={{
                                         outline: 'none',
                                         boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',

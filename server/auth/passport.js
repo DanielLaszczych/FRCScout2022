@@ -10,7 +10,7 @@ passport.use(
             callbackURL: '/auth/google/callback',
             proxy: true,
         },
-        async (accessToken, refreshToken, profile, done) => {
+        async (accessToken, refreshToken, params, profile, done) => {
             if (!(profile._json.hd && profile._json.hd === 'robotigers1796.com')) {
                 done('Not a robotigers account');
                 return;
@@ -18,6 +18,7 @@ passport.use(
             const newUser = new User({
                 googleId: profile.id,
                 googleDisplayName: profile.displayName,
+                googleIDToken: params.id_token,
                 firstName: profile.name.givenName,
                 lastName: profile.name.familyName,
                 email: profile.emails[0].value,
@@ -30,6 +31,8 @@ passport.use(
                 let user = await User.findOne({ googleId: profile.id });
 
                 if (user) {
+                    user.googleIDToken = params.id_token;
+                    user.save();
                     done(null, user);
                 } else {
                     user = await newUser.save();

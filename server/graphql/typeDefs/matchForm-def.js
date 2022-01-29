@@ -19,10 +19,12 @@ module.exports = gql`
         scouter: String!
         preLoadedCargo: Boolean
         startingPosition: StartingPosition
+        pickedUpAuto: Int
         lowerCargoAuto: Int
         upperCargoAuto: Int
         crossTarmac: Boolean
         autoComment: String
+        pickedUpTele: Int
         lowerCargoTele: Int
         upperCargoTele: Int
         climbTime: Int
@@ -51,10 +53,12 @@ module.exports = gql`
         teamName: String!
         preLoadedCargo: Boolean!
         startingPosition: StartingPositionInput!
+        pickedUpAuto: Int!
         lowerCargoAuto: Int!
         upperCargoAuto: Int!
         crossTarmac: Boolean!
         autoComment: String!
+        pickedUpTele: Int!
         lowerCargoTele: Int!
         upperCargoTele: Int!
         climbTime: Int!
