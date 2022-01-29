@@ -1,7 +1,7 @@
 const { gql } = require('apollo-server-express');
 
 const users = require('./users-def');
-const pitForms = require('./tempPitForm');
+const pitForms = require('./pitForm-def');
 const events = require('./event-def');
 const matchForms = require('./matchForm-def');
 
