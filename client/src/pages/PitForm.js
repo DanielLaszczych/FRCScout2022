@@ -36,7 +36,6 @@ let holdingCapacities = ['0', '1', '2'];
 function PitForm() {
     const navigate = useNavigate();
     const toast = useToast();
-    const canvas = useRef(null);
     let { eventKey: eventKeyParam, teamNumber: teamNumberParam } = useParams();
     const hiddenImageInput = useRef(null);
 
@@ -189,20 +188,6 @@ function PitForm() {
                 setImgHeader('New Image');
                 setImage(FR.result);
             };
-            // let imgSrc = URL.createObjectURL(event.target.files[0]);
-            // console.log(imgSrc);
-            // const img = new Image();
-            // img.src = imgSrc;
-            // img.onload = () => {
-            //     console.log(img);
-            //     setImgHeader('New Image');
-            //     // setImage(img);
-            //     const canvasElement = canvas.current;
-            //     canvasElement.width = 400;
-            //     canvasElement.height = 400;
-            //     const ctx = canvas.current.getContext('2d');
-            //     ctx.drawImage(img, 0, 0, 400, 400);
-            // };
         }
     }
 
@@ -637,7 +622,6 @@ function PitForm() {
                         }}
                         src={image}
                     /> */}
-                    {/* <canvas ref={canvas}></canvas> */}
                     <Image w={{ base: '60%', md: '35%', lg: '25%' }} maxW={{ base: '60%', md: '35%', lg: '25%' }} src={image} />
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     <Button variant='outline' borderColor='gray.300' _focus={{ outline: 'none' }} onClick={() => hiddenImageInput.current.click()}>
