@@ -183,13 +183,17 @@ function PitForm() {
     function updateImage(event) {
         if (event.target.files && event.target.files[0] && event.target.files[0].type.split('/')[0] === 'image') {
             let tempImg = event.target.files[0];
-            let fr = new FileReader();
-            fr.readAsDataURL(tempImg);
-            fr.onload = () => {
-                tempImg = fr.result;
-                setImgHeader('New Image');
-                setImage(tempImg);
-            };
+            console.log(event.target.files[0]);
+            console.log(URL.createObjectURL(tempImg));
+            setImgHeader('New Image');
+            setImage(URL.createObjectURL(tempImg));
+            // let fr = new FileReader();
+            // fr.readAsDataURL(tempImg);
+            // fr.onload = () => {
+            //     tempImg = fr.result;
+            //     setImgHeader('New Image');
+            //     setImage(tempImg);
+            // };
         }
     }
 
