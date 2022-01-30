@@ -1,5 +1,5 @@
 import { React, useContext } from 'react';
-import { Center, ChakraProvider, theme } from '@chakra-ui/react';
+import { ChakraProvider, theme } from '@chakra-ui/react';
 import { AuthContext } from './context/auth';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -12,6 +12,7 @@ import NotFoundPage from './pages/NotFoundPage';
 import PreMatchForm from './pages/PreMatchForm';
 import NavBar from './components/NavBar';
 import WebDataConnector from './pages/WebDataConnector';
+import AdminErrorPage from './pages/AdminErrorPage';
 // import { createBreakpoints } from '@chakra-ui/theme-tools';
 
 // const breakpoints = createBreakpoints({
@@ -51,7 +52,7 @@ function App() {
                     <Route exact path='/pitForm/:eventKey/:teamNumber' element={<PitForm />} />
                     <Route exact path='/preMatchForm' element={<PreMatchForm />} />
                     <Route exact path='/matchForm/:eventKey/:matchNumber/:station' element={<MatchForm />} />
-                    <Route exact path='/admin' element={user.admin ? <AdminPage /> : <Center>You must be an admin</Center>} />
+                    <Route exact path='/admin' element={user.admin ? <AdminPage /> : <AdminErrorPage />} />
                     <Route exact path='/tableau' element={<WebDataConnector />} />
                     <Route path='*' element={<NotFoundPage />} />
                 </Routes>
