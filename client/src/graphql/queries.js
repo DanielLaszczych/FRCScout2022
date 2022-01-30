@@ -36,7 +36,7 @@ export const GET_PITFORM = gql`
     }
 `;
 
-export const GET_EVENT_PITFORMS = gql`
+export const GET_EVENTS_PITFORMS = gql`
     query ($eventKey: String!) {
         getEventsPitForms(eventKey: $eventKey) {
             eventKey
@@ -44,18 +44,22 @@ export const GET_EVENT_PITFORMS = gql`
             teamNumber
             teamName
             followUp
+            scouter
         }
     }
 `;
 
-export const GET_EVENT_MATCHFORMS = gql`
+export const GET_EVENTS_MATCHFORMS = gql`
     query ($eventKey: String!) {
         getEventsMatchForms(eventKey: $eventKey) {
+            _id
             eventKey
             eventName
             matchNumber
             teamNumber
             teamName
+            scouter
+            station
         }
     }
 `;

@@ -17,6 +17,7 @@ export const CREATE_EVENT = gql`
             startDate
             endDate
             eventType
+            currentEvent
         }
     }
 `;
@@ -31,6 +32,15 @@ export const REMOVE_EVENT = gql`
             startDate
             endDate
             year
+        }
+    }
+`;
+
+export const SET_CURRENT_EVENT = gql`
+    mutation ($key: String!) {
+        setCurrentEvent(key: $key) {
+            name
+            key
         }
     }
 `;

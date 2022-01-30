@@ -24,6 +24,7 @@ import {
     Stack,
     Image,
     Spinner,
+    useToast,
 } from '@chakra-ui/react';
 import { year } from '../util/constants';
 
@@ -33,7 +34,8 @@ let startingPositions = ['Fender', 'Tarmac Middle', 'Tarmac Edge'];
 let holdingCapacities = ['0', '1', '2'];
 
 function PitForm() {
-    let navigate = useNavigate();
+    const navigate = useNavigate();
+    const toast = useToast();
     let { eventKey: eventKeyParam, teamNumber: teamNumberParam } = useParams();
     const hiddenImageInput = useRef(null);
 
@@ -298,11 +300,23 @@ function PitForm() {
             },
         },
         onCompleted() {
-            navigate('/pits');
+            toast({
+                title: 'Pit Form Updated',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+            navigate('/');
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            toast({
+                title: 'Apollo Error, check console',
+                description: 'Call Daniel',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
         },
     });
 
@@ -635,7 +649,7 @@ function PitForm() {
             </Box>
 
             <Center>
-                <Button _focus={{ outline: 'none' }} marginBottom={'20px'} onClick={() => submit()}>
+                <Button _focus={{ outline: 'none' }} marginBottom={'25px'} onClick={() => submit()}>
                     Submit
                 </Button>
             </Center>

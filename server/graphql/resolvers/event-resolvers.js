@@ -85,5 +85,36 @@ module.exports = {
                 throw new Error(err);
             }
         },
+        async setCurrentEvent(_, { key }, context) {
+            if (!context.req.user) {
+                throw new Error('You must be logged in');
+            } else if (!context.req.user.admin) {
+                throw new Error('You must be an admin to change the current event');
+            }
+            try {
+                const prevEvent = await Event.findOne({ currentEvent: true }).exec();
+                if (prevEvent) {
+                    if (prevEvent.key === key) {
+                        return prevEvent;
+                    } else {
+                        prevEvent.currentEvent = false;
+                        prevEvent.save();
+                    }
+                }
+                if (key === 'None') {
+                    throw new Error('No current events');
+                }
+                const newEvent = await Event.findOne({ key: key }).exec();
+                if (!newEvent) {
+                    throw new Error('This event is not registered inside the databse');
+                } else {
+                    newEvent.currentEvent = true;
+                    newEvent.save();
+                    return newEvent;
+                }
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
     },
 };

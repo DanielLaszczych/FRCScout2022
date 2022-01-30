@@ -46,5 +46,6 @@ module.exports = gql`
     extend type Mutation {
         createEvent(eventInput: EventInput!): Event
         removeEvent(key: String!): Event
+        setCurrentEvent(key: String!): Event
     }
 `;

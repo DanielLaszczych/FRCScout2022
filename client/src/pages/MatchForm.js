@@ -21,7 +21,6 @@ let doResize;
 function MatchForm() {
     let navigate = useNavigate();
     const toast = useToast();
-    const toastRef = useRef();
     let { eventKey: eventKeyParam, matchNumber: matchNumberParam, station: stationParam } = useParams();
     const canvas = useRef(null);
     const swiper = useRef(null);
@@ -291,11 +290,24 @@ function MatchForm() {
 
     const [updateMatchForm] = useMutation(UPDATE_MATCHFORM, {
         onCompleted() {
+            toast({
+                title: 'Match Form Updated',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
+            navigate('/');
             navigate('/');
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            toast({
+                title: 'Apollo Error, check console',
+                description: 'Call Daniel',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
         },
     });
 
@@ -312,7 +324,7 @@ function MatchForm() {
             toastText.push('Teleop');
         }
         if (toastText.length !== 0) {
-            toastRef.current = toast({
+            toast({
                 title: 'Error at:',
                 description: toastText.join(', '),
                 status: 'error',

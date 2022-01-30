@@ -22,10 +22,11 @@ function HomePage() {
         error: currentEventError,
         data: { getCurrentEvent: currentEvent } = {},
     } = useQuery(GET_CURRENT_EVENT, {
+        fetchPolicy: 'network-only',
         skip: user === 'NoUser',
         onError(err) {
             if (err.message === 'Error: There is no current event') {
-                setError('There is no event to scout :(');
+                setError('There is no event to scout 😔');
             } else {
                 console.log(JSON.stringify(err, null, 2));
                 setError('Apollo error, check console for logs');
@@ -62,12 +63,12 @@ function HomePage() {
                     <Text textAlign={'center'} fontSize={'25px'} fontWeight={'medium'}>
                         Current Event: {currentEvent.name}
                     </Text>
-                    <VStack spacing={'25px'} marginTop={'60px'}>
+                    <VStack spacing={'25px'} marginTop={'40px'}>
                         <Button _focus={{ outline: 'none' }} onClick={() => setPitFormDialog(true)}>
                             Pit Form
                         </Button>
                         <AlertDialog
-                            closeOnEsc={false}
+                            closeOnEsc={true}
                             isOpen={pitFormDialog}
                             leastDestructiveRef={cancelRef}
                             onClose={() => {
@@ -92,7 +93,14 @@ function HomePage() {
                                         Enter a team number
                                     </AlertDialogHeader>
                                     <AlertDialogBody>
-                                        <Input ref={inputElement} type={'number'} borderColor='gray.300' value={pitTeamNumber} onChange={(e) => setPitTeamNumber(e.target.value)} />
+                                        <Input
+                                            ref={inputElement}
+                                            type={'number'}
+                                            _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                            borderColor='gray.300'
+                                            value={pitTeamNumber}
+                                            onChange={(e) => setPitTeamNumber(e.target.value)}
+                                        />
                                     </AlertDialogBody>
                                     <AlertDialogFooter>
                                         <Button

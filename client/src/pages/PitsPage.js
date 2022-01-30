@@ -2,8 +2,9 @@ import { React, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { Button, Center, Box, Grid, GridItem, Menu, MenuButton, MenuList, MenuItem, Spinner, Text } from '@chakra-ui/react';
-import { GET_EVENT, GET_EVENTS_KEYS_NAMES, GET_EVENT_PITFORMS } from '../graphql/queries';
+import { GET_EVENT, GET_EVENTS_KEYS_NAMES, GET_EVENTS_PITFORMS } from '../graphql/queries';
 import { ChevronDownIcon } from '@chakra-ui/icons';
+import { sortRegisteredEvents } from '../util/helperFunctions';
 
 function PitPage() {
     const [error, setError] = useState(null);
@@ -21,11 +22,12 @@ function PitPage() {
             setError('Apollo error, check console for logs');
         },
         onCompleted({ getEvents: events }) {
-            if (events.length > 0) {
-                let currentEvent = events.find((event) => event.currentEvent);
+            let sortedEvents = sortRegisteredEvents(events);
+            if (sortedEvents.length > 0) {
+                let currentEvent = sortedEvents.find((event) => event.currentEvent);
                 if (currentEvent === undefined) {
-                    setCurrentEvent({ name: events[0].name, key: events[0].key });
-                    setFocusedEvent(events[0].name);
+                    setCurrentEvent({ name: sortedEvents[sortedEvents.length - 1].name, key: sortedEvents[sortedEvents.length - 1].key });
+                    setFocusedEvent(sortedEvents[sortedEvents.length - 1].name);
                 } else {
                     setCurrentEvent({ name: currentEvent.name, key: currentEvent.key });
                     setFocusedEvent(currentEvent.name);
@@ -40,7 +42,7 @@ function PitPage() {
         loading: loadingPitForms,
         error: pitFormsError,
         data: { getEventsPitForms: pitForms } = {},
-    } = useQuery(GET_EVENT_PITFORMS, {
+    } = useQuery(GET_EVENTS_PITFORMS, {
         skip: currentEvent.key === '',
         fetchPolicy: 'network-only',
         variables: {
@@ -85,6 +87,16 @@ function PitPage() {
         }
     }
 
+    function getPitFormScouter(teamName) {
+        for (const pitFormData of pitForms) {
+            if (pitFormData.teamName === teamName) {
+                let nameArr = pitFormData.scouter.split(' ');
+                return nameArr[0] + ' ' + nameArr[1].charAt(0) + '.';
+            }
+        }
+        return 'N/A';
+    }
+
     if (error) {
         return (
             <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
@@ -109,17 +121,16 @@ function PitPage() {
                         {currentEvent.name}
                     </MenuButton>
                     <MenuList textAlign={'center'}>
-                        {events.map((eventItem, index) => (
+                        {sortRegisteredEvents(events).map((eventItem, index) => (
                             <MenuItem
                                 _focus={{ backgroundColor: 'none' }}
                                 onMouseEnter={() => setFocusedEvent(eventItem.name)}
                                 backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
                                 maxW={'75vw'}
-                                textAlign={'center'}
                                 key={index}
                                 onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
                             >
-                                {eventItem.name}
+                                <Text margin={'0 auto'}>{eventItem.name}</Text>
                             </MenuItem>
                         ))}
                     </MenuList>
@@ -130,11 +141,11 @@ function PitPage() {
                     <Spinner></Spinner>
                 </Center>
             ) : (
-                <Box marginBottom={'25px'}>
+                <Box paddingBottom={'25px'}>
                     {event.teams
                         .sort((a, b) => a.number - b.number)
                         .map((team, index) => (
-                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='1fr 2fr 1fr' gap={'5px'}>
+                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='1fr 2fr 1fr 1fr' gap={'5px'}>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                         {team.number}
@@ -143,6 +154,11 @@ function PitPage() {
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                         {team.name}
+                                    </Text>
+                                </GridItem>
+                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        {getPitFormScouter(team.name)}
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'10px 0px 10px 0px'} marginRight={'10px'} marginLeft={'10px'} textAlign={'center'}>

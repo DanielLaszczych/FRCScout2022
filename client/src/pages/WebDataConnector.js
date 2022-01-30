@@ -1,9 +1,10 @@
 import { useQuery } from '@apollo/client';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { AuthContext } from '../context/auth';
-import { Box, Button, Center, Menu, MenuButton, MenuItem, MenuList, Spinner, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Menu, MenuButton, MenuItem, MenuList, Spinner, Text, VStack } from '@chakra-ui/react';
 import { React, useContext, useEffect, useState } from 'react';
 import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
+import { sortRegisteredEvents } from '../util/helperFunctions';
 
 function WebDataConnector() {
     const { user } = useContext(AuthContext);
@@ -29,11 +30,12 @@ function WebDataConnector() {
             setError('Apollo error, check console for logs');
         },
         onCompleted({ getEvents: events }) {
-            if (events.length > 0) {
-                let currentEvent = events.find((event) => event.currentEvent);
+            let sortedEvents = sortRegisteredEvents(events);
+            if (sortedEvents.length > 0) {
+                let currentEvent = sortedEvents.find((event) => event.currentEvent);
                 if (currentEvent === undefined) {
-                    setCurrentEvent({ name: events[0].name, key: events[0].key });
-                    setFocusedEvent(events[0].name);
+                    setCurrentEvent({ name: sortedEvents[sortedEvents.length - 1].name, key: sortedEvents[sortedEvents.length - 1].key });
+                    setFocusedEvent(sortedEvents[sortedEvents.length - 1].name);
                 } else {
                     setCurrentEvent({ name: currentEvent.name, key: currentEvent.key });
                     setFocusedEvent(currentEvent.name);
@@ -76,7 +78,7 @@ function WebDataConnector() {
                     {currentEvent.name}
                 </MenuButton>
                 <MenuList textAlign={'center'}>
-                    {events.map((eventItem, index) => (
+                    {sortRegisteredEvents(events).map((eventItem, index) => (
                         <MenuItem
                             _focus={{ backgroundColor: 'none' }}
                             onMouseEnter={() => setFocusedEvent(eventItem.name)}
@@ -86,7 +88,7 @@ function WebDataConnector() {
                             key={index}
                             onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
                         >
-                            {eventItem.name}
+                            <Text margin={'0 auto'}>{eventItem.name}</Text>
                         </MenuItem>
                     ))}
                 </MenuList>

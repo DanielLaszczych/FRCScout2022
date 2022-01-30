@@ -1,18 +1,23 @@
 import { createRef, React, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { Button, Center, Box, Grid, GridItem, Text, Flex, Circle, Spinner } from '@chakra-ui/react';
+import { Button, Center, Box, Grid, GridItem, Text, Flex, Circle, Spinner, IconButton, VStack, Modal, useDisclosure, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@chakra-ui/react';
 import { TransitionGroup } from 'react-transition-group';
 import CSSTransition from '../components/CSSTransition';
 import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
-import { CREATE_EVENT, REMOVE_EVENT } from '../graphql/mutations';
-import { ArrowUpIcon } from '@chakra-ui/icons';
+import { CREATE_EVENT, REMOVE_EVENT, SET_CURRENT_EVENT } from '../graphql/mutations';
+import { ArrowUpIcon, EditIcon } from '@chakra-ui/icons';
 import { year } from '../util/constants';
 import '../stylesheets/adminstyle.css';
+import { sortBlueAllianceEvents, sortRegisteredEvents } from '../util/helperFunctions';
 
 function AdminPage() {
     const linkRef = useRef();
+    const { isOpen, onOpen, onClose } = useDisclosure();
 
     const [error, setError] = useState(null);
+    const [currentEvent, setCurrentEvent] = useState({ name: '', key: '' });
+    const [focusedEvent, setFocusedEvent] = useState({ name: '', key: '' });
+    const [changingCurrentEvent, setChangingCurrentEvent] = useState(false);
     const [setupDone, setSetUpDone] = useState(false);
     const [position, setPosition] = useState(0);
     const [eventTypes, setEventTypes] = useState([
@@ -68,7 +73,15 @@ function AdminPage() {
             setError('Apollo error, check console for logs');
         },
         onCompleted({ getEvents: events }) {
-            setEvents(events);
+            setEvents(sortRegisteredEvents(events));
+            let currentEvent = events.find((event) => event.currentEvent);
+            if (currentEvent === undefined) {
+                setCurrentEvent({ name: 'None', key: 'None' });
+                setFocusedEvent({ name: 'None', key: 'None' });
+            } else {
+                setCurrentEvent({ name: currentEvent.name, key: currentEvent.key });
+                setFocusedEvent({ name: currentEvent.name, key: currentEvent.key });
+            }
             fetch(`/blueAlliance/getEventsCustom/${year}`)
                 .then((response) => response.json())
                 .then((data) => {
@@ -103,16 +116,7 @@ function AdminPage() {
         } else {
             filteredEvents = events.filter((event) => event.event_type_string === 'Offseason');
         }
-        return filteredEvents.sort((a, b) => {
-            let delta = new Date(a.start_date) - new Date(b.start_date);
-            if (delta === 0) {
-                delta = new Date(a.end_date) - new Date(b.end_date);
-                if (delta === 0) {
-                    delta = a.name.localeCompare(b.name);
-                }
-            }
-            return delta;
-        });
+        return sortBlueAllianceEvents(filteredEvents);
     }
 
     const [createEvent] = useMutation(CREATE_EVENT, {
@@ -133,7 +137,7 @@ function AdminPage() {
             );
             setTimeout(() => {
                 setMutatingEventKey(null);
-                setEvents((prevEvents) => [...prevEvents, createdEvent]);
+                setEvents((prevEvents) => sortRegisteredEvents([...prevEvents, createdEvent]));
             }, 300);
         },
     });
@@ -177,6 +181,10 @@ function AdminPage() {
             setError('Apollo error, check console for logs');
         },
         onCompleted({ removeEvent: removedEvent }) {
+            if (removedEvent.key === currentEvent.key) {
+                setCurrentEvent({ name: 'None', key: 'None' });
+                setFocusedEvent({ name: 'None', key: 'None' });
+            }
             setEvents((prevEvents) => prevEvents.filter((event) => event.name !== removedEvent.name));
             setMutatingEventKey(null);
             setTimeout(() => {
@@ -192,16 +200,7 @@ function AdminPage() {
                                 end_date: removedEvent.endDate,
                                 year: removedEvent.year,
                             };
-                            let newEvents = [...eventType.events, addedEvent].sort((a, b) => {
-                                let delta = new Date(a.start_date) - new Date(b.start_date);
-                                if (delta === 0) {
-                                    delta = new Date(a.end_date) - new Date(b.end_date);
-                                    if (delta === 0) {
-                                        delta = a.name.localeCompare(b.name);
-                                    }
-                                }
-                                return delta;
-                            });
+                            let newEvents = sortBlueAllianceEvents([...eventType.events, addedEvent]);
                             return { ...eventType, events: newEvents, count: eventType.count + 1 };
                         } else {
                             return eventType;
@@ -215,6 +214,33 @@ function AdminPage() {
     function handleRemoveEvent(key) {
         setMutatingEventKey(key);
         removeEvent({
+            variables: {
+                key: key,
+            },
+        });
+    }
+
+    const [setCurrentEventMutation] = useMutation(SET_CURRENT_EVENT, {
+        onError(err) {
+            if (err.message === 'Error: No current events') {
+                setCurrentEvent({ name: 'None', key: 'None' });
+                setFocusedEvent({ name: 'None', key: 'None' });
+                setChangingCurrentEvent(false);
+            } else {
+                console.log(JSON.stringify(err, null, 2));
+                setError('Apollo error, check console for logs');
+            }
+        },
+        onCompleted({ setCurrentEvent: currentEvent }) {
+            setCurrentEvent({ name: currentEvent.name, key: currentEvent.key });
+            setFocusedEvent({ name: currentEvent.name, key: currentEvent.key });
+            setChangingCurrentEvent(false);
+        },
+    });
+
+    function handleSetCurrentEvent(key) {
+        setChangingCurrentEvent(true);
+        setCurrentEventMutation({
             variables: {
                 key: key,
             },
@@ -239,11 +265,62 @@ function AdminPage() {
 
     return (
         <Box margin={'0 auto'} width={{ base: '90%', md: '66%', lg: '66%' }}>
+            <Modal lockFocusAcrossFrames={true} closeOnEsc={true} isOpen={isOpen} onClose={onClose}>
+                <ModalOverlay>
+                    <ModalContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='30%'>
+                        <ModalHeader color='black' fontSize='lg' fontWeight='bold'>
+                            Select an Event
+                        </ModalHeader>
+                        <ModalBody maxHeight={'250px'} overflowY={'auto'}>
+                            <VStack spacing={'10px'}>
+                                <Button colorScheme={focusedEvent.key === 'None' ? 'green' : 'gray'} onClick={() => setFocusedEvent({ name: 'None', key: 'None' })} _focus={{ outline: 'none' }}>
+                                    None
+                                </Button>
+                                {events.map((event) => (
+                                    <Button
+                                        key={event.key}
+                                        minH={'40px'}
+                                        height={'max-content'}
+                                        paddingBottom={'5px'}
+                                        paddingTop={'5px'}
+                                        onClick={() => setFocusedEvent({ name: event.name, key: event.key })}
+                                        colorScheme={focusedEvent.key === event.key ? 'green' : 'gray'}
+                                        _focus={{ outline: 'none' }}
+                                        style={{ whiteSpace: 'normal', wordWrap: 'break-word' }}
+                                    >
+                                        {event.name}
+                                    </Button>
+                                ))}
+                            </VStack>
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button onClick={onClose} _focus={{ outline: 'none' }}>
+                                Cancel
+                            </Button>
+                            <Button
+                                colorScheme='blue'
+                                ml={3}
+                                _focus={{ outline: 'none' }}
+                                onClick={() => {
+                                    handleSetCurrentEvent(focusedEvent.key);
+                                    onClose();
+                                }}
+                            >
+                                Confirm
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </ModalOverlay>
+            </Modal>
             {position > findPos(linkRef.current) ? (
                 <Circle backgroundColor={'gray.200'} zIndex={2} position={'fixed'} cursor={'pointer'} onClick={() => handleScrollAction(linkRef)} bottom={'2%'} right={'2%'} padding={'10px'} borderRadius={'50%'} border={'2px solid black'}>
                     <ArrowUpIcon fontSize={'150%'} />
                 </Circle>
             ) : null}
+            <Box marginBottom={'25px'}>
+                <h2 style={{ fontWeight: '500', fontSize: '30px', lineHeight: '1.1' }}>Current Event: {currentEvent.name}</h2>
+                {changingCurrentEvent ? <Spinner></Spinner> : <IconButton _focus={{ outline: 'none' }} size='sm' icon={<EditIcon />} onClick={onOpen} />}
+            </Box>
             <Box margin='0 auto' marginBottom={'25px'}>
                 <Box marginBottom={'10px'}>
                     <h2 style={{ fontWeight: '500', fontSize: '30px', lineHeight: '1.1' }}>
@@ -251,44 +328,35 @@ function AdminPage() {
                     </h2>
                 </Box>
                 <TransitionGroup>
-                    {events
-                        .sort((a, b) => {
-                            let delta = new Date(a.startDate) - new Date(b.startDate);
-                            if (delta === 0) {
-                                delta = new Date(a.endDate) - new Date(b.endDate);
-                                if (delta === 0) {
-                                    delta = a.name.localeCompare(b.name);
-                                }
-                            }
-                            return delta;
-                        })
-                        .map((event, index) => (
-                            <CSSTransition key={event.key} timeout={500} classNames='shrink'>
-                                <Grid minHeight={'61px'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} templateColumns='2fr 1fr' gap={'15px'}>
-                                    <GridItem marginLeft={'5px'} padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {event.name}
-                                        </Text>
-                                    </GridItem>
-                                    <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                        {mutatingEventKey === event.key ? (
-                                            <Spinner marginTop={'8px'}></Spinner>
-                                        ) : (
-                                            <Button _focus={{ outline: 'none' }} onClick={() => handleRemoveEvent(event.key)} size={'md'} marginLeft={'10px'} marginRight={'10px'}>
-                                                Remove
-                                            </Button>
-                                        )}
-                                    </GridItem>
-                                </Grid>
-                            </CSSTransition>
-                        ))}
+                    {events.map((event, index) => (
+                        <CSSTransition key={event.name} timeout={500} classNames='shrink'>
+                            <Grid minHeight={'61px'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} templateColumns='2fr 1fr' gap={'15px'}>
+                                <GridItem marginLeft={'5px'} padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        {event.name}
+                                    </Text>
+                                </GridItem>
+                                <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
+                                    {mutatingEventKey === event.key ? (
+                                        <Box marginTop={'8px'} minW={'110px'}>
+                                            <Spinner></Spinner>
+                                        </Box>
+                                    ) : (
+                                        <Button _focus={{ outline: 'none' }} disabled={mutatingEventKey !== null} onClick={() => handleRemoveEvent(event.key)} size={'md'} marginLeft={'10px'} marginRight={'10px'}>
+                                            Remove
+                                        </Button>
+                                    )}
+                                </GridItem>
+                            </Grid>
+                        </CSSTransition>
+                    ))}
                 </TransitionGroup>
             </Box>
 
             <Center>
                 <Flex flexWrap={'wrap'} marginBottom={'25px'} justifyContent={'center'}>
-                    {eventTypes.map((eventType, index) => (
-                        <Button _focus={{ outline: 'none' }} ref={eventType.name === 'Week 1' ? linkRef : null} maxW={'125px'} minW={'125px'} margin={'8px'} key={index} onClick={() => handleScrollAction(eventType.ref)}>
+                    {eventTypes.map((eventType) => (
+                        <Button key={eventType.name} _focus={{ outline: 'none' }} ref={eventType.name === 'Week 1' ? linkRef : null} maxW={'125px'} minW={'125px'} margin={'8px'} onClick={() => handleScrollAction(eventType.ref)}>
                             {eventType.name}
                         </Button>
                     ))}
@@ -296,7 +364,7 @@ function AdminPage() {
             </Center>
             <Box>
                 {eventTypes.map((eventType, index) => (
-                    <Box key={index} margin='0 auto' marginBottom={'25px'}>
+                    <Box key={index} margin='0 auto' paddingBottom={'25px'}>
                         <Box marginBottom={'10px'}>
                             <h2 ref={eventType.ref} style={{ fontWeight: '500', fontSize: '30px', lineHeight: '1.1' }}>
                                 {eventType.name} <small style={{ fontSize: '65%', color: '#777', lineHeight: '1' }}>{eventType.count} Events</small>
@@ -315,7 +383,12 @@ function AdminPage() {
                                             {mutatingEventKey === event.key ? (
                                                 <Spinner marginTop={'8px'}></Spinner>
                                             ) : (
-                                                <Button _focus={{ outline: 'none' }} size={'md'} onClick={() => handleAddEvent(event.name, event.year, event.week, eventType.name, event.key, event.start_date, event.end_date)}>
+                                                <Button
+                                                    _focus={{ outline: 'none' }}
+                                                    disabled={mutatingEventKey !== null}
+                                                    size={'md'}
+                                                    onClick={() => handleAddEvent(event.name, event.year, event.week, eventType.name, event.key, event.start_date, event.end_date)}
+                                                >
                                                     Add
                                                 </Button>
                                             )}

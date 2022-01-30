@@ -20,6 +20,8 @@ let matchTypes = [
     { label: 'Finals', value: 'f' },
 ];
 
+let doGetTeam;
+
 function PreMatchForm() {
     let navigate = useNavigate();
 
@@ -32,6 +34,15 @@ function PreMatchForm() {
     const [matchNumber2, setMatchNumber2] = useState('');
     const [fetchingTeam, setFetchingTeam] = useState(false);
     const [teamNumber, setTeamNumber] = useState('');
+
+    useEffect(() => {
+        if (localStorage.getItem('Station') !== null) {
+            setStation(JSON.parse(localStorage.getItem('Station')));
+        }
+        if (localStorage.getItem('Match Type') !== null) {
+            setMatchType(JSON.parse(localStorage.getItem('Match Type')));
+        }
+    }, []);
 
     const {
         loading: loadingCurrentEvent,
@@ -65,7 +76,6 @@ function PreMatchForm() {
     }
 
     useEffect(() => {
-        setTeamNumber('');
         function getTeamNumber() {
             if (station === '' || matchType === '') return;
             let matchKey = getMatchKey();
@@ -86,7 +96,8 @@ function PreMatchForm() {
                         }
                         setTeamNumber(teamNumber);
                     } else {
-                        setError(data.Error);
+                        setTeamNumber('');
+                        // setError(data.Error);
                     }
                     setFetchingTeam(false);
                 })
@@ -95,7 +106,9 @@ function PreMatchForm() {
                     setError(error);
                 });
         }
-        getTeamNumber();
+        setTeamNumber('');
+        clearTimeout(doGetTeam);
+        doGetTeam = setTimeout(() => getTeamNumber(), 250);
     }, [station, matchType, matchNumber1, matchNumber2]); // eslint-disable-line react-hooks/exhaustive-deps
 
     function validSetup() {
@@ -254,7 +267,17 @@ function PreMatchForm() {
                     </HStack>
                 </Box>
                 <Center>
-                    <Button disabled={!validSetup()} _focus={{ outline: 'none' }} marginBottom={'20px'} marginTop={'20px'} onClick={() => navigate(`/matchForm/${currentEvent.key}/${getMatchKey()}/${station.value}`)}>
+                    <Button
+                        disabled={!validSetup()}
+                        _focus={{ outline: 'none' }}
+                        marginBottom={'20px'}
+                        marginTop={'20px'}
+                        onClick={() => {
+                            localStorage.setItem('Station', JSON.stringify(station));
+                            localStorage.setItem('Match Type', JSON.stringify(matchType));
+                            navigate(`/matchForm/${currentEvent.key}/${getMatchKey()}/${station.value}`);
+                        }}
+                    >
                         Confirm
                     </Button>
                 </Center>

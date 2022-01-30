@@ -19,6 +19,7 @@ let titleMap = [
 
 function NavBar() {
     let curLoc = useLocation();
+
     useEffect(() => {
         const curTitle = titleMap.find((item) => item.path === `/${curLoc.pathname.split('/')[1]}`);
         if (curTitle && curTitle.title) {
