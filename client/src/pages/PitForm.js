@@ -24,6 +24,7 @@ import {
     Stack,
     Spinner,
     useToast,
+    Image,
 } from '@chakra-ui/react';
 import { year } from '../util/constants';
 
@@ -185,7 +186,8 @@ function PitForm() {
             var FR = new FileReader();
             FR.readAsDataURL(event.target.files[0]);
             FR.onload = () => {
-                console.log(FR.result);
+                setImgHeader('New Image');
+                setImage(FR.result);
             };
             // let imgSrc = URL.createObjectURL(event.target.files[0]);
             // console.log(imgSrc);
@@ -295,7 +297,7 @@ function PitForm() {
             setStartingPosition(pitForm.startingPosition);
             setAutoComment(pitForm.autoComment);
             setAbilities(pitForm.abilities);
-            setHoldingCapacity(pitForm.holdingCapacity.toString());
+            setHoldingCapacity(pitForm.holdingCapacity ? pitForm.holdingCapacity.toString() : '');
             setWorkingComment(pitForm.workingComment);
             setClosingComment(pitForm.closingComment);
             setImage(pitForm.image);
@@ -635,8 +637,8 @@ function PitForm() {
                         }}
                         src={image}
                     /> */}
-                    <canvas ref={canvas}></canvas>
-                    {/* <Image w={{ base: '60%', md: '35%', lg: '25%' }} maxW={{ base: '60%', md: '35%', lg: '25%' }} src={image} /> */}
+                    {/* <canvas ref={canvas}></canvas> */}
+                    <Image w={{ base: '60%', md: '35%', lg: '25%' }} maxW={{ base: '60%', md: '35%', lg: '25%' }} src={image} />
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     <Button variant='outline' borderColor='gray.300' _focus={{ outline: 'none' }} onClick={() => hiddenImageInput.current.click()}>
                         Upload Image
