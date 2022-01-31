@@ -75,8 +75,8 @@ function WebDataConnector() {
     }
 
     return !validPass ? (
-        <Box margin={'0 auto'} textAlign={'center'}>
-            <InputGroup outline={attempted && !validating ? 'solid red 2px' : 'none'} borderRadius={'var(--chakra-radii-md)'} margin={'0 auto'} w={'80%'}>
+        <Box margin={'0 auto'} textAlign={'center'} width={{ base: '85%', sm: '66%', md: '50%', lg: '25%' }}>
+            <InputGroup outline={attempted && !validating ? 'solid red 2px' : 'none'} borderRadius={'var(--chakra-radii-md)'} margin={'0 auto'}>
                 <Input
                     ref={inputRef}
                     pr='4.5rem'
