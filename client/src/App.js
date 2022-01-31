@@ -13,6 +13,7 @@ import PreMatchForm from './pages/PreMatchForm';
 import NavBar from './components/NavBar';
 import WebDataConnector from './pages/WebDataConnector';
 import AdminErrorPage from './pages/AdminErrorPage';
+import FailedLoginPage from './pages/FailedLoginPage';
 // import { createBreakpoints } from '@chakra-ui/theme-tools';
 
 // const breakpoints = createBreakpoints({
@@ -37,6 +38,8 @@ function App() {
                 <NavBar />
                 <Routes>
                     <Route exact path='/' element={<HomePage />} />
+                    <Route exact path='/failedLogin' element={<FailedLoginPage />} />
+                    <Route exact path='/tableau' element={<WebDataConnector />} />
                     <Route path='*' element={<Navigate replace to='/' />} />
                 </Routes>
             </Router>

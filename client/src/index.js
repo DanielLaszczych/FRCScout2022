@@ -4,8 +4,8 @@ import './index.css';
 import App from './App';
 import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
 
-import { ColorModeScript } from '@chakra-ui/react';
-import theme from './theme';
+// import { ColorModeScript } from '@chakra-ui/react';
+// import theme from './theme';
 
 import { AuthProvider } from './context/auth';
 

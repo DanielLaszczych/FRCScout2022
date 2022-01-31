@@ -10,15 +10,14 @@ passport.use(
             callbackURL: '/auth/google/callback',
             proxy: true,
         },
-        async (accessToken, refreshToken, params, profile, done) => {
+        async (accessToken, refreshToken, profile, done) => {
             if (!(profile._json.hd && profile._json.hd === 'robotigers1796.com')) {
-                done('Not a robotigers account');
+                done(null, false);
                 return;
             }
             const newUser = new User({
                 googleId: profile.id,
                 googleDisplayName: profile.displayName,
-                googleIDToken: params.id_token,
                 firstName: profile.name.givenName,
                 lastName: profile.name.familyName,
                 email: profile.emails[0].value,
@@ -29,10 +28,7 @@ passport.use(
 
             try {
                 let user = await User.findOne({ googleId: profile.id });
-
                 if (user) {
-                    user.googleIDToken = params.id_token;
-                    user.save();
                     done(null, user);
                 } else {
                     user = await newUser.save();
@@ -40,6 +36,7 @@ passport.use(
                 }
             } catch (err) {
                 console.error(err);
+                return done(null, false);
             }
         }
     )

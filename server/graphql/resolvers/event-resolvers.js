@@ -3,9 +3,7 @@ const Event = require('../../models/Event');
 module.exports = {
     Query: {
         async getEvents(_, {}, context) {
-            if (!context.req.user) {
-                throw new Error('You must be logged in');
-            }
+            //The WDC uses this so don't want to require user authentication
             try {
                 const events = await Event.find().exec();
                 return events;

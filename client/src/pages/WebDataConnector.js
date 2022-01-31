@@ -1,23 +1,25 @@
 import { useQuery } from '@apollo/client';
 import { ChevronDownIcon } from '@chakra-ui/icons';
-import { AuthContext } from '../context/auth';
-import { Box, Button, Center, Menu, MenuButton, MenuItem, MenuList, Spinner, Text, VStack } from '@chakra-ui/react';
-import { React, useContext, useEffect, useState } from 'react';
+import { Box, Button, Center, Input, InputGroup, InputRightElement, Menu, MenuButton, MenuItem, MenuList, Spinner, Text, VStack } from '@chakra-ui/react';
+import { React, useEffect, useRef, useState } from 'react';
 import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
 import { sortRegisteredEvents } from '../util/helperFunctions';
 
 function WebDataConnector() {
-    const { user } = useContext(AuthContext);
+    let inputRef = useRef();
 
     const [error, setError] = useState(null);
+    const [show, setShow] = useState(false);
+    const [attempted, setAttempted] = useState(false);
+    const [password, setPassword] = useState('');
+    const [validating, setValidating] = useState(false);
+    const [validPass, setValidPass] = useState(false);
     const [currentEvent, setCurrentEvent] = useState({ name: '', key: '' });
     const [focusedEvent, setFocusedEvent] = useState('');
 
     useEffect(() => {
-        window.tableau.password = user.googleIDToken;
-
-        return () => (window.tableau.password = null);
-    }, [user.googleIDToken]);
+        return () => (window.tableau.password = undefined);
+    }, []);
 
     const {
         loading: loadingEvents,
@@ -50,6 +52,7 @@ function WebDataConnector() {
         let data = {
             eventKey: currentEvent.key,
         };
+        window.tableau.password = password;
         window.tableau.connectionData = JSON.stringify(data);
         window.tableau.connectionName = `Match Data For ${currentEvent.name}`; // This will be the data source name in Tableau
         window.tableau.submit(); // This sends the connector object to Tableau
@@ -71,7 +74,84 @@ function WebDataConnector() {
         );
     }
 
-    return (
+    return !validPass ? (
+        <Box margin={'0 auto'} textAlign={'center'}>
+            <InputGroup outline={attempted && !validating ? 'solid red 2px' : 'none'} borderRadius={'var(--chakra-radii-md)'} margin={'0 auto'} w={'80%'}>
+                <Input
+                    ref={inputRef}
+                    pr='4.5rem'
+                    disabled={validating}
+                    _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
+                    type={show ? 'text' : 'password'}
+                    placeholder='Enter password'
+                    onKeyPress={(event) => {
+                        if (event.key === 'Enter') {
+                            if (!attempted) {
+                                setAttempted(true);
+                            }
+                            setValidating(true);
+                            fetch(`/checkTableauPass/${password}`)
+                                .then((res) => res.text())
+                                .then((data) => {
+                                    if (data === 'Valid') {
+                                        setValidPass(true);
+                                    } else {
+                                        setValidPass(false);
+                                        setValidating(false);
+                                        inputRef.current.focus();
+                                    }
+                                })
+                                .catch((err) => {
+                                    setValidPass(false);
+                                    setValidating(false);
+                                    inputRef.current.focus();
+                                });
+                        }
+                    }}
+                />
+                <InputRightElement width='4.5rem'>
+                    <Button _focus={{ outline: 'none' }} h='1.75rem' size='sm' onClick={() => setShow((prevShow) => !prevShow)}>
+                        {show ? 'Hide' : 'Show'}
+                    </Button>
+                </InputRightElement>
+            </InputGroup>
+            {validating ? (
+                <Spinner marginTop={'58px'}></Spinner>
+            ) : (
+                <Button
+                    marginTop={'50px'}
+                    _focus={{ outline: 'none' }}
+                    disabled={password.trim() === ''}
+                    onClick={() => {
+                        if (!attempted) {
+                            setAttempted(true);
+                        }
+                        setValidating(true);
+                        fetch(`/checkTableauPass/${password}`)
+                            .then((res) => res.text())
+                            .then((data) => {
+                                if (data === 'Valid') {
+                                    setValidPass(true);
+                                } else {
+                                    setValidPass(false);
+                                    setValidating(false);
+                                    inputRef.current.focus();
+                                }
+                            })
+                            .catch((err) => {
+                                setValidPass(false);
+                                setValidating(false);
+                                inputRef.current.focus();
+                            });
+                    }}
+                >
+                    Log In
+                </Button>
+            )}
+        </Box>
+    ) : (
         <VStack spacing={'50px'}>
             <Menu placement='auto'>
                 <MenuButton onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} textOverflow={'ellipsis'} whiteSpace={'nowrap'} overflow={'hidden'} textAlign={'center'} as={Button} rightIcon={<ChevronDownIcon />}>

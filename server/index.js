@@ -7,6 +7,7 @@ const session = require('express-session');
 const cookieParser = require('cookie-parser');
 const MongoStore = require('connect-mongo');
 const path = require('path');
+const bcrypt = require('bcrypt');
 const cloudinary = require('cloudinary').v2;
 require('dotenv').config();
 require('./auth/passport');
@@ -60,6 +61,16 @@ serverOptions(app);
 app.use('/auth', require('./routes/auth'));
 app.use('/blueAlliance', require('./routes/blueAlliance'));
 app.use('/matchData', require('./routes/matchData'));
+app.use('/checkTableauPass/:password', async (req, res) => {
+    await bcrypt
+        .compare(req.params.password, process.env.TABLEAU_HASH)
+        .then((result) => {
+            result ? res.send('Valid') : res.send('Invalid');
+        })
+        .catch((err) => {
+            res.send('Invalid');
+        });
+});
 app.use('/getuser', (req, res) => {
     res.send(req.user);
 });

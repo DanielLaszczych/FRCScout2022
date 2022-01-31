@@ -30,7 +30,7 @@ export function sortMatches(matches) {
             if (b.matchNumber.substring(0, 2) === 'qm') {
                 let delta = a.matchNumber.substring(2) - b.matchNumber.substring(2);
                 if (delta === 0) {
-                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) > b.station.charAt(0);
+                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) < b.station.charAt(0) ? 1 : -1;
                 } else {
                     return delta;
                 }
@@ -41,7 +41,7 @@ export function sortMatches(matches) {
             if (b.matchNumber.substring(0, 2) === 'qf') {
                 let delta = a.matchNumber.substring(2, 3) + a.matchNumber.substring(4) - (b.matchNumber.substring(2, 3) + b.matchNumber.substring(4));
                 if (delta === 0) {
-                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) > b.station.charAt(0);
+                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) < b.station.charAt(0) ? 1 : -1;
                 } else {
                     return delta;
                 }
@@ -56,7 +56,7 @@ export function sortMatches(matches) {
             if (b.matchNumber.substring(0, 2) === 'sf') {
                 let delta = a.matchNumber.substring(2, 3) + a.matchNumber.substring(4) - (b.matchNumber.substring(2, 3) + b.matchNumber.substring(4));
                 if (delta === 0) {
-                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) > b.station.charAt(0);
+                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) < b.station.charAt(0) ? 1 : -1;
                 } else {
                     return delta;
                 }
@@ -71,7 +71,7 @@ export function sortMatches(matches) {
             if (b.matchNumber.substring(0, 1) === 'f') {
                 let delta = a.matchNumber.substring(3) - b.matchNumber.substring(3);
                 if (delta === 0) {
-                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) > b.station.charAt(0);
+                    return a.station.charAt(0) === b.station.charAt(0) ? a.station.charAt(1) - b.station.charAt(1) : a.station.charAt(0) < b.station.charAt(0) ? 1 : -1;
                 } else {
                     return delta;
                 }

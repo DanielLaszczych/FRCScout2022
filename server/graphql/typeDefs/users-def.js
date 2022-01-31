@@ -5,7 +5,6 @@ module.exports = gql`
         _id: ID!
         googleId: String!
         googleDisplayName: String!
-        googleIDToken: String!
         firstName: String!
         lastName: String!
         email: String!

@@ -397,7 +397,16 @@ function PitForm() {
                     isInvalid={submitAttempted && !markedFollowUp && weight === ''}
                     width={{ base: '85%', md: '66%', lg: '50%' }}
                 >
-                    <NumberInputField enterKeyHint='done' _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Weight (lbs)' />
+                    <NumberInputField
+                        onKeyPress={(event) => {
+                            if (event.key === 'Enter') {
+                                event.target.blur();
+                            }
+                        }}
+                        enterKeyHint='done'
+                        _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                        placeholder='Weight (lbs)'
+                    />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
                         <NumberDecrementStepper />
@@ -420,7 +429,16 @@ function PitForm() {
                     isInvalid={submitAttempted && !markedFollowUp && height === ''}
                     width={{ base: '85%', md: '66%', lg: '50%' }}
                 >
-                    <NumberInputField enterKeyHint='done' _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} placeholder='Height (in)' />
+                    <NumberInputField
+                        onKeyPress={(event) => {
+                            if (event.key === 'Enter') {
+                                event.target.blur();
+                            }
+                        }}
+                        enterKeyHint='done'
+                        _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                        placeholder='Height (in)'
+                    />
                     <NumberInputStepper>
                         <NumberIncrementStepper />
                         <NumberDecrementStepper />
@@ -438,7 +456,7 @@ function PitForm() {
                 <RadioGroup paddingLeft={'15px'} onChange={setDriveTrain} value={driveTrain}>
                     <Stack direction={['column', 'row']}>
                         {driveTrains.map((driveTrainLabel, index) => (
-                            <Radio isInvalid={submitAttempted && !markedFollowUp && driveTrain === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={driveTrainLabel}>
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && driveTrain === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={driveTrainLabel}>
                                 {driveTrainLabel}
                             </Radio>
                         ))}
@@ -533,7 +551,7 @@ function PitForm() {
                 <RadioGroup marginLeft={'15px'} onChange={setProgrammingLanguage} value={programmingLanguage}>
                     <Stack direction={['column', 'row']}>
                         {programmingLanguages.map((programmingLanguageLabel, index) => (
-                            <Radio isInvalid={submitAttempted && !markedFollowUp && programmingLanguage === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={programmingLanguageLabel}>
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && programmingLanguage === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={programmingLanguageLabel}>
                                 {programmingLanguageLabel}
                             </Radio>
                         ))}
@@ -545,7 +563,7 @@ function PitForm() {
                 <RadioGroup marginLeft={'15px'} onChange={setStartingPosition} value={startingPosition}>
                     <Stack direction={['column', 'row']}>
                         {startingPositions.map((startingPositionLabel, index) => (
-                            <Radio isInvalid={submitAttempted && !markedFollowUp && startingPosition === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={startingPositionLabel}>
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && startingPosition === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={startingPositionLabel}>
                                 {startingPositionLabel}
                             </Radio>
                         ))}
@@ -590,7 +608,7 @@ function PitForm() {
                 <RadioGroup marginLeft={'15px'} onChange={setHoldingCapacity} value={holdingCapacity}>
                     <Stack direction={['column', 'row']}>
                         {holdingCapacities.map((carryingCapacityItem, index) => (
-                            <Radio isInvalid={submitAttempted && !markedFollowUp && holdingCapacity === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={carryingCapacityItem}>
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && holdingCapacity === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={carryingCapacityItem}>
                                 {carryingCapacityItem}
                             </Radio>
                         ))}
