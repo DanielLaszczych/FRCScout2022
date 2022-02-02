@@ -2,10 +2,10 @@ const { gql } = require('apollo-server-express');
 
 module.exports = gql`
     type StartingPosition {
-        x: Float!
-        y: Float!
-        width: Float!
-        height: Float!
+        x: Float
+        y: Float
+        width: Float
+        height: Float
     }
 
     type MatchForm {
@@ -35,13 +35,15 @@ module.exports = gql`
         yellowCard: Boolean
         redCard: Boolean
         endComment: String
+        followUp: Boolean!
+        followUpComment: String
     }
 
     input StartingPositionInput {
-        x: Float!
-        y: Float!
-        width: Float!
-        height: Float!
+        x: Float
+        y: Float
+        width: Float
+        height: Float
     }
 
     input MatchFormInput {
@@ -51,24 +53,26 @@ module.exports = gql`
         matchNumber: String!
         teamNumber: Int!
         teamName: String!
-        preLoadedCargo: Boolean!
-        startingPosition: StartingPositionInput!
-        pickedUpAuto: Int!
-        lowerCargoAuto: Int!
-        upperCargoAuto: Int!
-        crossTarmac: Boolean!
-        autoComment: String!
-        pickedUpTele: Int!
-        lowerCargoTele: Int!
-        upperCargoTele: Int!
-        climbTime: Int!
-        climbRung: String!
-        defenseRating: Int!
-        loseCommunication: Boolean!
-        robotBreak: Boolean!
-        yellowCard: Boolean!
-        redCard: Boolean!
-        endComment: String!
+        preLoadedCargo: Boolean
+        startingPosition: StartingPositionInput
+        pickedUpAuto: Int
+        lowerCargoAuto: Int
+        upperCargoAuto: Int
+        crossTarmac: Boolean
+        autoComment: String
+        pickedUpTele: Int
+        lowerCargoTele: Int
+        upperCargoTele: Int
+        climbTime: Int
+        climbRung: String
+        defenseRating: Int
+        loseCommunication: Boolean
+        robotBreak: Boolean
+        yellowCard: Boolean
+        redCard: Boolean
+        endComment: String
+        followUp: Boolean!
+        followUpComment: String
     }
 
     extend type Query {

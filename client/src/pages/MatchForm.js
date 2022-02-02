@@ -1,5 +1,5 @@
 import { React, useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Button, Center, Flex, HStack, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea, useToast } from '@chakra-ui/react';
+import { Box, Button, Center, Checkbox, Flex, HStack, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea, useToast } from '@chakra-ui/react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Field from '../images/Field.png';
 import CustomMinusButton from '../components/CustomMinusButton';
@@ -12,10 +12,24 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
+import { v4 as uuidv4 } from 'uuid';
 
 let tabs = ['Pre-Auto', 'Auto', 'Post-Auto', 'Teleop', 'Post-Game'];
-let rungs = ['Low Rung', 'Mid Rung', 'High Rung', 'Traversal Rung', 'Failed'];
-let defenseRatings = [0, 1, 2, 3, 4, 5];
+let rungs = [
+    { label: 'Low Rung', id: uuidv4() },
+    { label: 'Mid Rung', id: uuidv4() },
+    { label: 'High Rung', id: uuidv4() },
+    { label: 'Traversal Rung', id: uuidv4() },
+    { label: 'Failed', id: uuidv4() },
+];
+let defenseRatings = [
+    { value: 0, id: uuidv4() },
+    { value: 1, id: uuidv4() },
+    { value: 2, id: uuidv4() },
+    { value: 3, id: uuidv4() },
+    { value: 4, id: uuidv4() },
+    { value: 5, id: uuidv4() },
+];
 let doResize;
 
 function MatchForm() {
@@ -26,6 +40,7 @@ function MatchForm() {
     const swiper = useRef(null);
 
     const [activeSlider, setActiveSlider] = useState(null);
+    const [dataLoaded, setDataLoaded] = useState(false);
     const [validMatch, setValidMatch] = useState(false);
     const [validEvent, setValidEvent] = useState(false);
     const [error, setError] = useState(null);
@@ -38,7 +53,7 @@ function MatchForm() {
     const [eventName, setEventName] = useState('');
     const [teamNumber, setTeamNumber] = useState('');
     const [teamName, setTeamName] = useState('');
-    const [preLoadedCargo, setPreLoadedCargo] = useState('');
+    const [preLoadedCargo, setPreLoadedCargo] = useState(null);
     const [startingPosition, _setStartingPosition] = useState({ x: null, y: null });
     const startingPositionRef = useRef(startingPosition);
     const setStartingPosition = (data) => {
@@ -48,19 +63,21 @@ function MatchForm() {
     const [pickedUpAuto, setPickedUpAuto] = useState(0);
     const [lowerCargoAuto, setLowerCargoAuto] = useState(0);
     const [upperCargoAuto, setUpperCargoAuto] = useState(0);
-    const [crossTarmac, setCrossTarmac] = useState('');
+    const [crossTarmac, setCrossTarmac] = useState(null);
     const [autoComment, setAutoComment] = useState('');
     const [pickedUpTele, setPickedUpTele] = useState(0);
     const [lowerCargoTele, setLowerCargoTele] = useState(0);
     const [upperCargoTele, setUpperCargoTele] = useState(0);
     const [climbTime, setClimbTime] = useState(null);
-    const [climbRung, setClimbRung] = useState('');
+    const [climbRung, setClimbRung] = useState(null);
     const [defenseRating, setDefenseRating] = useState(0);
     const [loseCommunication, setLoseCommunication] = useState(false);
     const [robotBreak, setRobotBreak] = useState(false);
     const [yellowCard, setYellowCard] = useState(false);
     const [redCard, setRedCard] = useState(false);
     const [endComment, setEndComment] = useState('');
+    const [markedFollowUp, setMarkedFollowUp] = useState(false);
+    const [followUpComment, setFollowUpComment] = useState('');
     const [submitAttempted, setSubmitAttempted] = useState(false);
 
     useEffect(() => {
@@ -121,8 +138,9 @@ function MatchForm() {
         onError(err) {
             if (err.message === 'Error: Match form does not exist') {
                 setError(false);
-                setActiveSlider(0);
                 setClimbTime(0);
+                setDataLoaded(true);
+                setActiveSlider(0);
                 fetch(`/blueAlliance/team/frc${teamNumber}/simple`)
                     .then((response) => response.json())
                     .then((data) => {
@@ -161,6 +179,9 @@ function MatchForm() {
             setYellowCard(matchForm.yellowCard);
             setRedCard(matchForm.redCard);
             setEndComment(matchForm.endComment);
+            setMarkedFollowUp(matchForm.followUp);
+            setFollowUpComment(matchForm.followUpComment);
+            setDataLoaded(true);
             setActiveSlider(0);
         },
     });
@@ -170,7 +191,7 @@ function MatchForm() {
             return;
         }
         if (climbTime === 0) {
-            setClimbRung('');
+            setClimbRung(null);
             if (swiper.current) {
                 swiper.current.swiper.update();
             }
@@ -180,6 +201,12 @@ function MatchForm() {
             }
         }
     }, [climbTime]);
+
+    useEffect(() => {
+        if (swiper.current) {
+            swiper.current.swiper.update();
+        }
+    }, [markedFollowUp]);
 
     function calculateImageScale() {
         let scale;
@@ -265,15 +292,15 @@ function MatchForm() {
     }, [resizeCanvas]);
 
     function validPreAuto() {
-        return preLoadedCargo !== '' && startingPosition.x !== null && startingPosition.y !== null;
+        return preLoadedCargo !== null && startingPosition.x !== null && startingPosition.y !== null;
     }
 
     function validPostAuto() {
-        return crossTarmac !== '';
+        return crossTarmac !== null;
     }
 
     function validTele() {
-        return climbTime > 0 ? climbRung !== '' : true;
+        return climbTime > 0 ? climbRung !== null : true;
     }
 
     function validateTab(tab) {
@@ -313,22 +340,33 @@ function MatchForm() {
 
     function submit() {
         setSubmitAttempted(true);
-        let toastText = [];
-        if (!validPreAuto()) {
-            toastText.push('Pre-Auto');
-        }
-        if (!validPostAuto()) {
-            toastText.push('Post-Auto');
-        }
-        if (!validTele()) {
-            toastText.push('Teleop');
-        }
-        if (toastText.length !== 0) {
+        if (!markedFollowUp) {
+            let toastText = [];
+            if (!validPreAuto()) {
+                toastText.push('Pre-Auto');
+            }
+            if (!validPostAuto()) {
+                toastText.push('Post-Auto');
+            }
+            if (!validTele()) {
+                toastText.push('Teleop');
+            }
+            if (toastText.length !== 0) {
+                toast({
+                    title: 'Missing fields at:',
+                    description: toastText.join(', '),
+                    status: 'error',
+                    duration: 2000,
+                    isClosable: true,
+                });
+                return;
+            }
+        } else if (followUpComment.trim() === '') {
             toast({
-                title: 'Error at:',
-                description: toastText.join(', '),
+                title: 'Missing fields',
+                description: 'Leave a follow up comment',
                 status: 'error',
-                duration: 2000,
+                duration: 3000,
                 isClosable: true,
             });
             return;
@@ -360,6 +398,8 @@ function MatchForm() {
                     yellowCard: yellowCard,
                     redCard: redCard,
                     endComment: endComment,
+                    followUp: markedFollowUp,
+                    followUpComment: markedFollowUp ? followUpComment : '',
                 },
             },
         });
@@ -372,13 +412,23 @@ function MatchForm() {
                     <Box minH={'calc(100vh - 200px)'}>
                         <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Pre-Loaded Ball:
+                                Pre-Loaded Cargo:
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                                <Button _focus={{ outline: 'none' }} colorScheme={preLoadedCargo === true ? 'green' : 'gray'} onClick={() => setPreLoadedCargo(true)}>
+                                <Button
+                                    outline={preLoadedCargo === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    _focus={{ outline: 'none' }}
+                                    colorScheme={preLoadedCargo === true ? 'green' : 'gray'}
+                                    onClick={() => setPreLoadedCargo(true)}
+                                >
                                     Yes
                                 </Button>
-                                <Button _focus={{ outline: 'none' }} colorScheme={preLoadedCargo === false ? 'green' : 'gray'} onClick={() => setPreLoadedCargo(false)}>
+                                <Button
+                                    outline={preLoadedCargo === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    _focus={{ outline: 'none' }}
+                                    colorScheme={preLoadedCargo === false ? 'green' : 'gray'}
+                                    onClick={() => setPreLoadedCargo(false)}
+                                >
                                     No
                                 </Button>
                             </HStack>
@@ -390,7 +440,7 @@ function MatchForm() {
                                 <canvas
                                     width={414 * calculateImageScale()}
                                     height={414 * calculateImageScale()}
-                                    style={{ zIndex: 2 }}
+                                    style={{ zIndex: 2, outline: startingPosition.x === null && submitAttempted && !markedFollowUp ? '4px solid red' : 'none' }}
                                     onClick={(event) => {
                                         if (canvas.current !== undefined) {
                                             var bounds = event.target.getBoundingClientRect();
@@ -453,13 +503,23 @@ function MatchForm() {
                     <Box minH={'calc(100vh - 200px)'}>
                         <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Cross Tarmac:
+                                Taxi (Cross Tarmac):
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                                <Button _focus={{ outline: 'none' }} colorScheme={crossTarmac === true ? 'green' : 'gray'} onClick={() => setCrossTarmac(true)}>
+                                <Button
+                                    outline={crossTarmac === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    _focus={{ outline: 'none' }}
+                                    colorScheme={crossTarmac === true ? 'green' : 'gray'}
+                                    onClick={() => setCrossTarmac(true)}
+                                >
                                     Yes
                                 </Button>
-                                <Button _focus={{ outline: 'none' }} colorScheme={crossTarmac === false ? 'green' : 'gray'} onClick={() => setCrossTarmac(false)}>
+                                <Button
+                                    outline={crossTarmac === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    _focus={{ outline: 'none' }}
+                                    colorScheme={crossTarmac === false ? 'green' : 'gray'}
+                                    onClick={() => setCrossTarmac(false)}
+                                >
                                     No
                                 </Button>
                             </HStack>
@@ -533,9 +593,18 @@ function MatchForm() {
                                     </Text>
                                     <Center>
                                         <Flex flexWrap={'wrap'} marginBottom={'2px'} justifyContent={'center'}>
-                                            {rungs.map((rung, index) => (
-                                                <Button maxW={'125px'} minW={'125px'} margin={'8px'} key={index} _focus={{ outline: 'none' }} colorScheme={climbRung === rung ? 'green' : 'gray'} onClick={() => setClimbRung(rung)}>
-                                                    {rung}
+                                            {rungs.map((rung) => (
+                                                <Button
+                                                    outline={climbRung === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                                    maxW={'125px'}
+                                                    minW={'125px'}
+                                                    margin={'8px'}
+                                                    key={rung.id}
+                                                    _focus={{ outline: 'none' }}
+                                                    colorScheme={climbRung === rung.label ? 'green' : 'gray'}
+                                                    onClick={() => setClimbRung(rung.label)}
+                                                >
+                                                    {rung.label}
                                                 </Button>
                                             ))}
                                         </Flex>
@@ -550,13 +619,13 @@ function MatchForm() {
                     <Box minH={'calc(100vh - 200px)'}>
                         <Box border={'black solid'} borderRadius={'10px'} padding={'10px'}>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Defense:
+                                Played Defense:
                             </Text>
                             <Center marginBottom={'30px'}>
                                 <Slider className='swiper-no-swiping' colorScheme={'green'} w={'80%'} value={defenseRating} min={0} max={5} step={1} onChange={(value) => setDefenseRating(value)}>
-                                    {defenseRatings.map((rating, index) => (
-                                        <SliderMark mr={rating === 0 ? 'px' : '0px'} mt={'10px'} key={index} value={rating}>
-                                            {rating === 0 ? 'None' : rating}
+                                    {defenseRatings.map((rating) => (
+                                        <SliderMark mr={rating.value === 0 ? 'px' : '0px'} mt={'10px'} key={rating.id} value={rating.value}>
+                                            {rating.value === 0 ? 'None' : rating.value}
                                         </SliderMark>
                                     ))}
                                     <SliderTrack>
@@ -615,6 +684,34 @@ function MatchForm() {
                             <Center marginBottom={'10px'}>
                                 <Textarea _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} onChange={(event) => setEndComment(event.target.value)} value={endComment} placeholder='Any ending comments' w={'85%'}></Textarea>
                             </Center>
+                            <Center>
+                                <Checkbox
+                                    marginTop={'10px'}
+                                    //removes the blue outline on focus
+                                    css={`
+                                        > span:first-of-type {
+                                            box-shadow: unset;
+                                        }
+                                    `}
+                                    colorScheme={'green'}
+                                    isChecked={markedFollowUp}
+                                    onChange={() => setMarkedFollowUp(!markedFollowUp)}
+                                >
+                                    Mark For Follow Up
+                                </Checkbox>
+                            </Center>
+                            {markedFollowUp ? (
+                                <Center marginTop={'10px'}>
+                                    <Textarea
+                                        isInvalid={markedFollowUp && submitAttempted && followUpComment.trim() === ''}
+                                        _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                        onChange={(event) => setFollowUpComment(event.target.value)}
+                                        value={followUpComment}
+                                        placeholder='What is the reason for the follow up?'
+                                        w={'85%'}
+                                    ></Textarea>
+                                </Center>
+                            ) : null}
                         </Box>
                         <Center>
                             <Button _focus={{ outline: 'none' }} marginBottom={'20px'} marginTop={'20px'} onClick={() => submit()}>
@@ -636,7 +733,7 @@ function MatchForm() {
         );
     }
 
-    if (!validMatch || !validEvent || loadingMatchData || loadingEvent || ((matchDataError || eventError) && error !== false)) {
+    if (!dataLoaded || !validMatch || !validEvent || loadingMatchData || loadingEvent || ((matchDataError || eventError) && error !== false)) {
         return (
             <Center>
                 <Spinner></Spinner>
@@ -648,10 +745,10 @@ function MatchForm() {
         <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
             <Center>
                 <HStack marginBottom={'25px'} spacing={'10px'}>
-                    <Button className='slider-button-prev' _focus={{ outline: 'none' }}>
+                    <Button disabled={activeSlider === 0 || activeSlider === null} className='slider-button-prev' _focus={{ outline: 'none' }}>
                         Prev
                     </Button>
-                    <Text textAlign={'center'} color={submitAttempted && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
+                    <Text textAlign={'center'} color={submitAttempted && !markedFollowUp && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
                         {tabs[activeSlider]}
                     </Text>
                     <Button className='slider-button-next' _focus={{ outline: 'none' }}>

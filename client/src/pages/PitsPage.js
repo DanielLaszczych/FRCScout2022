@@ -21,7 +21,7 @@ import {
     PopoverCloseButton,
     PopoverHeader,
     PopoverBody,
-    useDisclosure,
+    PopoverFooter,
 } from '@chakra-ui/react';
 import { GET_EVENT, GET_EVENTS_KEYS_NAMES, GET_EVENTS_PITFORMS } from '../graphql/queries';
 import { CheckCircleIcon, ChevronDownIcon, EditIcon, WarningTwoIcon } from '@chakra-ui/icons';
@@ -31,7 +31,6 @@ function PitPage() {
     const [error, setError] = useState(null);
     const [currentEvent, setCurrentEvent] = useState({ name: '', key: '' });
     const [focusedEvent, setFocusedEvent] = useState('');
-    const { isOpen: isPopoverOpen, onOpen: onPopoverOpen, onClose: onPopoverClose } = useDisclosure();
 
     const {
         loading: loadingEvents,
@@ -169,13 +168,13 @@ function PitPage() {
                         {currentEvent.name}
                     </MenuButton>
                     <MenuList textAlign={'center'}>
-                        {sortRegisteredEvents(events).map((eventItem, index) => (
+                        {sortRegisteredEvents(events).map((eventItem) => (
                             <MenuItem
                                 _focus={{ backgroundColor: 'none' }}
                                 onMouseEnter={() => setFocusedEvent(eventItem.name)}
                                 backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
                                 maxW={'75vw'}
-                                key={index}
+                                key={eventItem.key}
                                 onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
                             >
                                 <Text margin={'0 auto'}>{eventItem.name}</Text>
@@ -193,7 +192,7 @@ function PitPage() {
                     {event.teams
                         .sort((a, b) => a.number - b.number)
                         .map((team, index) => (
-                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='1fr 2fr 1fr 1fr' gap={'5px'}>
+                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={team.key} templateColumns='1fr 2fr 1fr 1fr' gap={'5px'}>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                         {team.number}
@@ -213,7 +212,7 @@ function PitPage() {
                                     {getPitFormStatusColor(team.name) !== 'yellow' ? (
                                         <IconButton icon={getPitFormStatusIcon(team.name)} colorScheme={getPitFormStatusColor(team.name)} _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`} />
                                     ) : (
-                                        <Popover flip={false} placement='bottom' isOpen={isPopoverOpen} onOpen={onPopoverOpen} onClose={onPopoverClose}>
+                                        <Popover flip={false} placement='bottom'>
                                             <PopoverTrigger>
                                                 <IconButton icon={getPitFormStatusIcon(team.name)} colorScheme={getPitFormStatusColor(team.name)} _focus={{ outline: 'none' }} size='sm' />
                                             </PopoverTrigger>
@@ -223,12 +222,14 @@ function PitPage() {
                                                 <PopoverHeader color='black' fontSize='md' fontWeight='bold'>
                                                     Follow Up Comment
                                                 </PopoverHeader>
-                                                <PopoverBody maxHeight={'160px'} overflowY={'auto'}>
+                                                <PopoverBody maxHeight={'125px'} overflowY={'auto'}>
                                                     <Text>{getPitFormFollowUpComment(team.name)}</Text>
-                                                    <Button marginTop={'10px'} _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`}>
+                                                </PopoverBody>
+                                                <PopoverFooter>
+                                                    <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`}>
                                                         Go To
                                                     </Button>
-                                                </PopoverBody>
+                                                </PopoverFooter>
                                             </PopoverContent>
                                         </Popover>
                                     )}

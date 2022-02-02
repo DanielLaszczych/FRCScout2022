@@ -10,6 +10,7 @@ import { year } from '../util/constants';
 import '../stylesheets/adminstyle.css';
 import { sortBlueAllianceEvents, sortRegisteredEvents } from '../util/helperFunctions';
 import TBAEventsMemo from '../components/TBAEventsMemo';
+import { v4 as uuidv4 } from 'uuid';
 
 function AdminPage() {
     const linkRef = useRef();
@@ -23,16 +24,16 @@ function AdminPage() {
     const [setupDone, setSetUpDone] = useState(false);
     const [position, setPosition] = useState(0);
     const [eventTypes, setEventTypes] = useState([
-        { name: 'Week 1', events: [], count: 0, ref: createRef() },
-        { name: 'Week 2', events: [], count: 0, ref: createRef() },
-        { name: 'Week 3', events: [], count: 0, ref: createRef() },
-        { name: 'Week 4', events: [], count: 0, ref: createRef() },
-        { name: 'Week 5', events: [], count: 0, ref: createRef() },
-        { name: 'Week 6', events: [], count: 0, ref: createRef() },
-        { name: 'Week 7', events: [], count: 0, ref: createRef() },
-        { name: 'Championship', events: [], count: 0, ref: createRef() },
-        { name: 'Preseason', events: [], count: 0, ref: createRef() },
-        { name: 'Offseason', events: [], count: 0, ref: createRef() },
+        { name: 'Week 1', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Week 2', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Week 3', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Week 4', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Week 5', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Week 6', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Week 7', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Championship', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Preseason', events: [], count: 0, ref: createRef(), id: uuidv4() },
+        { name: 'Offseason', events: [], count: 0, ref: createRef(), id: uuidv4() },
     ]);
     const [events, setEvents] = useState(false);
     const [mutatingEventKey, setMutatingEventKey] = useState(null);
@@ -334,7 +335,7 @@ function AdminPage() {
                 </Box>
                 <TransitionGroup>
                     {events.map((event, index) => (
-                        <CSSTransition key={event.name} timeout={500} classNames='shrink'>
+                        <CSSTransition key={event.key} timeout={500} classNames='shrink'>
                             <Grid minHeight={'61px'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} templateColumns='2fr 1fr' gap={'15px'}>
                                 <GridItem marginLeft={'5px'} padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
@@ -357,11 +358,10 @@ function AdminPage() {
                     ))}
                 </TransitionGroup>
             </Box>
-
             <Center>
                 <Flex flexWrap={'wrap'} marginBottom={'25px'} justifyContent={'center'}>
                     {eventTypes.map((eventType) => (
-                        <Button key={eventType.name} _focus={{ outline: 'none' }} ref={eventType.name === 'Week 1' ? linkRef : null} maxW={'125px'} minW={'125px'} margin={'8px'} onClick={() => handleScrollAction(eventType.ref)}>
+                        <Button key={eventType.id} _focus={{ outline: 'none' }} ref={eventType.name === 'Week 1' ? linkRef : null} maxW={'125px'} minW={'125px'} margin={'8px'} onClick={() => handleScrollAction(eventType.ref)}>
                             {eventType.name}
                         </Button>
                     ))}
@@ -369,7 +369,7 @@ function AdminPage() {
             </Center>
             <Box>
                 {eventTypes.map((eventType) => (
-                    <TBAEventsMemo key={eventType.name} eventType={eventType} mutatingEventKey={mutatingEventKey} handleAddEvent={handleAddEvent} version={version}></TBAEventsMemo>
+                    <TBAEventsMemo key={eventType.id} eventType={eventType} mutatingEventKey={mutatingEventKey} handleAddEvent={handleAddEvent} version={version}></TBAEventsMemo>
                 ))}
             </Box>
         </Box>

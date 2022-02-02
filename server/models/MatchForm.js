@@ -31,7 +31,6 @@ const matchFormSchema = new Schema({
     },
     preLoadedCargo: {
         type: Boolean,
-        required: true,
     },
     startingPosition: {
         x: {
@@ -54,67 +53,58 @@ const matchFormSchema = new Schema({
     },
     pickedUpAuto: {
         type: Number,
-        required: true,
     },
     lowerCargoAuto: {
         type: Number,
-        required: true,
     },
     upperCargoAuto: {
         type: Number,
-        required: true,
     },
     crossTarmac: {
         type: Boolean,
-        required: true,
     },
     autoComment: {
         type: String,
-        required: true,
     },
     pickedUpTele: {
         type: Number,
-        required: true,
     },
     lowerCargoTele: {
         type: Number,
-        required: true,
     },
     upperCargoTele: {
         type: Number,
-        required: true,
     },
     climbTime: {
         type: Number,
-        required: true,
     },
     climbRung: {
         type: String,
-        required: true,
     },
     defenseRating: {
         type: Number,
-        required: true,
     },
     loseCommunication: {
         type: Boolean,
-        required: true,
     },
     robotBreak: {
         type: Boolean,
-        required: true,
     },
     yellowCard: {
         type: Boolean,
-        required: true,
     },
     redCard: {
         type: Boolean,
-        required: true,
     },
     endComment: {
         type: String,
+    },
+    followUp: {
+        type: Boolean,
         required: true,
+    },
+    followUpComment: {
+        type: String,
     },
 });
 

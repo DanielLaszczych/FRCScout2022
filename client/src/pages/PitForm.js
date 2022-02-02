@@ -864,7 +864,7 @@ function PitForm() {
                     </Stack>
                 </RadioGroup>
                 <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
-                    Taxi:
+                    Taxi (Cross Tarmac):
                 </Text>
                 <RadioGroup marginLeft={'15px'} onChange={setTaxi} value={taxi}>
                     <Stack direction={['column', 'row']}>
@@ -1025,7 +1025,6 @@ function PitForm() {
                     </Center>
                 ) : null}
             </Box>
-
             <Center>
                 <Button _focus={{ outline: 'none' }} marginBottom={'25px'} onClick={() => submit()}>
                     Submit

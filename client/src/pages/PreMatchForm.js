@@ -4,20 +4,21 @@ import { Box, Button, Center, HStack, Menu, MenuButton, MenuItem, MenuList, Numb
 import { React, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GET_CURRENT_EVENT } from '../graphql/queries';
+import { v4 as uuidv4 } from 'uuid';
 
 let stations = [
-    { label: 'Red Station 1', value: 'r1' },
-    { label: 'Red Station 2', value: 'r2' },
-    { label: 'Red Station 3', value: 'r3' },
-    { label: 'Blue Station 1', value: 'b1' },
-    { label: 'Blue Station 2', value: 'b2' },
-    { label: 'Blue Station 3', value: 'b3' },
+    { label: 'Red Station 1', value: 'r1', id: uuidv4() },
+    { label: 'Red Station 2', value: 'r2', id: uuidv4() },
+    { label: 'Red Station 3', value: 'r3', id: uuidv4() },
+    { label: 'Blue Station 1', value: 'b1', id: uuidv4() },
+    { label: 'Blue Station 2', value: 'b2', id: uuidv4() },
+    { label: 'Blue Station 3', value: 'b3', id: uuidv4() },
 ];
 let matchTypes = [
-    { label: 'Quals', value: 'q' },
-    { label: 'Quarters', value: 'qf' },
-    { label: 'Semis', value: 'sf' },
-    { label: 'Finals', value: 'f' },
+    { label: 'Quals', value: 'q', id: uuidv4() },
+    { label: 'Quarters', value: 'qf', id: uuidv4() },
+    { label: 'Semis', value: 'sf', id: uuidv4() },
+    { label: 'Finals', value: 'f', id: uuidv4() },
 ];
 
 let doGetTeam;
@@ -156,14 +157,14 @@ function PreMatchForm() {
                             {station === '' ? 'Choose Station' : station.label}
                         </MenuButton>
                         <MenuList textAlign={'center'}>
-                            {stations.map((stationItem, index) => (
+                            {stations.map((stationItem) => (
                                 <MenuItem
                                     _focus={{ backgroundColor: 'none' }}
                                     onMouseEnter={() => setFocusedStation(stationItem)}
                                     backgroundColor={(station.value === stationItem.value && focusedStation === '') || focusedStation.value === stationItem.value ? 'gray.100' : 'none'}
                                     maxW={'80vw'}
                                     textAlign={'center'}
-                                    key={index}
+                                    key={stationItem.id}
                                     onClick={() => setStation(stationItem)}
                                 >
                                     {stationItem.label}
@@ -189,14 +190,14 @@ function PreMatchForm() {
                             {matchType === '' ? 'Choose Match Type' : matchType.label}
                         </MenuButton>
                         <MenuList textAlign={'center'}>
-                            {matchTypes.map((matchTypeItem, index) => (
+                            {matchTypes.map((matchTypeItem) => (
                                 <MenuItem
                                     _focus={{ backgroundColor: 'none' }}
                                     onMouseEnter={() => setFocusedMatchType(matchTypeItem)}
                                     backgroundColor={(matchType.value === matchTypeItem.value && focusedMatchType === '') || focusedMatchType.value === matchTypeItem.value ? 'gray.100' : 'none'}
                                     maxW={'80vw'}
                                     textAlign={'center'}
-                                    key={index}
+                                    key={matchTypeItem.id}
                                     onClick={() => {
                                         setMatchNumber1('');
                                         setMatchNumber2('');

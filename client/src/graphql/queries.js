@@ -63,6 +63,8 @@ export const GET_EVENTS_MATCHFORMS = gql`
             teamName
             scouter
             station
+            followUp
+            followUpComment
         }
     }
 `;
@@ -149,6 +151,8 @@ export const GET_MATCHFORM_BY_STATION = gql`
             yellowCard
             redCard
             endComment
+            followUp
+            followUpComment
         }
     }
 `;

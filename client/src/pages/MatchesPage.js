@@ -1,6 +1,28 @@
 import { useQuery } from '@apollo/client';
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { Box, Button, Center, Grid, GridItem, Input, Menu, MenuButton, MenuItem, MenuList, Popover, PopoverArrow, PopoverBody, PopoverCloseButton, PopoverContent, PopoverHeader, PopoverTrigger, Spinner, Text } from '@chakra-ui/react';
+import { CheckCircleIcon, ChevronDownIcon, WarningIcon } from '@chakra-ui/icons';
+import {
+    Box,
+    Button,
+    Center,
+    Grid,
+    GridItem,
+    IconButton,
+    Input,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    Popover,
+    PopoverArrow,
+    PopoverBody,
+    PopoverCloseButton,
+    PopoverContent,
+    PopoverFooter,
+    PopoverHeader,
+    PopoverTrigger,
+    Spinner,
+    Text,
+} from '@chakra-ui/react';
 import { React, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GET_EVENTS_KEYS_NAMES, GET_EVENTS_MATCHFORMS } from '../graphql/queries';
@@ -81,13 +103,13 @@ function MatchesPage() {
                         {currentEvent.name}
                     </MenuButton>
                     <MenuList textAlign={'center'}>
-                        {sortRegisteredEvents(events).map((eventItem, index) => (
+                        {sortRegisteredEvents(events).map((eventItem) => (
                             <MenuItem
                                 _focus={{ backgroundColor: 'none' }}
                                 onMouseEnter={() => setFocusedEvent(eventItem.name)}
                                 backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
                                 maxW={'75vw'}
-                                key={index}
+                                key={eventItem.key}
                                 onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
                             >
                                 <Text margin={'0 auto'}>{eventItem.name}</Text>
@@ -146,16 +168,18 @@ function MatchesPage() {
                             />
                         </GridItem>
                         <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                            <Popover>
+                            <Popover flip={false} placement='bottom'>
                                 <PopoverTrigger>
                                     <Text w='fit-content' margin={'0 auto'} cursor={'help'} pos={'relative'} fontSize={'20px'} top={'50%'} transform={'translateY(-50%)'}>
                                         🐯?
                                     </Text>
                                 </PopoverTrigger>
-                                <PopoverContent>
+                                <PopoverContent maxWidth={'50vw'} _focus={{ outline: 'none' }}>
                                     <PopoverArrow />
                                     <PopoverCloseButton />
-                                    <PopoverHeader>Match Filter Rules</PopoverHeader>
+                                    <PopoverHeader color='black' fontSize='md' fontWeight='bold'>
+                                        Match Filter Rules
+                                    </PopoverHeader>
                                     <PopoverBody>
                                         Quals = qm&lt;#&gt;
                                         <br />
@@ -172,10 +196,10 @@ function MatchesPage() {
                     {sortMatches(
                         matchForms
                             .filter((match) => match.matchNumber.match(new RegExp(`^${matchFilter}`, 'gim')))
-                            .filter((match) => match.teamNumber.toString().match(new RegExp(`^${teamFilter}`, 'gim')))
+                            .filter((match) => match.teamNumber.toString().match(new RegExp(`${teamFilter}`, 'gim')))
                             .filter((match) => match.scouter.match(new RegExp(`^${scouterFilter}`, 'gim')))
                     ).map((match, index) => (
-                        <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={index} templateColumns='2fr 1fr 1fr 1fr' gap={'5px'}>
+                        <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={match._id} templateColumns='2fr 1fr 1fr 1fr' gap={'5px'}>
                             <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                 <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                     {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
@@ -192,9 +216,30 @@ function MatchesPage() {
                                 </Text>
                             </GridItem>
                             <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                <Button size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`}>
-                                    Go To
-                                </Button>
+                                {!match.followUp ? (
+                                    <IconButton icon={<CheckCircleIcon />} colorScheme={'green'} _focus={{ outline: 'none' }} size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`} />
+                                ) : (
+                                    <Popover flip={false} placement='bottom'>
+                                        <PopoverTrigger>
+                                            <IconButton icon={<WarningIcon />} colorScheme={'yellow'} _focus={{ outline: 'none' }} size='sm' />
+                                        </PopoverTrigger>
+                                        <PopoverContent maxWidth={'50vw'} _focus={{ outline: 'none' }}>
+                                            <PopoverArrow />
+                                            <PopoverCloseButton />
+                                            <PopoverHeader color='black' fontSize='md' fontWeight='bold'>
+                                                Follow Up Comment
+                                            </PopoverHeader>
+                                            <PopoverBody maxHeight={'125px'} overflowY={'auto'}>
+                                                <Text>{match.followUpComment}</Text>
+                                            </PopoverBody>
+                                            <PopoverFooter>
+                                                <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`}>
+                                                    Go To
+                                                </Button>
+                                            </PopoverFooter>
+                                        </PopoverContent>
+                                    </Popover>
+                                )}
                             </GridItem>
                         </Grid>
                     ))}

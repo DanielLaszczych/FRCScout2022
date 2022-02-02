@@ -155,14 +155,14 @@ function WebDataConnector() {
                     {currentEvent.name}
                 </MenuButton>
                 <MenuList textAlign={'center'}>
-                    {sortRegisteredEvents(events).map((eventItem, index) => (
+                    {sortRegisteredEvents(events).map((eventItem) => (
                         <MenuItem
                             _focus={{ backgroundColor: 'none' }}
                             onMouseEnter={() => setFocusedEvent(eventItem.name)}
                             backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
                             maxW={'75vw'}
                             textAlign={'center'}
-                            key={index}
+                            key={eventItem.key}
                             onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
                         >
                             <Text margin={'0 auto'}>{eventItem.name}</Text>
