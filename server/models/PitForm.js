@@ -70,6 +70,9 @@ const pitFormSchema = new Schema(
         startingPosition: {
             type: String,
         },
+        taxi: {
+            type: String,
+        },
         autoComment: {
             type: String,
         },
@@ -101,6 +104,9 @@ const pitFormSchema = new Schema(
         followUp: {
             type: Boolean,
             required: true,
+        },
+        followUpComment: {
+            type: String,
         },
     },
     { timestamps: true }

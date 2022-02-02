@@ -88,7 +88,7 @@ function HomePage() {
                                     }
                                 }}
                             >
-                                <AlertDialogContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='30%'>
+                                <AlertDialogContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='25%'>
                                     <AlertDialogHeader color='black' fontSize='lg' fontWeight='bold'>
                                         Enter a team number
                                     </AlertDialogHeader>

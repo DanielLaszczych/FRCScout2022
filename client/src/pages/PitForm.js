@@ -25,17 +25,76 @@ import {
     Spinner,
     useToast,
     Image,
+    useDisclosure,
+    Popover,
+    PopoverTrigger,
+    PopoverArrow,
+    PopoverCloseButton,
+    PopoverContent,
+    PopoverHeader,
+    PopoverBody,
+    Modal,
+    ModalOverlay,
+    ModalContent,
+    ModalHeader,
+    ModalBody,
+    ModalFooter,
+    Circle,
 } from '@chakra-ui/react';
 import { year } from '../util/constants';
+import { AddIcon, CloseIcon, DeleteIcon } from '@chakra-ui/icons';
+import { v4 as uuidv4 } from 'uuid';
 
-let driveTrains = ['Tank', 'Swerve', 'Mecanum', 'H-Drive'];
-let programmingLanguages = ['Java', 'C++', 'LabView'];
-let startingPositions = ['Fender', 'Tarmac Middle', 'Tarmac Edge'];
-let holdingCapacities = ['0', '1', '2'];
+let driveTrains = [
+    { label: 'Tank', id: uuidv4() },
+    { label: 'Swerve', id: uuidv4() },
+    { label: 'Mecanum', id: uuidv4() },
+    { label: 'H-Drive', id: uuidv4() },
+];
+let motorsList = [
+    { label: 'Falcon 500', id: uuidv4() },
+    { label: 'NEO', id: uuidv4() },
+    { label: 'CIM', id: uuidv4() },
+    { label: 'Mini-CIM', id: uuidv4() },
+    { label: 'NEO 500', id: uuidv4() },
+    { label: '775 Pro', id: uuidv4() },
+];
+let wheelsList = [
+    { label: 'Traction', id: uuidv4() },
+    { label: 'Omni', id: uuidv4() },
+    { label: 'Colson', id: uuidv4() },
+    { label: 'Pneumatic', id: uuidv4() },
+    { label: 'Mecanum', id: uuidv4() },
+];
+let programmingLanguages = [
+    { label: 'Java', id: uuidv4() },
+    { label: 'C++', id: uuidv4() },
+    { label: 'LabVIEW', id: uuidv4() },
+];
+let startingPositions = [
+    { label: 'Fender', id: uuidv4() },
+    { label: 'Tarmac Middle', id: uuidv4() },
+    { label: 'Tarmac Edge', id: uuidv4() },
+];
+let taxiOptions = [
+    { label: 'Yes', id: uuidv4() },
+    { label: 'No', id: uuidv4() },
+];
+let holdingCapacities = [
+    { label: '0', id: uuidv4() },
+    { label: '1', id: uuidv4() },
+    { label: '2', id: uuidv4() },
+];
 
 function PitForm() {
     const navigate = useNavigate();
     const toast = useToast();
+    const { isOpen: isModalOpen, onOpen: onModalOpen, onClose: onModalClose } = useDisclosure();
+    const [modalComment, setModalComment] = useState('');
+    const { isOpen: isMotorsOpen, onOpen: onMotorsOpen, onClose: onMotorsClose } = useDisclosure();
+    const [deletingMotors, setDeletingMotors] = useState(false);
+    const { isOpen: isWheelsOpen, onOpen: onWheelsOpen, onClose: onWheelsClose } = useDisclosure();
+    const [deletingWheels, setDeletingWheels] = useState(false);
     let { eventKey: eventKeyParam, teamNumber: teamNumberParam } = useParams();
     const hiddenImageInput = useRef(null);
 
@@ -48,40 +107,30 @@ function PitForm() {
     const [weight, setWeight] = useState('');
     const [height, setHeight] = useState('');
     const [driveTrain, setDriveTrain] = useState('');
-    const [motors, setMotors] = useState([
-        { label: 'Falcon 500', value: 0 },
-        { label: 'NEO', value: 0 },
-        { label: 'CIM', value: 0 },
-        { label: 'Mini-CIM', value: 0 },
-    ]);
-    const [wheels, setWheels] = useState([
-        { label: 'Traction', size: '', value: 0 },
-        { label: 'Omni', size: '', value: 0 },
-        { label: 'Colson', size: '', value: 0 },
-        { label: 'Pneumatic', size: '', value: 0 },
-        { label: 'Mecanum', size: '', value: 0 },
-    ]);
+    const [motors, setMotors] = useState([]);
+    const [wheels, setWheels] = useState([]);
     const [driveTrainComment, setDriveTrainComment] = useState('');
     const [programmingLanguage, setProgrammingLanguage] = useState('');
     const [startingPosition, setStartingPosition] = useState('');
+    const [taxi, setTaxi] = useState('');
     const [autoComment, setAutoComment] = useState('');
     const [abilities, setAbilities] = useState([
-        { label: 'Deliver Cargo to Terminal', value: false },
-        { label: 'Receive Cargo from Terminal', value: false },
-        { label: 'Pick up Cargo from floor', value: false },
-        { label: 'Score Cargo into the Lower Hub', value: false },
-        { label: 'Score Cargo into the Upper Hub', value: false },
-        { label: 'Hang on Low Rung', value: false },
-        { label: 'Hang on Mid Rung', value: false },
-        { label: 'Hang on High Rung', value: false },
-        { label: 'Hang on Traversal Rung', value: false },
-        { label: 'None', value: false },
+        { label: 'Deliver Cargo to Terminal', value: false, id: uuidv4() },
+        { label: 'Receive Cargo from Terminal', value: false, id: uuidv4() },
+        { label: 'Pick up Cargo from floor', value: false, id: uuidv4() },
+        { label: 'Score Cargo into the Lower Hub', value: false, id: uuidv4() },
+        { label: 'Score Cargo into the Upper Hub', value: false, id: uuidv4() },
+        { label: 'Hang on Low Rung', value: false, id: uuidv4() },
+        { label: 'Hang on Mid Rung', value: false, id: uuidv4() },
+        { label: 'Hang on High Rung', value: false, id: uuidv4() },
+        { label: 'Hang on Traversal Rung', value: false, id: uuidv4() },
     ]);
     const [holdingCapacity, setHoldingCapacity] = useState('');
     const [workingComment, setWorkingComment] = useState('');
     const [closingComment, setClosingComment] = useState('');
     const [image, setImage] = useState('');
     const [markedFollowUp, setMarkedFollowUp] = useState(false);
+    const [followUpComment, setFollowUpComment] = useState('');
     const [submitAttempted, setSubmitAttempted] = useState(false);
 
     function handleSetWeight(value) {
@@ -94,6 +143,26 @@ function PitForm() {
         if (value.trim() !== '') {
             setHeight(twoPrecision(parseFloat(value)));
         }
+    }
+
+    function handleAddMotor(motorName) {
+        setMotors((prevMotors) => [
+            ...prevMotors,
+            {
+                label: motorName,
+                value: 0,
+                id: uuidv4(),
+            },
+        ]);
+    }
+
+    function handleRemoveMotor(motorName) {
+        setMotors((prevMotors) => {
+            if (prevMotors.length === 1) {
+                setDeletingMotors(false);
+            }
+            return prevMotors.filter((motor) => motor.label !== motorName);
+        });
     }
 
     function handleDecrementMotor(motorLabel) {
@@ -118,6 +187,27 @@ function PitForm() {
                 }
             })
         );
+    }
+
+    function handleAddWheel(wheelName) {
+        setWheels((prevWheels) => [
+            ...prevWheels,
+            {
+                label: wheelName,
+                size: '',
+                value: 0,
+                id: uuidv4(),
+            },
+        ]);
+    }
+
+    function handleRemoveWheel(wheelName) {
+        setWheels((prevWheels) => {
+            if (prevWheels.length === 1) {
+                setDeletingWheels(false);
+            }
+            return prevWheels.filter((wheel) => wheel.label !== wheelName);
+        });
     }
 
     function handleDecrementWheel(wheelLabel) {
@@ -191,9 +281,18 @@ function PitForm() {
         }
     }
 
+    function validMotors() {
+        for (const motor of motors) {
+            if (motor.value === 0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function validWheels() {
         for (const wheel of wheels) {
-            if (wheel.value > 0 && wheel.size === '') {
+            if (wheel.value === 0 || wheel.size === '') {
                 return false;
             }
         }
@@ -201,7 +300,7 @@ function PitForm() {
     }
 
     function validForm() {
-        return weight !== '' && height !== '' && driveTrain !== '' && validWheels() && programmingLanguage !== '' && startingPosition !== '' && abilities.filter((ability) => ability.value).length !== 0 && holdingCapacity !== '';
+        return weight !== '' && height !== '' && driveTrain !== '' && validMotors() && validWheels() && programmingLanguage !== '' && startingPosition !== '' && taxi !== '' && holdingCapacity !== '';
     }
 
     const { loading: loadingEvent, error: eventError } = useQuery(GET_EVENT, {
@@ -214,7 +313,7 @@ function PitForm() {
         },
         onError(err) {
             if (err.message === 'Error: Event is not registered inside database') {
-                setError('This event is not registered in the database or this event does not exist');
+                setError('This event is not registered in the database');
             } else {
                 console.log(JSON.stringify(err, null, 2));
                 setError('Apollo error, check console for logs');
@@ -272,21 +371,29 @@ function PitForm() {
             setWeight(pitForm.weight || '');
             setHeight(pitForm.height || '');
             setDriveTrain(pitForm.driveTrain);
-            setMotors(pitForm.motors);
+            let modifiedMotors = pitForm.motors.map((motor) => {
+                return { label: motor.label, value: motor.value, id: uuidv4() };
+            });
+            setMotors(modifiedMotors);
             let modifiedWheels = pitForm.wheels.map((wheel) => {
-                return { label: wheel.label, size: wheel.size === null ? '' : wheel.size.toString(), value: wheel.value };
+                return { label: wheel.label, size: wheel.size === null ? '' : wheel.size.toString(), value: wheel.value, id: uuidv4() };
             });
             setWheels(modifiedWheels);
             setDriveTrainComment(pitForm.driveTrainComment);
             setProgrammingLanguage(pitForm.programmingLanguage);
             setStartingPosition(pitForm.startingPosition);
+            setTaxi(pitForm.taxi);
             setAutoComment(pitForm.autoComment);
-            setAbilities(pitForm.abilities);
-            setHoldingCapacity(pitForm.holdingCapacity ? pitForm.holdingCapacity.toString() : '');
+            let modifiedAbilities = pitForm.abilities.map((ability) => {
+                return { label: ability.label, value: ability.value, id: uuidv4() };
+            });
+            setAbilities(modifiedAbilities);
+            setHoldingCapacity(pitForm.holdingCapacity !== null ? pitForm.holdingCapacity.toString() : '');
             setWorkingComment(pitForm.workingComment);
             setClosingComment(pitForm.closingComment);
             setImage(pitForm.image);
             setMarkedFollowUp(pitForm.followUp);
+            setFollowUpComment(pitForm.followUpComment);
             setDataLoaded(true);
         },
     });
@@ -321,10 +428,32 @@ function PitForm() {
     function submit() {
         setSubmitAttempted(true);
         if (!validForm() && !markedFollowUp) {
+            toast({
+                title: 'Missing fields',
+                description: 'Fill out all fields, otherwise mark for follow up',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+            return;
+        } else if (markedFollowUp && followUpComment.trim() === '') {
+            toast({
+                title: 'Missing fields',
+                description: 'Leave a follow up comment',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
             return;
         }
+        let modifiedMotors = motors.map((motor) => {
+            return { label: motor.label, value: motor.value };
+        });
         let modifiedWheels = wheels.map((wheel) => {
             return { label: wheel.label, size: parseFloat(wheel.size), value: wheel.value };
+        });
+        let modifiedAbilities = abilities.map((ability) => {
+            return { label: ability.label, value: ability.value };
         });
         updatePitForm({
             variables: {
@@ -336,18 +465,20 @@ function PitForm() {
                     weight: parseFloat(weight),
                     height: parseFloat(height),
                     driveTrain: driveTrain,
-                    motors: motors,
+                    motors: modifiedMotors,
                     wheels: modifiedWheels,
                     driveTrainComment: driveTrainComment,
                     programmingLanguage: programmingLanguage,
                     startingPosition: startingPosition,
+                    taxi: taxi,
                     autoComment: autoComment,
-                    abilities: abilities,
+                    abilities: modifiedAbilities,
                     holdingCapacity: parseInt(holdingCapacity),
                     workingComment: workingComment,
                     closingComment: closingComment,
                     image: image,
                     followUp: markedFollowUp,
+                    followUpComment: markedFollowUp ? followUpComment : '',
                 },
             },
         });
@@ -371,6 +502,46 @@ function PitForm() {
 
     return (
         <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+            <Circle backgroundColor={'gray.200'} zIndex={2} position={'fixed'} cursor={'pointer'} onClick={onModalOpen} bottom={'2%'} right={'2%'} padding={'10px'} borderRadius={'50%'} border={'2px solid black'}>
+                <AddIcon fontSize={'150%'} />
+            </Circle>
+            <Modal lockFocusAcrossFrames={true} closeOnEsc={true} isOpen={isModalOpen} onClose={onModalClose}>
+                <ModalOverlay>
+                    <ModalContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='25%'>
+                        <ModalHeader color='black' fontSize='lg' fontWeight='bold'>
+                            Write a comment
+                        </ModalHeader>
+                        <ModalBody maxHeight={'250px'} overflowY={'auto'}>
+                            <Textarea _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} onChange={(event) => setModalComment(event.target.value)} value={modalComment} placeholder='Comment...' />
+                        </ModalBody>
+                        <ModalFooter>
+                            <Button
+                                onClick={() => {
+                                    onModalClose();
+                                    setModalComment('');
+                                }}
+                                _focus={{ outline: 'none' }}
+                            >
+                                Cancel
+                            </Button>
+                            <Button
+                                colorScheme='blue'
+                                ml={3}
+                                _focus={{ outline: 'none' }}
+                                onClick={() => {
+                                    onModalClose();
+                                    if (modalComment.trim() !== '') {
+                                        setClosingComment((prevComment) => `${prevComment}${prevComment !== '' ? '\n' : ''}${modalComment}`);
+                                    }
+                                    setModalComment('');
+                                }}
+                            >
+                                Confirm
+                            </Button>
+                        </ModalFooter>
+                    </ModalContent>
+                </ModalOverlay>
+            </Modal>
             <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
                     Competition: {eventName}
@@ -455,41 +626,117 @@ function PitForm() {
                 </Text>
                 <RadioGroup paddingLeft={'15px'} onChange={setDriveTrain} value={driveTrain}>
                     <Stack direction={['column', 'row']}>
-                        {driveTrains.map((driveTrainLabel, index) => (
-                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && driveTrain === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={driveTrainLabel}>
-                                {driveTrainLabel}
+                        {driveTrains.map((driveTrainItem) => (
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && driveTrain === ''} _focus={{ outline: 'none' }} key={driveTrainItem.id} colorScheme={'green'} value={driveTrainItem.label}>
+                                {driveTrainItem.label}
                             </Radio>
                         ))}
                     </Stack>
                 </RadioGroup>
-                <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
-                    Motors:
-                </Text>
-                <Center>
-                    <VStack>
-                        {motors.map((motor, index) => (
-                            <HStack key={index}>
-                                <Button paddingBottom={'4px'} colorScheme={'red'} onClick={() => handleDecrementMotor(motor.label)} _focus={{ outline: 'none' }}>
-                                    -
-                                </Button>
-                                <Text minW={{ base: '130px', md: '200px', lg: '300px' }} textAlign={'center'}>
-                                    {motor.label}: {motor.value}
-                                </Text>
-                                <Button paddingBottom={'4px'} maxW={'40px'} colorScheme={'green'} onClick={() => handleIncrementMotor(motor.label)} _focus={{ outline: 'none' }}>
-                                    +
-                                </Button>
-                            </HStack>
-                        ))}
-                    </VStack>
-                </Center>
-                <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
-                    Wheels:
-                </Text>
+                <HStack pos={'relative'} marginTop={'20px'} marginBottom={'10px'}>
+                    <Text marginLeft={'10px'} fontWeight={'600'}>
+                        Motors:
+                    </Text>
+                    {motors.length > 0 ? (
+                        !deletingMotors ? (
+                            <DeleteIcon onClick={() => setDeletingMotors(true)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></DeleteIcon>
+                        ) : (
+                            <CloseIcon onClick={() => setDeletingMotors(false)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></CloseIcon>
+                        )
+                    ) : null}
+                </HStack>
                 <VStack>
-                    {wheels.map((wheel, index) => (
-                        <Grid key={index} templateColumns='1fr 2fr 1fr'>
+                    {motors.map((motor) => (
+                        <HStack key={motor.id} position={'relative'}>
+                            <Button paddingBottom={'4px'} colorScheme={'red'} onClick={() => handleDecrementMotor(motor.label)} _focus={{ outline: 'none' }}>
+                                -
+                            </Button>
+                            <Text
+                                textColor={submitAttempted && !markedFollowUp && motor.value === 0 ? 'red' : 'black'}
+                                textDecoration={deletingMotors ? '3px underline red' : 'none'}
+                                onClick={(event) => {
+                                    if (deletingMotors) {
+                                        handleRemoveMotor(motor.label);
+                                    } else {
+                                        event.preventDefault();
+                                    }
+                                }}
+                                minW={{ base: '120px', md: '150px', lg: '175px' }}
+                                textAlign={'center'}
+                            >
+                                {motor.label}: {motor.value}
+                            </Text>
+                            <Button paddingBottom={'4px'} maxW={'40px'} colorScheme={'green'} onClick={() => handleIncrementMotor(motor.label)} _focus={{ outline: 'none' }}>
+                                +
+                            </Button>
+                        </HStack>
+                    ))}
+                </VStack>
+                <Center marginTop={motors.length > 0 ? '10px' : '0px'}>
+                    <Popover isLazy flip={false} placement='bottom' isOpen={isMotorsOpen} onOpen={onMotorsOpen} onClose={onMotorsClose}>
+                        <PopoverTrigger>
+                            <Button size={'sm'} _focus={{ outline: 'none' }}>
+                                Add Motor
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent maxWidth={'75vw'} _focus={{ outline: 'none' }}>
+                            <PopoverArrow />
+                            <PopoverCloseButton />
+                            <PopoverHeader color='black' fontSize='md' fontWeight='bold'>
+                                Choose a motor
+                            </PopoverHeader>
+                            <PopoverBody maxHeight={'160px'} overflowY={'auto'}>
+                                <VStack spacing={'10px'}>
+                                    {motorsList
+                                        .filter((motor) => !motors.some((secondMotor) => secondMotor.label === motor.label))
+                                        .map((motor) => (
+                                            <Button
+                                                fontSize={'sm'}
+                                                _focus={{ outline: 'none' }}
+                                                key={motor.id}
+                                                onClick={() => {
+                                                    handleAddMotor(motor.label);
+                                                    onMotorsClose();
+                                                }}
+                                            >
+                                                {motor.label}
+                                            </Button>
+                                        ))}
+                                </VStack>
+                            </PopoverBody>
+                        </PopoverContent>
+                    </Popover>
+                </Center>
+                <HStack pos={'relative'} marginTop={'20px'} marginBottom={'10px'}>
+                    <Text marginLeft={'10px'} fontWeight={'600'}>
+                        Wheels:
+                    </Text>
+                    {wheels.length > 0 ? (
+                        !deletingWheels ? (
+                            <DeleteIcon onClick={() => setDeletingWheels(true)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></DeleteIcon>
+                        ) : (
+                            <CloseIcon onClick={() => setDeletingWheels(false)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></CloseIcon>
+                        )
+                    ) : null}
+                </HStack>
+                <VStack>
+                    {wheels.map((wheel) => (
+                        <Grid key={wheel.id} templateColumns='1fr 2fr 1fr'>
                             <GridItem>
-                                <Text marginTop='10px' marginBottom='10px' fontSize={{ base: '90%', md: '100%', lg: '100%' }} textAlign={'center'}>
+                                <Text
+                                    textDecoration={deletingWheels ? '3px underline red' : 'none'}
+                                    onClick={(event) => {
+                                        if (deletingWheels) {
+                                            handleRemoveWheel(wheel.label);
+                                        } else {
+                                            event.preventDefault();
+                                        }
+                                    }}
+                                    marginTop='10px'
+                                    marginBottom='10px'
+                                    fontSize={{ base: '90%', md: '100%', lg: '100%' }}
+                                    textAlign={'center'}
+                                >
                                     {wheel.label}
                                 </Text>
                             </GridItem>
@@ -503,10 +750,15 @@ function PitForm() {
                                         max={20}
                                         precision={2}
                                         width={'75%'}
-                                        isInvalid={submitAttempted && !markedFollowUp && wheel.value > 0 && wheel.size === ''}
+                                        isInvalid={submitAttempted && !markedFollowUp && wheel.size === ''}
                                         // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
                                     >
                                         <NumberInputField
+                                            onKeyPress={(event) => {
+                                                if (event.key === 'Enter') {
+                                                    event.target.blur();
+                                                }
+                                            }}
                                             enterKeyHint='done'
                                             _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
                                             textAlign={'center'}
@@ -522,7 +774,7 @@ function PitForm() {
                                     <Button paddingBottom={'2px'} size='xs' colorScheme={'red'} onClick={() => handleDecrementWheel(wheel.label)} _focus={{ outline: 'none' }}>
                                         -
                                     </Button>
-                                    <Text>{wheel.value}</Text>
+                                    <Text textColor={submitAttempted && !markedFollowUp && wheel.value === 0 ? 'red' : 'black'}>{wheel.value}</Text>
                                     <Button paddingBottom={'2px'} size={'xs'} colorScheme={'green'} onClick={() => handleIncrementWheel(wheel.label)} _focus={{ outline: 'none' }}>
                                         +
                                     </Button>
@@ -531,6 +783,41 @@ function PitForm() {
                         </Grid>
                     ))}
                 </VStack>
+                <Center marginTop={wheels.length > 0 ? '10px' : '0px'}>
+                    <Popover isLazy flip={false} placement='bottom' isOpen={isWheelsOpen} onOpen={onWheelsOpen} onClose={onWheelsClose}>
+                        <PopoverTrigger>
+                            <Button size={'sm'} _focus={{ outline: 'none' }}>
+                                Add Wheel
+                            </Button>
+                        </PopoverTrigger>
+                        <PopoverContent maxWidth={'75vw'} _focus={{ outline: 'none' }}>
+                            <PopoverArrow />
+                            <PopoverCloseButton />
+                            <PopoverHeader color='black' fontSize='md' fontWeight='bold'>
+                                Choose a wheel
+                            </PopoverHeader>
+                            <PopoverBody maxHeight={'160px'} overflowY={'auto'}>
+                                <VStack spacing={'10px'}>
+                                    {wheelsList
+                                        .filter((wheel) => !wheels.some((secondWheel) => secondWheel.label === wheel.label))
+                                        .map((wheel) => (
+                                            <Button
+                                                fontSize={'sm'}
+                                                _focus={{ outline: 'none' }}
+                                                key={wheel.id}
+                                                onClick={() => {
+                                                    handleAddWheel(wheel.label);
+                                                    onWheelsClose();
+                                                }}
+                                            >
+                                                {wheel.label}
+                                            </Button>
+                                        ))}
+                                </VStack>
+                            </PopoverBody>
+                        </PopoverContent>
+                    </Popover>
+                </Center>
                 <Center marginTop={'20px'}>
                     <Textarea
                         _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
@@ -550,9 +837,16 @@ function PitForm() {
                 </Text>
                 <RadioGroup marginLeft={'15px'} onChange={setProgrammingLanguage} value={programmingLanguage}>
                     <Stack direction={['column', 'row']}>
-                        {programmingLanguages.map((programmingLanguageLabel, index) => (
-                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && programmingLanguage === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={programmingLanguageLabel}>
-                                {programmingLanguageLabel}
+                        {programmingLanguages.map((programmingLanguageItem) => (
+                            <Radio
+                                w={'max-content'}
+                                isInvalid={submitAttempted && !markedFollowUp && programmingLanguage === ''}
+                                _focus={{ outline: 'none' }}
+                                key={programmingLanguageItem.id}
+                                colorScheme={'green'}
+                                value={programmingLanguageItem.label}
+                            >
+                                {programmingLanguageItem.label}
                             </Radio>
                         ))}
                     </Stack>
@@ -562,9 +856,21 @@ function PitForm() {
                 </Text>
                 <RadioGroup marginLeft={'15px'} onChange={setStartingPosition} value={startingPosition}>
                     <Stack direction={['column', 'row']}>
-                        {startingPositions.map((startingPositionLabel, index) => (
-                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && startingPosition === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={startingPositionLabel}>
-                                {startingPositionLabel}
+                        {startingPositions.map((startingPositionItem) => (
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && startingPosition === ''} _focus={{ outline: 'none' }} key={startingPositionItem.id} colorScheme={'green'} value={startingPositionItem.id}>
+                                {startingPositionItem.label}
+                            </Radio>
+                        ))}
+                    </Stack>
+                </RadioGroup>
+                <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
+                    Taxi:
+                </Text>
+                <RadioGroup marginLeft={'15px'} onChange={setTaxi} value={taxi}>
+                    <Stack direction={['column', 'row']}>
+                        {taxiOptions.map((taxiItem) => (
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && taxi === ''} _focus={{ outline: 'none' }} key={taxiItem.id} colorScheme={'green'} value={taxiItem.label}>
+                                {taxiItem.label}
                             </Radio>
                         ))}
                     </Stack>
@@ -574,7 +880,7 @@ function PitForm() {
                         _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
                         onChange={(event) => setAutoComment(event.target.value)}
                         value={autoComment}
-                        placeholder='What is their usual strategy in auto?'
+                        placeholder="Most effective strategy in auto? (Even if that's just taxi)"
                         w={'85%'}
                     ></Textarea>
                 </Center>
@@ -583,33 +889,77 @@ function PitForm() {
                 <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
                     Abilities:{' '}
                 </Text>
+                <Text marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
+                    Intake:
+                </Text>
                 <VStack marginLeft={'15px'} align={'start'}>
-                    {abilities.map((ability, index) => (
+                    {abilities.slice(0, 3).map((ability) => (
                         <Checkbox
-                            isInvalid={submitAttempted && !markedFollowUp && abilities.filter((ability) => ability.value).length === 0}
                             //removes the blue outline on focus
                             css={`
                                 > span:first-of-type {
                                     box-shadow: unset;
                                 }
                             `}
-                            key={index}
+                            key={ability.id}
                             colorScheme={'green'}
                             isChecked={ability.value}
-                            onChange={(event) => handleAbilityCheck(ability.label)}
+                            onChange={() => handleAbilityCheck(ability.label)}
                         >
                             {ability.label}
                         </Checkbox>
                     ))}
                 </VStack>
-                <Text marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
+                <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
+                    Shooting:
+                </Text>
+                <VStack marginLeft={'15px'} align={'start'}>
+                    {abilities.slice(3, 5).map((ability) => (
+                        <Checkbox
+                            //removes the blue outline on focus
+                            css={`
+                                > span:first-of-type {
+                                    box-shadow: unset;
+                                }
+                            `}
+                            key={ability.id}
+                            colorScheme={'green'}
+                            isChecked={ability.value}
+                            onChange={() => handleAbilityCheck(ability.label)}
+                        >
+                            {ability.label}
+                        </Checkbox>
+                    ))}
+                </VStack>
+                <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
+                    Climb:
+                </Text>
+                <VStack marginLeft={'15px'} align={'start'}>
+                    {abilities.slice(5).map((ability) => (
+                        <Checkbox
+                            //removes the blue outline on focus
+                            css={`
+                                > span:first-of-type {
+                                    box-shadow: unset;
+                                }
+                            `}
+                            key={ability.id}
+                            colorScheme={'green'}
+                            isChecked={ability.value}
+                            onChange={() => handleAbilityCheck(ability.label)}
+                        >
+                            {ability.label}
+                        </Checkbox>
+                    ))}
+                </VStack>
+                <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
                     Holding Capacity:
                 </Text>
                 <RadioGroup marginLeft={'15px'} onChange={setHoldingCapacity} value={holdingCapacity}>
                     <Stack direction={['column', 'row']}>
-                        {holdingCapacities.map((carryingCapacityItem, index) => (
-                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && holdingCapacity === ''} _focus={{ outline: 'none' }} key={index} colorScheme={'green'} value={carryingCapacityItem}>
-                                {carryingCapacityItem}
+                        {holdingCapacities.map((carryingCapacityItem) => (
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && holdingCapacity === ''} _focus={{ outline: 'none' }} key={carryingCapacityItem.id} colorScheme={'green'} value={carryingCapacityItem.label}>
+                                {carryingCapacityItem.label}
                             </Radio>
                         ))}
                     </Stack>
@@ -657,11 +1007,23 @@ function PitForm() {
                         `}
                         colorScheme={'green'}
                         isChecked={markedFollowUp}
-                        onChange={(event) => setMarkedFollowUp(!markedFollowUp)}
+                        onChange={() => setMarkedFollowUp(!markedFollowUp)}
                     >
                         Mark For Follow Up
                     </Checkbox>
                 </Center>
+                {markedFollowUp ? (
+                    <Center marginTop={'10px'}>
+                        <Textarea
+                            isInvalid={markedFollowUp && submitAttempted && followUpComment.trim() === ''}
+                            _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                            onChange={(event) => setFollowUpComment(event.target.value)}
+                            value={followUpComment}
+                            placeholder='What is the reason for the follow up?'
+                            w={'85%'}
+                        ></Textarea>
+                    </Center>
+                ) : null}
             </Box>
 
             <Center>

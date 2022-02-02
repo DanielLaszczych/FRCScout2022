@@ -22,6 +22,7 @@ export const GET_PITFORM = gql`
             driveTrainComment
             programmingLanguage
             startingPosition
+            taxi
             autoComment
             abilities {
                 label
@@ -32,6 +33,7 @@ export const GET_PITFORM = gql`
             closingComment
             image
             followUp
+            followUpComment
         }
     }
 `;
@@ -44,6 +46,7 @@ export const GET_EVENTS_PITFORMS = gql`
             teamNumber
             teamName
             followUp
+            followUpComment
             scouter
         }
     }

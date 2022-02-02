@@ -32,6 +32,7 @@ module.exports = gql`
         driveTrainComment: String
         programmingLanguage: String
         startingPosition: String
+        taxi: String
         autoComment: String
         abilities: [Ability]
         holdingCapacity: Int
@@ -39,6 +40,7 @@ module.exports = gql`
         closingComment: String
         image: String
         followUp: Boolean!
+        followUpComment: String
         createdAt: String
     }
 
@@ -71,6 +73,7 @@ module.exports = gql`
         driveTrainComment: String
         programmingLanguage: String
         startingPosition: String
+        taxi: String
         autoComment: String
         abilities: [AbilityInput]
         holdingCapacity: Int
@@ -78,6 +81,7 @@ module.exports = gql`
         closingComment: String
         image: String
         followUp: Boolean!
+        followUpComment: String
     }
 
     extend type Query {

@@ -272,7 +272,7 @@ function AdminPage() {
         <Box margin={'0 auto'} width={{ base: '90%', md: '66%', lg: '66%' }}>
             <Modal lockFocusAcrossFrames={true} closeOnEsc={true} isOpen={isOpen} onClose={onClose}>
                 <ModalOverlay>
-                    <ModalContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='30%'>
+                    <ModalContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='25%'>
                         <ModalHeader color='black' fontSize='lg' fontWeight='bold'>
                             Select an Event
                         </ModalHeader>

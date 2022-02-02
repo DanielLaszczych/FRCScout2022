@@ -117,39 +117,36 @@ function WebDataConnector() {
                     </Button>
                 </InputRightElement>
             </InputGroup>
-            {validating ? (
-                <Spinner marginTop={'58px'}></Spinner>
-            ) : (
-                <Button
-                    marginTop={'50px'}
-                    _focus={{ outline: 'none' }}
-                    disabled={password.trim() === ''}
-                    onClick={() => {
-                        if (!attempted) {
-                            setAttempted(true);
-                        }
-                        setValidating(true);
-                        fetch(`/checkTableauPass/${password}`)
-                            .then((res) => res.text())
-                            .then((data) => {
-                                if (data === 'Valid') {
-                                    setValidPass(true);
-                                } else {
-                                    setValidPass(false);
-                                    setValidating(false);
-                                    inputRef.current.focus();
-                                }
-                            })
-                            .catch((err) => {
+            <Button
+                isLoading={validating}
+                marginTop={'50px'}
+                _focus={{ outline: 'none' }}
+                disabled={password.trim() === ''}
+                onClick={() => {
+                    if (!attempted) {
+                        setAttempted(true);
+                    }
+                    setValidating(true);
+                    fetch(`/checkTableauPass/${password}`)
+                        .then((res) => res.text())
+                        .then((data) => {
+                            if (data === 'Valid') {
+                                setValidPass(true);
+                            } else {
                                 setValidPass(false);
                                 setValidating(false);
                                 inputRef.current.focus();
-                            });
-                    }}
-                >
-                    Log In
-                </Button>
-            )}
+                            }
+                        })
+                        .catch((err) => {
+                            setValidPass(false);
+                            setValidating(false);
+                            inputRef.current.focus();
+                        });
+                }}
+            >
+                Log In
+            </Button>
         </Box>
     ) : (
         <VStack spacing={'50px'}>
