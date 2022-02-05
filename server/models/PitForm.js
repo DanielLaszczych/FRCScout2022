@@ -1,5 +1,42 @@
 const { model, Schema } = require('mongoose');
 
+const motorSchema = new Schema({
+    label: {
+        type: String,
+        required: true,
+    },
+    value: {
+        type: Number,
+        required: true,
+    },
+});
+
+const wheelSchema = new Schema({
+    label: {
+        type: String,
+        required: true,
+    },
+    size: {
+        type: Number,
+        required: true,
+    },
+    value: {
+        type: Number,
+        required: true,
+    },
+});
+
+const abilitySchema = new Schema({
+    label: {
+        type: String,
+        required: true,
+    },
+    value: {
+        type: Boolean,
+        required: true,
+    },
+});
+
 const pitFormSchema = new Schema(
     {
         eventKey: {
@@ -31,36 +68,12 @@ const pitFormSchema = new Schema(
         driveTrain: {
             type: String,
         },
-        motors: [
-            {
-                label: {
-                    type: String,
-                    required: true,
-                },
-                value: {
-                    type: Number,
-                    required: true,
-                },
-                _id: false,
-            },
-        ],
-        wheels: [
-            {
-                label: {
-                    type: String,
-                    required: true,
-                },
-                size: {
-                    type: Number,
-                    required: true,
-                },
-                value: {
-                    type: Number,
-                    required: true,
-                },
-                _id: false,
-            },
-        ],
+        motors: {
+            type: [motorSchema],
+        },
+        wheels: {
+            type: [wheelSchema],
+        },
         driveTrainComment: {
             type: String,
         },
@@ -76,19 +89,9 @@ const pitFormSchema = new Schema(
         autoComment: {
             type: String,
         },
-        abilities: [
-            {
-                label: {
-                    type: String,
-                    required: true,
-                },
-                value: {
-                    type: Boolean,
-                    required: true,
-                },
-                _id: false,
-            },
-        ],
+        abilities: {
+            type: [abilitySchema],
+        },
         holdingCapacity: {
             type: Number,
         },

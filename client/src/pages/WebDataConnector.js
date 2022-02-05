@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
 import { ChevronDownIcon } from '@chakra-ui/icons';
-import { Box, Button, Center, Input, InputGroup, InputRightElement, Menu, MenuButton, MenuItem, MenuList, Spinner, Text, VStack } from '@chakra-ui/react';
+import { Box, Button, Center, Input, InputGroup, InputRightElement, Menu, MenuButton, MenuItem, MenuList, Spinner } from '@chakra-ui/react';
 import { React, useEffect, useRef, useState } from 'react';
 import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
 import { sortRegisteredEvents } from '../util/helperFunctions';
@@ -149,29 +149,36 @@ function WebDataConnector() {
             </Button>
         </Box>
     ) : (
-        <VStack spacing={'50px'}>
-            <Menu placement='auto'>
-                <MenuButton onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} textOverflow={'ellipsis'} whiteSpace={'nowrap'} overflow={'hidden'} textAlign={'center'} as={Button} rightIcon={<ChevronDownIcon />}>
-                    {currentEvent.name}
-                </MenuButton>
-                <MenuList textAlign={'center'}>
-                    {sortRegisteredEvents(events).map((eventItem) => (
-                        <MenuItem
-                            _focus={{ backgroundColor: 'none' }}
-                            onMouseEnter={() => setFocusedEvent(eventItem.name)}
-                            backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
-                            maxW={'75vw'}
-                            textAlign={'center'}
-                            key={eventItem.key}
-                            onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
-                        >
-                            <Text margin={'0 auto'}>{eventItem.name}</Text>
-                        </MenuItem>
-                    ))}
-                </MenuList>
-            </Menu>
-            <Button onClick={() => submit()}>Get Data</Button>
-        </VStack>
+        <Box margin={'0 auto'} textAlign={'center'} width={{ base: '85%', sm: '66%', md: '50%', lg: '25%' }}>
+            <Center>
+                <Menu placement='auto'>
+                    <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
+                        <Box overflow={'hidden'} textOverflow={'ellipsis'}>
+                            {currentEvent.name}
+                        </Box>
+                    </MenuButton>
+                    <MenuList>
+                        {sortRegisteredEvents(events).map((eventItem) => (
+                            <MenuItem
+                                textAlign={'center'}
+                                justifyContent={'center'}
+                                _focus={{ backgroundColor: 'none' }}
+                                onMouseEnter={() => setFocusedEvent(eventItem.name)}
+                                backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
+                                maxW={'75vw'}
+                                key={eventItem.key}
+                                onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
+                            >
+                                {eventItem.name}
+                            </MenuItem>
+                        ))}
+                    </MenuList>
+                </Menu>
+            </Center>
+            <Button marginTop={'50px'} onClick={() => submit()}>
+                Get Data
+            </Button>
+        </Box>
     );
 }
 

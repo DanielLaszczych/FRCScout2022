@@ -8,6 +8,7 @@ module.exports = gql`
     }
 
     type Event {
+        _id: ID!
         name: String!
         year: Int!
         week: Int

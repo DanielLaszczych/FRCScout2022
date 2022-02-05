@@ -1,4 +1,23 @@
-const { model, Schema } = require('mongoose');
+const { model, Schema, Mongoose } = require('mongoose');
+
+const startingPositionSchema = new Schema({
+    x: {
+        type: Number,
+        required: true,
+    },
+    y: {
+        type: Number,
+        required: true,
+    },
+    width: {
+        type: Number,
+        required: true,
+    },
+    height: {
+        type: Number,
+        required: true,
+    },
+});
 
 const matchFormSchema = new Schema({
     eventKey: {
@@ -33,23 +52,7 @@ const matchFormSchema = new Schema({
         type: Boolean,
     },
     startingPosition: {
-        x: {
-            type: Number,
-            required: true,
-        },
-        y: {
-            type: Number,
-            required: true,
-        },
-        width: {
-            type: Number,
-            required: true,
-        },
-        height: {
-            type: Number,
-            required: true,
-        },
-        _id: false,
+        type: startingPositionSchema,
     },
     pickedUpAuto: {
         type: Number,

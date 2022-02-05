@@ -857,7 +857,7 @@ function PitForm() {
                 <RadioGroup marginLeft={'15px'} onChange={setStartingPosition} value={startingPosition}>
                     <Stack direction={['column', 'row']}>
                         {startingPositions.map((startingPositionItem) => (
-                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && startingPosition === ''} _focus={{ outline: 'none' }} key={startingPositionItem.id} colorScheme={'green'} value={startingPositionItem.id}>
+                            <Radio w={'max-content'} isInvalid={submitAttempted && !markedFollowUp && startingPosition === ''} _focus={{ outline: 'none' }} key={startingPositionItem.id} colorScheme={'green'} value={startingPositionItem.label}>
                                 {startingPositionItem.label}
                             </Radio>
                         ))}
@@ -990,7 +990,7 @@ function PitForm() {
                         }}
                         src={image}
                     /> */}
-                    <Image w={{ base: '60%', md: '35%', lg: '25%' }} maxW={{ base: '60%', md: '35%', lg: '25%' }} src={image} />
+                    <Image w={{ base: '60%', md: '35%', lg: '35%' }} maxW={{ base: '60%', md: '35%', lg: '35%' }} src={image} />
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     <Button variant='outline' borderColor='gray.300' _focus={{ outline: 'none' }} onClick={() => hiddenImageInput.current.click()}>
                         Upload Image

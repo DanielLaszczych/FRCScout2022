@@ -143,27 +143,16 @@ function PreMatchForm() {
                         Alliance Station:
                     </Text>
                     <Menu>
-                        <MenuButton
-                            marginLeft={'10px'}
-                            onClick={() => setFocusedStation(station)}
-                            _focus={{ outline: 'none' }}
-                            textOverflow={'ellipsis'}
-                            whiteSpace={'nowrap'}
-                            overflow={'hidden'}
-                            textAlign={'center'}
-                            as={Button}
-                            rightIcon={<ChevronDownIcon />}
-                        >
+                        <MenuButton marginLeft={'10px'} onClick={() => setFocusedStation(station)} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
                             {station === '' ? 'Choose Station' : station.label}
                         </MenuButton>
-                        <MenuList textAlign={'center'}>
+                        <MenuList>
                             {stations.map((stationItem) => (
                                 <MenuItem
                                     _focus={{ backgroundColor: 'none' }}
                                     onMouseEnter={() => setFocusedStation(stationItem)}
                                     backgroundColor={(station.value === stationItem.value && focusedStation === '') || focusedStation.value === stationItem.value ? 'gray.100' : 'none'}
                                     maxW={'80vw'}
-                                    textAlign={'center'}
                                     key={stationItem.id}
                                     onClick={() => setStation(stationItem)}
                                 >
@@ -176,27 +165,16 @@ function PreMatchForm() {
                         Match Number:
                     </Text>
                     <Menu>
-                        <MenuButton
-                            marginLeft={'10px'}
-                            onClick={() => setFocusedMatchType(matchType)}
-                            _focus={{ outline: 'none' }}
-                            textOverflow={'ellipsis'}
-                            whiteSpace={'nowrap'}
-                            overflow={'hidden'}
-                            textAlign={'center'}
-                            as={Button}
-                            rightIcon={<ChevronDownIcon />}
-                        >
+                        <MenuButton marginLeft={'10px'} onClick={() => setFocusedMatchType(matchType)} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
                             {matchType === '' ? 'Choose Match Type' : matchType.label}
                         </MenuButton>
-                        <MenuList textAlign={'center'}>
+                        <MenuList>
                             {matchTypes.map((matchTypeItem) => (
                                 <MenuItem
                                     _focus={{ backgroundColor: 'none' }}
                                     onMouseEnter={() => setFocusedMatchType(matchTypeItem)}
                                     backgroundColor={(matchType.value === matchTypeItem.value && focusedMatchType === '') || focusedMatchType.value === matchTypeItem.value ? 'gray.100' : 'none'}
                                     maxW={'80vw'}
-                                    textAlign={'center'}
                                     key={matchTypeItem.id}
                                     onClick={() => {
                                         setMatchNumber1('');

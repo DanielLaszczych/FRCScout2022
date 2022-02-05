@@ -120,6 +120,18 @@ export const GET_CURRENT_EVENT = gql`
     }
 `;
 
+export const GET_TEAMS_EVENTS = gql`
+    {
+        getTeamsEvents {
+            key
+            name
+            currentEvent
+            startDate
+            endDate
+        }
+    }
+`;
+
 export const GET_MATCHFORM_BY_STATION = gql`
     query ($eventKey: String!, $matchNumber: String!, $station: String!) {
         getMatchFormByStation(eventKey: $eventKey, matchNumber: $matchNumber, station: $station) {
@@ -153,6 +165,87 @@ export const GET_MATCHFORM_BY_STATION = gql`
             endComment
             followUp
             followUpComment
+        }
+    }
+`;
+
+export const GET_TEAMS_PITFORMS = gql`
+    query ($teamNumber: Int!) {
+        getTeamsPitForms(teamNumber: $teamNumber) {
+            _id
+            eventKey
+            eventName
+            teamNumber
+            teamName
+            weight
+            height
+            driveTrain
+            motors {
+                _id
+                label
+                value
+            }
+            wheels {
+                _id
+                label
+                size
+                value
+            }
+            driveTrainComment
+            programmingLanguage
+            startingPosition
+            taxi
+            autoComment
+            abilities {
+                _id
+                label
+                value
+            }
+            holdingCapacity
+            workingComment
+            closingComment
+            image
+            followUp
+        }
+    }
+`;
+
+export const GET_TEAMS_MATCHFORMS = gql`
+    query ($teamNumber: Int!) {
+        getTeamsMatchForms(teamNumber: $teamNumber) {
+            _id
+            eventKey
+            eventName
+            station
+            matchNumber
+            teamNumber
+            teamName
+            scouter
+            preLoadedCargo
+            startingPosition {
+                _id
+                x
+                y
+                width
+                height
+            }
+            pickedUpAuto
+            lowerCargoAuto
+            upperCargoAuto
+            crossTarmac
+            autoComment
+            pickedUpTele
+            lowerCargoTele
+            upperCargoTele
+            climbTime
+            climbRung
+            defenseRating
+            loseCommunication
+            robotBreak
+            yellowCard
+            redCard
+            endComment
+            followUp
         }
     }
 `;

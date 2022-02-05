@@ -28,6 +28,17 @@ module.exports = {
                 throw new Error(err);
             }
         },
+        async getTeamsPitForms(_, { teamNumber }, context) {
+            if (!context.req.user) {
+                throw new Error('You must be logged in');
+            }
+            try {
+                const pitForms = await PitForm.find({ teamNumber: teamNumber, followUp: false }).exec();
+                return pitForms;
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
     },
     Mutation: {
         async updatePitForm(_, { pitFormInput }, context) {

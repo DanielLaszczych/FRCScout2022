@@ -14,6 +14,7 @@ import NavBar from './components/NavBar';
 import WebDataConnector from './pages/WebDataConnector';
 import AdminErrorPage from './pages/AdminErrorPage';
 import FailedLoginPage from './pages/FailedLoginPage';
+import TeamPageHelper from './pages/TeamPageHelper';
 // import { createBreakpoints } from '@chakra-ui/theme-tools';
 
 // const breakpoints = createBreakpoints({
@@ -55,6 +56,7 @@ function App() {
                     <Route exact path='/pitForm/:eventKey/:teamNumber' element={<PitForm />} />
                     <Route exact path='/preMatchForm' element={<PreMatchForm />} />
                     <Route exact path='/matchForm/:eventKey/:matchNumber/:station' element={<MatchForm />} />
+                    <Route exact path='/team/:teamNumber' element={<TeamPageHelper />} />
                     <Route exact path='/admin' element={user.admin ? <AdminPage /> : <AdminErrorPage />} />
                     <Route exact path='/tableau' element={<WebDataConnector />} />
                     <Route path='*' element={<NotFoundPage />} />

@@ -2,17 +2,20 @@ const { gql } = require('apollo-server-express');
 
 module.exports = gql`
     type Motor {
+        _id: ID!
         label: String!
         value: Int!
     }
 
     type Wheel {
+        _id: ID!
         label: String!
         size: Float
         value: Int!
     }
 
     type Ability {
+        _id: ID!
         label: String!
         value: Boolean!
     }
@@ -87,6 +90,7 @@ module.exports = gql`
     extend type Query {
         getPitForm(eventKey: String!, teamNumber: Int!): PitForm
         getEventsPitForms(eventKey: String!): [PitForm]
+        getTeamsPitForms(teamNumber: Int!): [PitForm]
     }
 
     extend type Mutation {

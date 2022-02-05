@@ -1,0 +1,51 @@
+.tabs {
+    margin-top: -25px;
+    width: 100%;
+    background: #edf2f7;
+}
+.tabs .tab-header {
+    height: 60px;
+    display: flex;
+}
+.tabs .tab-header > div {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(100% / 4);
+    text-align: center;
+    color: black;
+    font-weight: 600;
+    cursor: pointer;
+    font-size: 14px;
+    text-transform: uppercase;
+    outline: none;
+}
+
+.tabs .tab-indicator {
+    position: relative;
+    width: calc(75% / 4);
+    height: 5px;
+    background: green;
+    border-radius: 5px;
+    transition: all 350ms ease;
+}
+
+.robotFlex1 {
+    min-width: 50%;
+}
+
+.robotFlex2 {
+    min-width: 50%;
+}
+
+@media all and (max-width: 480px) {
+    .robotFlex1 {
+        min-width: 100%;
+        margin-bottom: 25px;
+    }
+
+    .robotFlex2 {
+        min-width: 100%;
+    }
+}

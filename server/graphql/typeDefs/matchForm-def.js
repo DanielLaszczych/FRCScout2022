@@ -2,6 +2,7 @@ const { gql } = require('apollo-server-express');
 
 module.exports = gql`
     type StartingPosition {
+        _id: ID!
         x: Float
         y: Float
         width: Float
@@ -78,7 +79,7 @@ module.exports = gql`
     extend type Query {
         getMatchFormByTeam(eventKey: String!, matchNumber: String!, teamNumber: Int!): MatchForm
         getMatchFormByStation(eventKey: String!, matchNumber: String!, station: String!): MatchForm
-        getTeamsMatchForms(eventKey: String!, teamNumber: Int!): [MatchForm]
+        getTeamsMatchForms(teamNumber: Int!): [MatchForm]
         getMatchFormsFromMatch(eventKey: String!, matchNumber: String!): [MatchForm]
         getEventsMatchForms(eventKey: String!): [MatchForm]
     }

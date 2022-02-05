@@ -164,12 +164,16 @@ function PitPage() {
         <Box margin={'0 auto'} width={{ base: '90%', md: '66%', lg: '66%' }}>
             <Center marginBottom={'25px'}>
                 <Menu placement='auto'>
-                    <MenuButton onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} textOverflow={'ellipsis'} whiteSpace={'nowrap'} overflow={'hidden'} textAlign={'center'} as={Button} rightIcon={<ChevronDownIcon />}>
-                        {currentEvent.name}
+                    <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
+                        <Box overflow={'hidden'} textOverflow={'ellipsis'}>
+                            {currentEvent.name}
+                        </Box>
                     </MenuButton>
-                    <MenuList textAlign={'center'}>
+                    <MenuList>
                         {sortRegisteredEvents(events).map((eventItem) => (
                             <MenuItem
+                                textAlign={'center'}
+                                justifyContent={'center'}
                                 _focus={{ backgroundColor: 'none' }}
                                 onMouseEnter={() => setFocusedEvent(eventItem.name)}
                                 backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
@@ -177,7 +181,7 @@ function PitPage() {
                                 key={eventItem.key}
                                 onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
                             >
-                                <Text margin={'0 auto'}>{eventItem.name}</Text>
+                                {eventItem.name}
                             </MenuItem>
                         ))}
                     </MenuList>

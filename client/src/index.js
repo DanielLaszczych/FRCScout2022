@@ -11,6 +11,27 @@ import { AuthProvider } from './context/auth';
 
 const cache = new InMemoryCache({
     addTypename: false,
+    typePolicies: {
+        Query: {
+            fields: {
+                getTeamsPitForms: {
+                    merge(existing, incoming) {
+                        return incoming;
+                    },
+                },
+                getTeamsMatchForms: {
+                    merge(existing, incoming) {
+                        return incoming;
+                    },
+                },
+                getEvents: {
+                    merge(existing, incoming) {
+                        return incoming;
+                    },
+                },
+            },
+        },
+    },
 });
 
 const client = new ApolloClient({

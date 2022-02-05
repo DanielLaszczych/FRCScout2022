@@ -1,3 +1,5 @@
+import { mode } from 'mathjs';
+
 export function sortRegisteredEvents(events) {
     return events.sort((a, b) => {
         let delta = new Date(a.startDate) - new Date(b.startDate);
@@ -108,4 +110,61 @@ export function convertStationKeyToString(stationKey) {
         default:
             return `Blue ${stationKey.charAt(1)}`;
     }
+}
+
+export function getFields(array, field) {
+    return array.map((a) => a[field]);
+}
+
+export const medianArr = (x) => {
+    if (x.length === 0) {
+        return 'N/A';
+    }
+    let sortedx = x.sort((a, b) => a - b);
+    let halfIndex = Math.floor(sortedx.length / 2);
+
+    return sortedx.length % 2 ? sortedx[Math.floor(sortedx.length / 2.0)] : (sortedx[halfIndex - 1] + sortedx[halfIndex]) / 2.0;
+};
+
+export function getPercentageForTFField(array, field) {
+    let total = 0;
+    array.forEach((a) => (total += a[field]));
+    return total / array.length;
+}
+
+export function countOccurencesForTFField(array, field) {
+    let total = 0;
+    array.forEach((a) => (total += a[field]));
+    return total;
+}
+
+export function getFractionForClimb(array) {
+    let totalClimbs = 0;
+    let successfulClimbs = 0;
+    array.forEach((a) => {
+        totalClimbs += a['climbTime'] > 0 ? 1 : 0;
+        if (a['climbTime'] > 0) {
+            successfulClimbs += a['climbRung'] !== 'Failed' ? 1 : 0;
+        }
+    });
+    if (totalClimbs === 0) {
+        return 'No attempted climbs';
+    }
+    return `${successfulClimbs}/${totalClimbs}`;
+}
+
+export function getSuccessfulClimbTimes(arr) {
+    return arr.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').map((a) => a['climbTime']);
+}
+
+export function getSucessfulClimbRungMode(arr) {
+    let filteredArr = arr.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').map((a) => a['climbRung']);
+    if (filteredArr.length === 0) {
+        return 'N/A';
+    }
+    return mode(filteredArr).join(', ');
+}
+
+export function getDefenseRatings(arr) {
+    return arr.filter((a) => a.defenseRating > 0).map((a) => a['defenseRating']);
 }
