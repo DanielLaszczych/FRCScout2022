@@ -11,7 +11,7 @@ const eventSchema = new Schema({
     },
     week: {
         type: Number,
-        required: true,
+        required: false, //to allow events with a null week such as Championship events
     },
     eventType: {
         type: String,

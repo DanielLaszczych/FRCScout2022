@@ -14,9 +14,10 @@ export const CREATE_EVENT = gql`
         createEvent(eventInput: $eventInput) {
             name
             key
+            week
+            eventType
             startDate
             endDate
-            eventType
             currentEvent
         }
     }
