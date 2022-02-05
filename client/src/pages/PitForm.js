@@ -953,7 +953,7 @@ function PitForm() {
                     ))}
                 </VStack>
                 <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
-                    Holding Capacity:
+                    Cargo Capacity:
                 </Text>
                 <RadioGroup marginLeft={'15px'} onChange={setHoldingCapacity} value={holdingCapacity}>
                     <Stack direction={['column', 'row']}>

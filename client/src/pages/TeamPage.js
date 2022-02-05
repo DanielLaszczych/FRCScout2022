@@ -344,6 +344,9 @@ function TeamPage() {
                                     .map((ability) => (
                                         <Text marginLeft={'15px'} key={ability._id} fontWeight={'600'} fontSize={'100%'}>{`${ability.label}`}</Text>
                                     ))}
+                                <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                    Cargo Capacity: {pitForm.holdingCapacity}
+                                </Text>
                             </Box>
                         </Box>
                         <Box w={{ base: '90%', sm: '75%' }} margin={'0 auto'} boxShadow={'rgba(0, 0, 0, 0.35) 0px 3px 8px'} textAlign={'start'} border={'2px black solid'} borderRadius={'10px'} padding={'10px'}>
