@@ -34,7 +34,7 @@
                 dataType: tableau.dataTypeEnum.float,
             },
             {
-                id: 'pickedUpAuto',
+                id: 'missedAuto',
                 dataType: tableau.dataTypeEnum.int,
             },
             {
@@ -47,14 +47,14 @@
             },
             {
                 id: 'crossTarmac',
-                dataType: tableau.dataTypeEnum.bool,
+                dataType: tableau.dataTypeEnum.int,
             },
             {
                 id: 'autoComment',
                 dataType: tableau.dataTypeEnum.string,
             },
             {
-                id: 'pickedUpTele',
+                id: 'missedTele',
                 dataType: tableau.dataTypeEnum.int,
             },
             {
@@ -79,19 +79,19 @@
             },
             {
                 id: 'loseCommunication',
-                dataType: tableau.dataTypeEnum.bool,
+                dataType: tableau.dataTypeEnum.int,
             },
             {
                 id: 'robotBreak',
-                dataType: tableau.dataTypeEnum.bool,
+                dataType: tableau.dataTypeEnum.int,
             },
             {
                 id: 'yellowCard',
-                dataType: tableau.dataTypeEnum.bool,
+                dataType: tableau.dataTypeEnum.int,
             },
             {
                 id: 'redCard',
-                dataType: tableau.dataTypeEnum.bool,
+                dataType: tableau.dataTypeEnum.int,
             },
             {
                 id: 'endComment',
@@ -125,12 +125,12 @@
                             preLoadedCargo: data[i].preLoadedCargo,
                             startingPositionX: data[i].startingPosition.x,
                             startingPositionY: data[i].startingPosition.y,
-                            pickedUpAuto: data[i].pickedUpAuto,
+                            missedAuto: data[i].missedAuto,
                             lowerCargoAuto: data[i].lowerCargoAuto,
                             upperCargoAuto: data[i].upperCargoAuto,
                             crossTarmac: data[i].crossTarmac,
                             autoComment: data[i].autoComment,
-                            pickedUpTele: data[i].pickedUpTele,
+                            missedTele: data[i].missedTele,
                             lowerCargoTele: data[i].lowerCargoTele,
                             upperCargoTele: data[i].upperCargoTele,
                             climbTime: data[i].climbTime,

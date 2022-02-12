@@ -29,7 +29,7 @@ function HomePage() {
                 setError('There is no event to scout 😔');
             } else {
                 console.log(JSON.stringify(err, null, 2));
-                setError('Apollo error, check console for logs');
+                setError('Apollo error, could not retrieve current event data');
             }
         },
     });

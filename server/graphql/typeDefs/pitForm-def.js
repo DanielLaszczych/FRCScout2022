@@ -14,12 +14,6 @@ module.exports = gql`
         value: Int!
     }
 
-    type Ability {
-        _id: ID!
-        label: String!
-        value: Boolean!
-    }
-
     type PitForm {
         _id: ID!
         eventKey: String!
@@ -37,7 +31,7 @@ module.exports = gql`
         startingPosition: String
         taxi: String
         autoComment: String
-        abilities: [Ability]
+        abilities: [String]
         holdingCapacity: Int
         workingComment: String
         closingComment: String
@@ -58,11 +52,6 @@ module.exports = gql`
         value: Int!
     }
 
-    input AbilityInput {
-        label: String!
-        value: Boolean!
-    }
-
     input PitFormInput {
         eventKey: String!
         eventName: String!
@@ -78,7 +67,7 @@ module.exports = gql`
         startingPosition: String
         taxi: String
         autoComment: String
-        abilities: [AbilityInput]
+        abilities: [String]
         holdingCapacity: Int
         workingComment: String
         closingComment: String

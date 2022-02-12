@@ -5,8 +5,6 @@ module.exports = gql`
         _id: ID!
         x: Float
         y: Float
-        width: Float
-        height: Float
     }
 
     type MatchForm {
@@ -20,12 +18,12 @@ module.exports = gql`
         scouter: String!
         preLoadedCargo: Boolean
         startingPosition: StartingPosition
-        pickedUpAuto: Int
+        missedAuto: Int
         lowerCargoAuto: Int
         upperCargoAuto: Int
         crossTarmac: Boolean
         autoComment: String
-        pickedUpTele: Int
+        missedTele: Int
         lowerCargoTele: Int
         upperCargoTele: Int
         climbTime: Int
@@ -43,8 +41,6 @@ module.exports = gql`
     input StartingPositionInput {
         x: Float
         y: Float
-        width: Float
-        height: Float
     }
 
     input MatchFormInput {
@@ -56,12 +52,12 @@ module.exports = gql`
         teamName: String!
         preLoadedCargo: Boolean
         startingPosition: StartingPositionInput
-        pickedUpAuto: Int
+        missedAuto: Int
         lowerCargoAuto: Int
         upperCargoAuto: Int
         crossTarmac: Boolean
         autoComment: String
-        pickedUpTele: Int
+        missedTele: Int
         lowerCargoTele: Int
         upperCargoTele: Int
         climbTime: Int

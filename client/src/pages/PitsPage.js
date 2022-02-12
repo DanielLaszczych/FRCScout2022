@@ -40,7 +40,7 @@ function PitPage() {
         fetchPolicy: 'network-only',
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve registered events');
         },
         onCompleted({ getEvents: events }) {
             let sortedEvents = sortRegisteredEvents(events);
@@ -71,7 +71,7 @@ function PitPage() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve pit forms');
         },
     });
 
@@ -87,7 +87,7 @@ function PitPage() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve data on current event');
         },
     });
 
@@ -214,7 +214,15 @@ function PitPage() {
                                 </GridItem>
                                 <GridItem padding={'10px 0px 10px 0px'} marginRight={'10px'} marginLeft={'10px'} textAlign={'center'}>
                                     {getPitFormStatusColor(team.name) !== 'yellow' ? (
-                                        <IconButton icon={getPitFormStatusIcon(team.name)} colorScheme={getPitFormStatusColor(team.name)} _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`} />
+                                        <IconButton
+                                            icon={getPitFormStatusIcon(team.name)}
+                                            colorScheme={getPitFormStatusColor(team.name)}
+                                            _focus={{ outline: 'none' }}
+                                            size='sm'
+                                            as={Link}
+                                            to={`/pitForm/${currentEvent.key}/${team.number}`}
+                                            state={{ previousRoute: 'pits' }}
+                                        />
                                     ) : (
                                         <Popover flip={false} placement='bottom'>
                                             <PopoverTrigger>
@@ -230,7 +238,7 @@ function PitPage() {
                                                     <Text>{getPitFormFollowUpComment(team.name)}</Text>
                                                 </PopoverBody>
                                                 <PopoverFooter>
-                                                    <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`}>
+                                                    <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`} state={{ previousRoute: 'pits' }}>
                                                         Go To
                                                     </Button>
                                                 </PopoverFooter>

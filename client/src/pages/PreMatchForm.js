@@ -1,7 +1,7 @@
 import { useQuery } from '@apollo/client';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Box, Button, Center, HStack, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Spinner, Text } from '@chakra-ui/react';
-import { React, useEffect, useState } from 'react';
+import { React, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GET_CURRENT_EVENT } from '../graphql/queries';
 import { v4 as uuidv4 } from 'uuid';
@@ -32,16 +32,15 @@ function PreMatchForm() {
     const [matchType, setMatchType] = useState('');
     const [focusedMatchType, setFocusedMatchType] = useState('');
     const [matchNumber1, setMatchNumber1] = useState('');
-    const [matchNumber2, setMatchNumber2] = useState('');
+    const [tieBreaker, setTieBreaker] = useState(false);
     const [fetchingTeam, setFetchingTeam] = useState(false);
     const [teamNumber, setTeamNumber] = useState('');
 
     useEffect(() => {
-        if (localStorage.getItem('Station') !== null) {
-            setStation(JSON.parse(localStorage.getItem('Station')));
-        }
-        if (localStorage.getItem('Match Type') !== null) {
-            setMatchType(JSON.parse(localStorage.getItem('Match Type')));
+        if (localStorage.getItem('PreMatchFormData')) {
+            let data = JSON.parse(localStorage.getItem('PreMatchFormData'));
+            setStation(data.station);
+            setMatchType(data.matchType);
         }
     }, []);
 
@@ -55,12 +54,12 @@ function PreMatchForm() {
                 setError('There is no current event');
             } else {
                 console.log(JSON.stringify(err, null, 2));
-                setError('Apollo error, check console for logs');
+                setError('Apollo error, could not retrieve current event data');
             }
         },
     });
 
-    function getMatchKey() {
+    const getMatchKey = useCallback(() => {
         let matchKey;
         if (matchType.value === 'q') {
             if (matchNumber1 === '') {
@@ -68,16 +67,44 @@ function PreMatchForm() {
             }
             matchKey = `qm${matchNumber1}`;
         } else {
-            if (matchNumber1 === '' || matchNumber2 === '') {
+            if (matchNumber1 === '') {
                 return null;
             }
-            matchKey = `${matchType.value}${matchNumber1}m${matchNumber2}`;
+            let param1;
+            let param2;
+            switch (matchType.value) {
+                case 'qf':
+                    if (matchNumber1 > 8 || (matchNumber1 > 4 && tieBreaker)) {
+                        return null;
+                    }
+                    param1 = matchNumber1 % 4 === 0 ? 4 : matchNumber1 % 4;
+                    param2 = tieBreaker ? 3 : matchNumber1 % 4 === 0 ? matchNumber1 / 4 : Math.floor(matchNumber1 / 4) + 1;
+                    break;
+                case 'sf':
+                    if (matchNumber1 > 4 || (matchNumber1 > 2 && tieBreaker)) {
+                        return null;
+                    }
+                    param1 = matchNumber1 % 2 === 0 ? 2 : matchNumber1 % 2;
+                    param2 = tieBreaker ? 3 : matchNumber1 % 2 === 0 ? matchNumber1 / 2 : Math.floor(matchNumber1 / 2) + 1;
+                    break;
+                case 'f':
+                    if (matchNumber1 > 3) {
+                        return null;
+                    }
+                    param1 = 1;
+                    param2 = matchNumber1;
+                    break;
+                default:
+                    return null;
+            }
+            matchKey = `${matchType.value}${param1}m${param2}`;
         }
         return matchKey;
-    }
+    }, [matchNumber1, tieBreaker, matchType.value]);
 
     useEffect(() => {
         function getTeamNumber() {
+            setTeamNumber('');
             if (station === '' || matchType === '') return;
             let matchKey = getMatchKey();
             if (matchKey === null) {
@@ -109,11 +136,11 @@ function PreMatchForm() {
         }
         setTeamNumber('');
         clearTimeout(doGetTeam);
-        doGetTeam = setTimeout(() => getTeamNumber(), 250);
-    }, [station, matchType, matchNumber1, matchNumber2]); // eslint-disable-line react-hooks/exhaustive-deps
+        doGetTeam = setTimeout(() => getTeamNumber(), 350);
+    }, [station, matchType, matchNumber1, tieBreaker, currentEvent, getMatchKey]);
 
     function validSetup() {
-        return station !== '' && matchType !== '' && matchNumber1 !== '' && (matchType.value !== 'q' ? matchNumber2 !== '' : true) && teamNumber !== '';
+        return station !== '' && matchType !== '' && matchNumber1 !== '' && teamNumber !== '';
     }
 
     if (error) {
@@ -178,7 +205,7 @@ function PreMatchForm() {
                                     key={matchTypeItem.id}
                                     onClick={() => {
                                         setMatchNumber1('');
-                                        setMatchNumber2('');
+                                        setTieBreaker(false);
                                         setMatchType(matchTypeItem);
                                     }}
                                 >
@@ -212,30 +239,10 @@ function PreMatchForm() {
                                 />
                             </NumberInput>
                         ) : null}
-                        {matchType.value === 'q' || matchType === '' ? null : <Text>-</Text>}
-                        {matchType.value === 'q' || matchType === '' ? null : (
-                            <NumberInput
-                                marginLeft={'10px'}
-                                onChange={(value) => setMatchNumber2(value)}
-                                value={matchNumber2}
-                                min={1}
-                                precision={0}
-                                width={{
-                                    base: matchType === 'Quals' ? '75%' : '45%',
-                                    md: '66%',
-                                    lg: '50%',
-                                }}
-                            >
-                                <NumberInputField
-                                    enterKeyHint='done'
-                                    _focus={{
-                                        outline: 'none',
-                                        boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
-                                    }}
-                                    textAlign={'center'}
-                                    placeholder='Enter Match #'
-                                />
-                            </NumberInput>
+                        {matchType.value === 'q' || matchType.value === 'f' || matchType === '' ? null : (
+                            <Button _focus={{ outline: 'none' }} colorScheme={tieBreaker ? 'green' : 'gray'} onClick={() => setTieBreaker(!tieBreaker)}>
+                                Tie
+                            </Button>
                         )}
                     </HStack>
                     <HStack spacing={'25px'} pos={'relative'}>
@@ -252,8 +259,7 @@ function PreMatchForm() {
                         marginBottom={'20px'}
                         marginTop={'20px'}
                         onClick={() => {
-                            localStorage.setItem('Station', JSON.stringify(station));
-                            localStorage.setItem('Match Type', JSON.stringify(matchType));
+                            localStorage.setItem('PreMatchFormData', JSON.stringify({ station, matchType }));
                             navigate(`/matchForm/${currentEvent.key}/${getMatchKey()}/${station.value}`);
                         }}
                     >

@@ -1,8 +1,18 @@
 .tabs {
+    position: sticky;
+    z-index: 998;
+    top: 75px;
     margin-top: -25px;
     width: 100%;
     background: #edf2f7;
 }
+
+@media all and (max-width: 285px) {
+    .tabs {
+        top: 150px;
+    }
+}
+
 .tabs .tab-header {
     height: 60px;
     display: flex;

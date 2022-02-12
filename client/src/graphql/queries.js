@@ -24,10 +24,7 @@ export const GET_PITFORM = gql`
             startingPosition
             taxi
             autoComment
-            abilities {
-                label
-                value
-            }
+            abilities
             holdingCapacity
             workingComment
             closingComment
@@ -144,15 +141,13 @@ export const GET_MATCHFORM_BY_STATION = gql`
             startingPosition {
                 x
                 y
-                width
-                height
             }
-            pickedUpAuto
+            missedAuto
             lowerCargoAuto
             upperCargoAuto
             crossTarmac
             autoComment
-            pickedUpTele
+            missedTele
             lowerCargoTele
             upperCargoTele
             climbTime
@@ -196,11 +191,7 @@ export const GET_TEAMS_PITFORMS = gql`
             startingPosition
             taxi
             autoComment
-            abilities {
-                _id
-                label
-                value
-            }
+            abilities
             holdingCapacity
             workingComment
             closingComment
@@ -226,15 +217,13 @@ export const GET_TEAMS_MATCHFORMS = gql`
                 _id
                 x
                 y
-                width
-                height
             }
-            pickedUpAuto
+            missedAuto
             lowerCargoAuto
             upperCargoAuto
             crossTarmac
             autoComment
-            pickedUpTele
+            missedTele
             lowerCargoTele
             upperCargoTele
             climbTime

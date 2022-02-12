@@ -1,7 +1,29 @@
 import { useQuery } from '@apollo/client';
 import { ChevronDownIcon } from '@chakra-ui/icons';
-import { Box, Button, Center, Flex, Grid, GridItem, Image, Menu, MenuButton, MenuItem, MenuList, Spinner, Text } from '@chakra-ui/react';
-import { React, useEffect, useState } from 'react';
+import {
+    Box,
+    Button,
+    Center,
+    Flex,
+    Grid,
+    GridItem,
+    IconButton,
+    Image as ChakraImage,
+    Menu,
+    MenuButton,
+    MenuItem,
+    MenuList,
+    Popover,
+    PopoverArrow,
+    PopoverBody,
+    PopoverCloseButton,
+    PopoverContent,
+    PopoverTrigger,
+    Portal,
+    Spinner,
+    Text,
+} from '@chakra-ui/react';
+import { React, useCallback, useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { GET_CURRENT_EVENT, GET_TEAMS_MATCHFORMS, GET_TEAMS_PITFORMS } from '../graphql/queries';
 import { year } from '../util/constants';
@@ -12,6 +34,7 @@ import {
     getDefenseRatings,
     getFields,
     getFractionForClimb,
+    getHubPercentage,
     getPercentageForTFField,
     getSuccessfulClimbTimes,
     getSucessfulClimbRungMode,
@@ -20,10 +43,15 @@ import {
     sortMatches,
 } from '../util/helperFunctions';
 import '../stylesheets/teamstyle.css';
-import missingImage from '../images/PlaceholderImage.png';
+import { GrMap } from 'react-icons/gr';
+import Field from '../images/Field.png';
+import { BiCommentEdit } from 'react-icons/bi';
+import HeatMap from '../components/HeatMap';
+
+let doResize;
 
 function TeamPage() {
-    let { teamNumber: teamNumberParam } = useParams();
+    const { teamNumber: teamNumberParam } = useParams();
 
     const [error, setError] = useState(null);
     const [events, setEvents] = useState(null);
@@ -33,6 +61,7 @@ function TeamPage() {
     const [pitForm, setPitForm] = useState(null);
     const [matchForms, setMatchForms] = useState(null);
     const [tab, setTab] = useState(0);
+    const [currentPopoverData, setCurrentPopoverData] = useState(null);
 
     useEffect(() => {
         fetch(`/blueAlliance/team/frc${teamNumberParam}/events/${year}/simple`)
@@ -72,7 +101,7 @@ function TeamPage() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve pit forms');
         },
     });
 
@@ -87,7 +116,7 @@ function TeamPage() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve match forms');
         },
     });
 
@@ -96,14 +125,15 @@ function TeamPage() {
         fetchPolicy: 'network-only',
         onError(err) {
             if (err.message === 'Error: There is no current event') {
-                setPitForm(pitFormsData.find((pitForm) => pitForm.eventKey === events[events.length - 1].key));
-                setMatchForms(matchFormsData.filter((matchForm) => matchForm.eventKey === events[events.length - 1].key));
-                setCurrentEvent({ name: events[events.length - 1].name, key: events[events.length - 1].key });
-                setFocusedEvent(events[events.length - 1].name);
+                let event = events[events.length - 1];
+                setPitForm(pitFormsData.find((pitForm) => pitForm.eventKey === event.key));
+                setMatchForms(matchFormsData.filter((matchForm) => matchForm.eventKey === event.key));
+                setCurrentEvent({ name: event.name, key: event.key });
+                setFocusedEvent(event.name);
                 setError(false);
             } else {
                 console.log(JSON.stringify(err, null, 2));
-                setError('Apollo error, check console for logs');
+                setError('Apollo error, could not retrieve current event data');
             }
         },
         onCompleted({ getCurrentEvent: currentEvent }) {
@@ -117,6 +147,70 @@ function TeamPage() {
             setFocusedEvent(event.name);
         },
     });
+
+    function calculatePopoverImageScale() {
+        let scale;
+        let screenWidth = window.innerWidth;
+        if (screenWidth < 768) {
+            scale = 0.5;
+        } else if (screenWidth < 992) {
+            scale = 0.35;
+        } else {
+            scale = 0.2;
+        }
+        return (screenWidth / 414) * scale;
+    }
+
+    function calculatePopoverCircleRadius() {
+        let scale;
+        let screenWidth = window.innerWidth;
+        if (screenWidth < 768) {
+            scale = 0.5;
+        } else if (screenWidth < 992) {
+            scale = 0.35;
+        } else {
+            scale = 0.2;
+        }
+        return (screenWidth / 25) * scale;
+    }
+
+    const drawPopoverImage = useCallback((point, id) => {
+        const canvasElement = document.getElementById(`${id}`);
+        if (canvasElement !== null) {
+            const ctx = canvasElement.getContext('2d');
+            let img = new Image();
+            img.src = Field;
+            img.onload = () => {
+                let scale = calculatePopoverImageScale();
+                canvasElement.width = 414 * scale;
+                canvasElement.height = 414 * scale;
+                ctx.drawImage(img, 0, 0, 414 * scale, 414 * scale);
+                if (point.x && point.y) {
+                    let ctx = canvasElement.getContext('2d');
+                    ctx.lineWidth = '4';
+                    ctx.strokeStyle = 'green';
+                    ctx.beginPath();
+                    ctx.arc(point.x * calculatePopoverImageScale(), point.y * calculatePopoverImageScale(), calculatePopoverCircleRadius(), 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+            };
+        }
+    }, []);
+
+    const resizePopover = useCallback(() => {
+        if (currentPopoverData !== null && tab === 2) {
+            clearTimeout(doResize);
+            doResize = setTimeout(() => drawPopoverImage(currentPopoverData.point, currentPopoverData.id), 250);
+        } else {
+            clearTimeout(doResize);
+        }
+    }, [drawPopoverImage, currentPopoverData, tab]);
+
+    useEffect(() => {
+        window.addEventListener('resize', resizePopover);
+
+        return () => window.removeEventListener('resize', resizePopover);
+    }, [resizePopover]);
 
     if (error) {
         return (
@@ -162,13 +256,13 @@ function TeamPage() {
                                     Match Forms: {matchForms.length}
                                 </Text>
                             </Box>
-                            <Image
-                                margin={'0 auto'}
-                                w={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }}
-                                minW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }}
-                                maxW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }}
-                                src={pitForm && pitForm.image !== '' ? pitForm.image : missingImage}
-                            />
+                            {pitForm && pitForm.image !== '' ? (
+                                <ChakraImage margin={'0 auto'} w={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} minW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} maxW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} src={pitForm.image} />
+                            ) : (
+                                <Box w={{ base: '90%', sm: '75%' }} margin={'0 auto'} boxShadow={'rgba(0, 0, 0, 0.35) 0px 3px 8px'} marginBottom={'25px'} textAlign={'center'} border={'2px black solid'} borderRadius={'10px'} padding={'10px'}>
+                                    No Image Available
+                                </Box>
+                            )}
                         </Box>
                         <Box flex={1} className='robotFlex2'>
                             <Box w={{ base: '90%', sm: '75%' }} margin={'0 auto'} boxShadow={'rgba(0, 0, 0, 0.35) 0px 3px 8px'} marginBottom={'25px'} textAlign={'start'} border={'2px black solid'} borderRadius={'10px'} padding={'10px'}>
@@ -182,6 +276,12 @@ function TeamPage() {
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Upper Hub (Median): {medianArr(getFields(matchForms, 'upperCargoAuto'))} Cargo
+                                        </Text>
+                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                            Missed (Median): {medianArr(getFields(matchForms, 'missedAuto'))} Cargo
+                                        </Text>
+                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                            Hub Percentage: {matchForms.find((matchForm) => matchForm.missedAuto > 0 || matchForm.lowerCargoAuto > 0 || matchForm.upperCargoAuto > 0) ? `${getHubPercentage(matchForms, 'Auto') * 100}%` : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Taxi Percentage: {getPercentageForTFField(matchForms, 'crossTarmac') * 100}%
@@ -206,13 +306,19 @@ function TeamPage() {
                                             Upper Hub (Median): {medianArr(getFields(matchForms, 'upperCargoTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Successful Climbs/Attempted Climbs: {getFractionForClimb(matchForms)}
+                                            Missed (Median): {medianArr(getFields(matchForms, 'missedTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Climb Time for Successful Climbs (Median): {matchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0 ? `${medianArr(getSuccessfulClimbTimes(matchForms)) / 1000} sec` : 'N/A'}
+                                            Hub Percentage: {matchForms.find((matchForm) => matchForm.missedTele > 0 || matchForm.lowerCargoTele > 0 || matchForm.upperCargoTele > 0) ? `${getHubPercentage(matchForms, 'Tele') * 100}%` : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Most Common Rung(s) for Successful Climbs: {getSucessfulClimbRungMode(matchForms)}
+                                            Climb Success Rate: {getFractionForClimb(matchForms)}
+                                        </Text>
+                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                            Climb Time (Median): {matchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0 ? `${medianArr(getSuccessfulClimbTimes(matchForms)) / 1000} sec` : 'N/A'}
+                                        </Text>
+                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                            Most Common Rung(s): {getSucessfulClimbRungMode(matchForms)}
                                         </Text>
                                     </Box>
                                 ) : (
@@ -228,7 +334,7 @@ function TeamPage() {
                                 {matchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Playing Defense Rating (Median): {medianArr(getDefenseRatings(matchForms))} (1-5)
+                                            Played Defense Rating (Median): {medianArr(getDefenseRatings(matchForms))} (1-5)
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             # of Lose Communication: {countOccurencesForTFField(matchForms, 'loseCommunication')}
@@ -320,30 +426,21 @@ function TeamPage() {
                                 <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Intake:
                                 </Text>
-                                {pitForm.abilities
-                                    .slice(0, 3)
-                                    .filter((ability) => ability.value)
-                                    .map((ability) => (
-                                        <Text marginLeft={'15px'} key={ability._id} fontWeight={'600'} fontSize={'100%'}>{`${ability.label}`}</Text>
-                                    ))}
+                                {pitForm.abilities.slice(0, 3).map((ability, index) => (
+                                    <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
+                                ))}
                                 <Text marginTop={'5px'} marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Shooting:
                                 </Text>
-                                {pitForm.abilities
-                                    .slice(3, 5)
-                                    .filter((ability) => ability.value)
-                                    .map((ability) => (
-                                        <Text marginLeft={'15px'} key={ability._id} fontWeight={'600'} fontSize={'100%'}>{`${ability.label}`}</Text>
-                                    ))}
+                                {pitForm.abilities.slice(3, 5).map((ability, index) => (
+                                    <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
+                                ))}
                                 <Text marginTop={'5px'} marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Climb:
                                 </Text>
-                                {pitForm.abilities
-                                    .slice(5)
-                                    .filter((ability) => ability.value)
-                                    .map((ability) => (
-                                        <Text marginLeft={'15px'} key={ability._id} fontWeight={'600'} fontSize={'100%'}>{`${ability.label}`}</Text>
-                                    ))}
+                                {pitForm.abilities.slice(5).map((ability, index) => (
+                                    <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
+                                ))}
                                 <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Cargo Capacity: {pitForm.holdingCapacity}
                                 </Text>
@@ -370,113 +467,207 @@ function TeamPage() {
                 );
             case 2:
                 return matchForms.length > 0 ? (
-                    <Box overflowX={'auto'}>
-                        <Grid minW={'764px'} margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Match # : Station
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Scouter
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Lower Hub (Auto)
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Upper Hub (Auto)
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Taxi
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Lower Hub (Teleop)
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Upper Hub (Teleop)
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Climb Time
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Climb Rung
-                                </Text>
-                            </GridItem>
-                            <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                    Played Defense (1-5)
-                                </Text>
-                            </GridItem>
-                        </Grid>
-                        {sortMatches(matchForms).map((match, index) => (
-                            <Grid minW={'764px'} margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={match._id} templateColumns='2fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
+                    <Box paddingBottom={'25px'}>
+                        <Box overflowX={'auto'}>
+                            <Grid minW={'974px'} margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
+                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        Match # : Station
+                                    </Text>
+                                </GridItem>
+                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        Scouter
+                                    </Text>
+                                </GridItem>
                                 <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                        Lower Hub (Auto)
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}
+                                        Upper Hub (Auto)
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.lowerCargoAuto}
+                                        Missed (Auto)
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.upperCargoAuto}
+                                        Starting Position
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.crossTarmac ? 'Yes' : 'No'}
+                                        Taxi
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.lowerCargoTele}
+                                        Lower Hub (Tele)
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.upperCargoTele}
+                                        Upper Hub (Tele)
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}
+                                        Missed (Tele)
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.climbTime > 0 ? match.climbRung : 'N/A'}
+                                        Climb Time
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {match.defenseRating > 0 ? match.defenseRating : 'N/A'}
+                                        Climb Rung
+                                    </Text>
+                                </GridItem>
+                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        Played Defense (1-5)
+                                    </Text>
+                                </GridItem>
+                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                        Comments
                                     </Text>
                                 </GridItem>
                             </Grid>
-                        ))}
+                            {sortMatches(matchForms).map((match, index) => (
+                                <Grid
+                                    minW={'974px'}
+                                    margin={'0 auto'}
+                                    borderTop={'1px solid black'}
+                                    backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'}
+                                    key={match._id}
+                                    templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                                    gap={'5px'}
+                                >
+                                    <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.lowerCargoAuto}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.upperCargoAuto}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.missedAuto}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Popover
+                                            onOpen={() => {
+                                                drawPopoverImage(match.startingPosition, match._id);
+                                                setCurrentPopoverData({ point: match.startingPosition, id: match._id });
+                                            }}
+                                            onClose={() => setCurrentPopoverData(null)}
+                                            flip={false}
+                                            placement='bottom'
+                                        >
+                                            <PopoverTrigger>
+                                                <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<GrMap />} _focus={{ outline: 'none' }} size='sm' />
+                                            </PopoverTrigger>
+                                            <Portal>
+                                                <PopoverContent padding={'25px'} width={'max-content'} height={'max-content'} _focus={{ outline: 'none' }}>
+                                                    <PopoverArrow />
+                                                    <PopoverCloseButton />
+                                                    <PopoverBody>
+                                                        <Center>
+                                                            <Spinner pos={'absolute'} zIndex={-1}></Spinner>
+                                                            <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 2 }}></canvas>
+                                                        </Center>
+                                                    </PopoverBody>
+                                                </PopoverContent>
+                                            </Portal>
+                                        </Popover>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.crossTarmac ? 'Yes' : 'No'}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.lowerCargoTele}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.upperCargoTele}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.missedTele}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.climbTime > 0 ? match.climbRung : 'N/A'}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            {match.defenseRating > 0 ? match.defenseRating : 'N/A'}
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Popover isLazy={true} flip={false} placement='bottom'>
+                                            <PopoverTrigger>
+                                                <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<BiCommentEdit />} _focus={{ outline: 'none' }} size='sm' />
+                                            </PopoverTrigger>
+                                            <PopoverContent maxWidth={'75vw'} padding={'15px'} width={'max-content'} height={'max-content'} _focus={{ outline: 'none' }}>
+                                                <PopoverArrow />
+                                                <PopoverCloseButton />
+                                                <PopoverBody>
+                                                    <Text>Auto Comment: {match.autoComment}</Text>
+                                                    <Text>End Comment: {match.endComment}</Text>
+                                                </PopoverBody>
+                                            </PopoverContent>
+                                        </Popover>
+                                    </GridItem>
+                                </Grid>
+                            ))}
+                        </Box>
+                    </Box>
+                ) : (
+                    <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+                        No Match Data
+                    </Box>
+                );
+            case 3:
+                return matchForms.length > 0 ? (
+                    <Box paddingBottom={'25px'}>
+                        <Center>
+                            <HeatMap data={matchForms} largeScale={0.2} mediumScale={0.5} smallScale={0.8} maxOccurances={3}></HeatMap>
+                        </Center>
                     </Box>
                 ) : (
                     <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>

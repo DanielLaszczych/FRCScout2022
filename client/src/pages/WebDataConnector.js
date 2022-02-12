@@ -29,7 +29,7 @@ function WebDataConnector() {
         fetchPolicy: 'network-only',
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve registered events');
         },
         onCompleted({ getEvents: events }) {
             let sortedEvents = sortRegisteredEvents(events);

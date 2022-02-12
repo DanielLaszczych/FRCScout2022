@@ -112,8 +112,12 @@ export function convertStationKeyToString(stationKey) {
     }
 }
 
-export function getFields(array, field) {
-    return array.map((a) => a[field]);
+export function getFields(arr, field) {
+    return arr.map((a) => a[field]);
+}
+
+export function getStartingPoints(arr, scale) {
+    return arr.map((a) => ({ _id: a.startingPosition._id, x: a.startingPosition.x * scale, y: a.startingPosition.y * scale, occurances: 1, lowerCargoAuto: a.lowerCargoAuto, upperCargoAuto: a.upperCargoAuto, missedAuto: a.missedAuto }));
 }
 
 export const medianArr = (x) => {
@@ -126,22 +130,22 @@ export const medianArr = (x) => {
     return sortedx.length % 2 ? sortedx[Math.floor(sortedx.length / 2.0)] : (sortedx[halfIndex - 1] + sortedx[halfIndex]) / 2.0;
 };
 
-export function getPercentageForTFField(array, field) {
+export function getPercentageForTFField(arr, field) {
     let total = 0;
-    array.forEach((a) => (total += a[field]));
-    return total / array.length;
+    arr.forEach((a) => (total += a[field]));
+    return roundToHundredth(total / arr.length);
 }
 
-export function countOccurencesForTFField(array, field) {
+export function countOccurencesForTFField(arr, field) {
     let total = 0;
-    array.forEach((a) => (total += a[field]));
+    arr.forEach((a) => (total += a[field]));
     return total;
 }
 
-export function getFractionForClimb(array) {
+export function getFractionForClimb(arr) {
     let totalClimbs = 0;
     let successfulClimbs = 0;
-    array.forEach((a) => {
+    arr.forEach((a) => {
         totalClimbs += a['climbTime'] > 0 ? 1 : 0;
         if (a['climbTime'] > 0) {
             successfulClimbs += a['climbRung'] !== 'Failed' ? 1 : 0;
@@ -167,4 +171,19 @@ export function getSucessfulClimbRungMode(arr) {
 
 export function getDefenseRatings(arr) {
     return arr.filter((a) => a.defenseRating > 0).map((a) => a['defenseRating']);
+}
+
+export function getHubPercentage(arr, gameStage) {
+    let totalMissed = 0;
+    arr.forEach((a) => (totalMissed += a[`missed${gameStage}`]));
+    let totalScored = 0;
+    arr.forEach((a) => {
+        totalScored += a[`lowerCargo${gameStage}`];
+        totalScored += a[`upperCargo${gameStage}`];
+    });
+    return roundToHundredth(totalScored / (totalMissed + totalScored));
+}
+
+export function roundToHundredth(value) {
+    return Number(value.toFixed(2));
 }

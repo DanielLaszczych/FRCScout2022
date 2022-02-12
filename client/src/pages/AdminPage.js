@@ -1,6 +1,6 @@
 import { createRef, React, useEffect, useRef, useState } from 'react';
 import { useMutation, useQuery } from '@apollo/client';
-import { Button, Center, Box, Grid, GridItem, Text, Flex, Circle, Spinner, IconButton, VStack, Modal, useDisclosure, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter } from '@chakra-ui/react';
+import { Button, Center, Box, Grid, GridItem, Text, Flex, Circle, Spinner, IconButton, VStack, Modal, useDisclosure, ModalOverlay, ModalContent, ModalHeader, ModalBody, ModalFooter, useToast } from '@chakra-ui/react';
 import { TransitionGroup } from 'react-transition-group';
 import CSSTransition from '../components/CSSTransition';
 import { GET_EVENTS_KEYS_NAMES } from '../graphql/queries';
@@ -14,6 +14,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 function AdminPage() {
     const linkRef = useRef();
+    const toast = useToast();
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const [error, setError] = useState(null);
@@ -45,11 +46,11 @@ function AdminPage() {
         setPosition(scrolled);
     };
 
-    function findPos(obj) {
+    function findPos(obj, curTop) {
         if (!obj) {
             return null;
         }
-        let curtop = -100;
+        let curtop = curTop;
         if (obj.offsetParent) {
             do {
                 curtop += obj.offsetTop;
@@ -60,7 +61,11 @@ function AdminPage() {
 
     function handleScrollAction(ref) {
         let targetEle = ref.current;
-        window.scrollTo({ top: findPos(targetEle), behavior: 'smooth' });
+        let curTop = -25;
+        if (ref.current.innerHTML === 'Week 1') {
+            curTop = -100;
+        }
+        window.scrollTo({ top: findPos(targetEle, curTop), behavior: 'smooth' });
     }
 
     useEffect(() => {
@@ -73,7 +78,7 @@ function AdminPage() {
         fetchPolicy: 'network-only',
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve registered events');
         },
         onCompleted({ getEvents: events }) {
             setEvents(sortRegisteredEvents(events));
@@ -126,9 +131,22 @@ function AdminPage() {
     const [createEvent] = useMutation(CREATE_EVENT, {
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            toast({
+                title: 'Apollo Error',
+                description: 'Event was not able to be added',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+            setMutatingEventKey(null);
         },
         onCompleted({ createEvent: createdEvent }) {
+            toast({
+                title: 'Event was Added',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
             setEventTypes((prevEventTypes) =>
                 prevEventTypes.map((eventType) => {
                     if (createdEvent.eventType === eventType.name) {
@@ -172,20 +190,49 @@ function AdminPage() {
                         },
                     });
                 } else {
-                    setError(data.Error);
+                    console.log(data.Error);
+                    toast({
+                        title: 'Blue Alliance Error',
+                        description: 'Event was not able to be added',
+                        status: 'error',
+                        duration: 3000,
+                        isClosable: true,
+                    });
+                    setMutatingEventKey(null);
                 }
             })
             .catch((error) => {
-                setError(error);
+                console.log(error);
+                toast({
+                    title: 'Blue Alliance Error',
+                    description: 'Event was not able to be added',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setMutatingEventKey(null);
             });
     }
 
     const [removeEvent] = useMutation(REMOVE_EVENT, {
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            toast({
+                title: 'Apollo Error',
+                description: 'Event was not able to be removed',
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+            setMutatingEventKey(null);
         },
         onCompleted({ removeEvent: removedEvent }) {
+            toast({
+                title: 'Event was Removed',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
             if (removedEvent.key === currentEvent.key) {
                 setCurrentEvent({ name: 'None', key: 'None' });
                 setFocusedEvent({ name: 'None', key: 'None' });
@@ -229,15 +276,35 @@ function AdminPage() {
     const [setCurrentEventMutation] = useMutation(SET_CURRENT_EVENT, {
         onError(err) {
             if (err.message === 'Error: No current events') {
+                toast({
+                    title: 'Current Event Changed',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
                 setCurrentEvent({ name: 'None', key: 'None' });
                 setFocusedEvent({ name: 'None', key: 'None' });
                 setChangingCurrentEvent(false);
             } else {
                 console.log(JSON.stringify(err, null, 2));
-                setError('Apollo error, check console for logs');
+                toast({
+                    title: 'Apollo Error',
+                    description: 'Current event was not able to changed',
+                    status: 'error',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setFocusedEvent({ name: currentEvent.name, key: currentEvent.key });
+                setChangingCurrentEvent(false);
             }
         },
         onCompleted({ setCurrentEvent: currentEvent }) {
+            toast({
+                title: 'Current Event Changed',
+                status: 'success',
+                duration: 3000,
+                isClosable: true,
+            });
             setCurrentEvent({ name: currentEvent.name, key: currentEvent.key });
             setFocusedEvent({ name: currentEvent.name, key: currentEvent.key });
             setChangingCurrentEvent(false);
@@ -318,7 +385,7 @@ function AdminPage() {
                     </ModalContent>
                 </ModalOverlay>
             </Modal>
-            {position > findPos(linkRef.current) ? (
+            {position > findPos(linkRef.current, -100) ? (
                 <Circle backgroundColor={'gray.200'} zIndex={2} position={'fixed'} cursor={'pointer'} onClick={() => handleScrollAction(linkRef)} bottom={'2%'} right={'2%'} padding={'10px'} borderRadius={'50%'} border={'2px solid black'}>
                     <ArrowUpIcon fontSize={'150%'} />
                 </Circle>

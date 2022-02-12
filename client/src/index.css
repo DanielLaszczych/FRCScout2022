@@ -2,10 +2,6 @@
     -webkit-tap-highlight-color: transparent;
 }
 
-html {
-    height: 100%;
-}
-
 body {
     margin: 0px;
     padding: 0px;
@@ -13,6 +9,7 @@ body {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     height: 100%;
+    overflow-x: hidden;
 }
 
 #root {

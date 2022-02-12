@@ -1,17 +1,16 @@
 import { Box, Button, Center, HStack, Text } from '@chakra-ui/react';
-import { React, useEffect, useState } from 'react';
+import { React, useEffect, useRef, useState } from 'react';
 
-function StopWatch({ setParentTimer, initTime }) {
-    const [time, setTime] = useState(0);
+function StopWatch({ setMatchFormData, initTime }) {
+    const [time, setTime] = useState(null);
     const [running, setRunning] = useState(false);
-    const [componentMounted, setComponentMounted] = useState(false);
+    const skippedFirstSet = useRef(false);
 
     useEffect(() => {
-        if (!componentMounted) {
+        if (!skippedFirstSet.current) {
             setTime(() => initTime);
-            setComponentMounted(true);
         }
-    }, [initTime, componentMounted]);
+    }, [initTime]);
 
     useEffect(() => {
         let interval;
@@ -28,18 +27,20 @@ function StopWatch({ setParentTimer, initTime }) {
     }, [running]);
 
     useEffect(() => {
-        if (!running && componentMounted) {
-            setParentTimer(time);
+        if (!running && skippedFirstSet.current) {
+            setMatchFormData((prevState) => ({ ...prevState, climbTime: time }));
+        } else if (time !== null) {
+            skippedFirstSet.current = true;
         }
-    }, [running, time, setParentTimer, componentMounted]);
+    }, [running, time, setMatchFormData]);
 
     return (
         <Box className='stopwatch'>
             <Center>
                 <HStack spacing={'5px'} className='numbers'>
-                    <Text fontSize={'30px'}>{('0' + Math.floor(((componentMounted ? time : initTime) / 60000) % 60)).slice(-2)}:</Text>
-                    <Text fontSize={'30px'}>{('0' + Math.floor(((componentMounted ? time : initTime) / 1000) % 60)).slice(-2)}:</Text>
-                    <Text fontSize={'30px'}>{('0' + (((componentMounted ? time : initTime) / 10) % 100)).slice(-2)}</Text>
+                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTime) / 60000) % 60)).slice(-2)}:</Text>
+                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTime) / 1000) % 60)).slice(-2)}:</Text>
+                    <Text fontSize={'30px'}>{('0' + (((skippedFirstSet.current ? time : initTime) / 10) % 100)).slice(-2)}</Text>
                 </HStack>
             </Center>
             <Center>
@@ -55,7 +56,7 @@ function StopWatch({ setParentTimer, initTime }) {
                         onClick={() => {
                             setRunning(false);
                             setTime(0);
-                            setParentTimer(0);
+                            setMatchFormData((prevState) => ({ ...prevState, climbTime: 0, climbRung: null }));
                         }}
                     >
                         Reset

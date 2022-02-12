@@ -44,7 +44,7 @@ function MatchesPage() {
         fetchPolicy: 'network-only',
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve registered events');
         },
         onCompleted({ getEvents: events }) {
             let sortedEvents = sortRegisteredEvents(events);
@@ -75,7 +75,7 @@ function MatchesPage() {
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
-            setError('Apollo error, check console for logs');
+            setError('Apollo error, could not retrieve match forms');
         },
     });
 
@@ -221,7 +221,15 @@ function MatchesPage() {
                             </GridItem>
                             <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
                                 {!match.followUp ? (
-                                    <IconButton icon={<CheckCircleIcon />} colorScheme={'green'} _focus={{ outline: 'none' }} size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`} />
+                                    <IconButton
+                                        icon={<CheckCircleIcon />}
+                                        colorScheme={'green'}
+                                        _focus={{ outline: 'none' }}
+                                        size='sm'
+                                        as={Link}
+                                        to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`}
+                                        state={{ previousRoute: 'matches' }}
+                                    />
                                 ) : (
                                     <Popover flip={false} placement='bottom'>
                                         <PopoverTrigger>
@@ -237,7 +245,7 @@ function MatchesPage() {
                                                 <Text>{match.followUpComment}</Text>
                                             </PopoverBody>
                                             <PopoverFooter>
-                                                <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`}>
+                                                <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`} state={{ previousRoute: 'matches' }}>
                                                     Go To
                                                 </Button>
                                             </PopoverFooter>

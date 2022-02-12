@@ -1,18 +1,40 @@
-import { React, useCallback, useEffect, useRef, useState } from 'react';
-import { Box, Button, Center, Checkbox, Flex, HStack, Slider, SliderFilledTrack, SliderMark, SliderThumb, SliderTrack, Spinner, Text, Textarea, useToast } from '@chakra-ui/react';
-import { useNavigate, useParams } from 'react-router-dom';
-import Field from '../images/Field.png';
-import CustomMinusButton from '../components/CustomMinusButton';
-import CustomPlusButton from '../components/CustomPlusButton';
-import StopWatch from '../components/StopWatch';
-import { UPDATE_MATCHFORM } from '../graphql/mutations';
 import { useMutation, useQuery } from '@apollo/client';
-import { GET_EVENT, GET_MATCHFORM_BY_STATION } from '../graphql/queries';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { v4 as uuidv4 } from 'uuid';
+import {
+    AlertDialog,
+    AlertDialogBody,
+    AlertDialogContent,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogOverlay,
+    Box,
+    Button,
+    Center,
+    Checkbox,
+    Flex,
+    HStack,
+    Slider,
+    SliderFilledTrack,
+    SliderMark,
+    SliderThumb,
+    SliderTrack,
+    Spinner,
+    Text,
+    Textarea,
+    useToast,
+} from '@chakra-ui/react';
+import { GET_MATCHFORM_BY_STATION } from '../graphql/queries';
+import Field from '../images/Field.png';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation } from 'swiper';
 import 'swiper/css';
 import 'swiper/css/navigation';
-import { v4 as uuidv4 } from 'uuid';
+import CustomMinusButton from '../components/CustomMinusButton';
+import CustomPlusButton from '../components/CustomPlusButton';
+import StopWatch from '../components/StopWatch';
+import { UPDATE_MATCHFORM } from '../graphql/mutations';
 
 let tabs = ['Pre-Auto', 'Auto', 'Post-Auto', 'Teleop', 'Post-Game'];
 let rungs = [
@@ -33,52 +55,49 @@ let defenseRatings = [
 let doResize;
 
 function MatchForm() {
-    let navigate = useNavigate();
+    const location = useLocation();
+    const navigate = useNavigate();
     const toast = useToast();
-    let { eventKey: eventKeyParam, matchNumber: matchNumberParam, station: stationParam } = useParams();
+    const { eventKey: eventKeyParam, matchNumber: matchNumberParam, station: stationParam } = useParams();
+
     const canvas = useRef(null);
     const swiper = useRef(null);
+    const cancelRef = useRef(null);
 
     const [activeSlider, setActiveSlider] = useState(null);
-    const [dataLoaded, setDataLoaded] = useState(false);
-    const [validMatch, setValidMatch] = useState(false);
-    const [validEvent, setValidEvent] = useState(false);
-    const [error, setError] = useState(null);
-    const [imagePrevDimensions, _setImagePrevDimensions] = useState({ x: 414, y: 414 });
-    const imagePrevDimensionsRef = useRef(imagePrevDimensions);
-    const setImagePrevDimensions = (data) => {
-        imagePrevDimensionsRef.current = data;
-        _setImagePrevDimensions(data);
-    };
-    const [eventName, setEventName] = useState('');
-    const [teamNumber, setTeamNumber] = useState('');
-    const [teamName, setTeamName] = useState('');
-    const [preLoadedCargo, setPreLoadedCargo] = useState(null);
-    const [startingPosition, _setStartingPosition] = useState({ x: null, y: null });
-    const startingPositionRef = useRef(startingPosition);
-    const setStartingPosition = (data) => {
-        startingPositionRef.current = data;
-        _setStartingPosition(data);
-    };
-    const [pickedUpAuto, setPickedUpAuto] = useState(0);
-    const [lowerCargoAuto, setLowerCargoAuto] = useState(0);
-    const [upperCargoAuto, setUpperCargoAuto] = useState(0);
-    const [crossTarmac, setCrossTarmac] = useState(null);
-    const [autoComment, setAutoComment] = useState('');
-    const [pickedUpTele, setPickedUpTele] = useState(0);
-    const [lowerCargoTele, setLowerCargoTele] = useState(0);
-    const [upperCargoTele, setUpperCargoTele] = useState(0);
-    const [climbTime, setClimbTime] = useState(null);
-    const [climbRung, setClimbRung] = useState(null);
-    const [defenseRating, setDefenseRating] = useState(0);
-    const [loseCommunication, setLoseCommunication] = useState(false);
-    const [robotBreak, setRobotBreak] = useState(false);
-    const [yellowCard, setYellowCard] = useState(false);
-    const [redCard, setRedCard] = useState(false);
-    const [endComment, setEndComment] = useState('');
-    const [markedFollowUp, setMarkedFollowUp] = useState(false);
-    const [followUpComment, setFollowUpComment] = useState('');
+    const [teamNumber, setTeamNumber] = useState(null);
+    const [teamName, setTeamName] = useState(null);
+    const [eventName, setEventName] = useState(null);
+    const [validMatch, setValidMatch] = useState(false); //Used to check if the eventKeyParam and matchNumberParam leads to an actual match by using TBA API
     const [submitAttempted, setSubmitAttempted] = useState(false);
+    const [matchFormDialog, setMatchFormDialog] = useState(false);
+    const [loadResponse, setLoadResponse] = useState(null);
+    const initialDrawn = useRef(false);
+    const safeToSave = useRef(false);
+    const [matchFormData, setMatchFormData] = useState({
+        preLoadedCargo: null,
+        startingPosition: { x: null, y: null },
+        missedAuto: 0,
+        lowerCargoAuto: 0,
+        upperCargoAuto: 0,
+        crossTarmac: null,
+        autoComment: '',
+        missedTele: 0,
+        lowerCargoTele: 0,
+        upperCargoTele: 0,
+        climbTime: 0,
+        climbRung: null,
+        defenseRating: 0,
+        loseCommunication: null,
+        robotBreak: null,
+        yellowCard: null,
+        redCard: null,
+        endComment: '',
+        followUp: false,
+        followUpComment: '',
+        loading: true,
+    });
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         if (!/[rb][123]/.test(stationParam)) {
@@ -107,28 +126,51 @@ function MatchForm() {
             });
     }, [eventKeyParam, matchNumberParam, stationParam]);
 
-    const { loading: loadingEvent, error: eventError } = useQuery(GET_EVENT, {
-        skip: !validMatch,
-        fetchPolicy: 'network-only',
-        variables: {
-            key: eventKeyParam,
-        },
-        onCompleted({ getEvent: event }) {
-            setEventName(event.name);
-            setValidEvent(true);
-        },
-        onError(err) {
-            if (err.message === 'Error: Event is not registered inside database') {
-                setError('This event is not registered inside our database');
+    useEffect(() => {
+        if (localStorage.getItem('MatchFormData')) {
+            let matchForm = JSON.parse(localStorage.getItem('MatchFormData'));
+            if (matchForm.eventKeyParam === eventKeyParam && matchForm.matchNumberParam === matchNumberParam && matchForm.stationParam === stationParam) {
+                setLoadResponse('Required');
+                setMatchFormDialog(true);
             } else {
-                console.log(JSON.stringify(err, null, 2));
-                setError('Apollo error, check console for logs');
+                setLoadResponse(false);
             }
-        },
-    });
+        } else {
+            setLoadResponse(false);
+        }
+    }, [eventKeyParam, matchNumberParam, stationParam]);
+
+    useEffect(() => {
+        if (validMatch && teamNumber) {
+            fetch(`/blueAlliance/team/frc${teamNumber}/simple`)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (!data.Error) {
+                        setTeamName(data.nickname);
+                    } else {
+                        setError(data.Error);
+                    }
+                })
+                .catch((error) => {
+                    setError(error);
+                });
+            fetch(`/blueAlliance/event/${eventKeyParam}/simple`)
+                .then((response) => response.json())
+                .then((data) => {
+                    if (!data.Error) {
+                        setEventName(data.name);
+                    } else {
+                        setError(data.Error);
+                    }
+                })
+                .catch((error) => {
+                    setError(error);
+                });
+        }
+    }, [validMatch, teamNumber, eventKeyParam]);
 
     const { loading: loadingMatchData, error: matchDataError } = useQuery(GET_MATCHFORM_BY_STATION, {
-        skip: !validEvent || !validMatch,
+        skip: !validMatch || loadResponse === null || loadResponse,
         fetchPolicy: 'network-only',
         variables: {
             eventKey: eventKeyParam,
@@ -138,75 +180,40 @@ function MatchForm() {
         onError(err) {
             if (err.message === 'Error: Match form does not exist') {
                 setError(false);
-                setClimbTime(0);
-                setDataLoaded(true);
+                setMatchFormData({ ...matchFormData, loading: false });
                 setActiveSlider(0);
-                fetch(`/blueAlliance/team/frc${teamNumber}/simple`)
-                    .then((response) => response.json())
-                    .then((data) => {
-                        if (!data.Error) {
-                            setTeamName(data.nickname);
-                        } else {
-                            setError(data.Error);
-                        }
-                    })
-                    .catch((error) => {
-                        setError(error);
-                    });
             } else {
                 console.log(JSON.stringify(err, null, 2));
-                setError('Apollo error, check console for logs');
+                setError(`Apollo error, could not retrieve match form`);
             }
         },
         onCompleted({ getMatchFormByStation: matchForm }) {
-            setTeamName(matchForm.teamName);
-            setPreLoadedCargo(matchForm.preLoadedCargo);
-            setImagePrevDimensions({ x: matchForm.startingPosition.width, y: matchForm.startingPosition.height });
-            setStartingPosition({ x: matchForm.startingPosition.x, y: matchForm.startingPosition.y });
-            setPickedUpAuto(matchForm.pickedUpAuto);
-            setLowerCargoAuto(matchForm.lowerCargoAuto);
-            setUpperCargoAuto(matchForm.upperCargoAuto);
-            setCrossTarmac(matchForm.crossTarmac);
-            setAutoComment(matchForm.autoComment);
-            setPickedUpTele(matchForm.pickedUpTele);
-            setLowerCargoTele(matchForm.lowerCargoTele);
-            setUpperCargoTele(matchForm.upperCargoTele);
-            setClimbTime(matchForm.climbTime);
-            setClimbRung(matchForm.climbRung);
-            setDefenseRating(matchForm.defenseRating);
-            setLoseCommunication(matchForm.loseCommunication);
-            setRobotBreak(matchForm.robotBreak);
-            setYellowCard(matchForm.yellowCard);
-            setRedCard(matchForm.redCard);
-            setEndComment(matchForm.endComment);
-            setMarkedFollowUp(matchForm.followUp);
-            setFollowUpComment(matchForm.followUpComment);
-            setDataLoaded(true);
+            setMatchFormData({
+                preLoadedCargo: matchForm.preLoadedCargo,
+                startingPosition: { x: matchForm.startingPosition.x, y: matchForm.startingPosition.y },
+                missedAuto: matchForm.missedAuto,
+                lowerCargoAuto: matchForm.lowerCargoAuto,
+                upperCargoAuto: matchForm.upperCargoAuto,
+                crossTarmac: matchForm.crossTarmac,
+                autoComment: matchForm.autoComment,
+                missedTele: matchForm.missedTele,
+                lowerCargoTele: matchForm.lowerCargoTele,
+                upperCargoTele: matchForm.upperCargoTele,
+                climbTime: matchForm.climbTime,
+                climbRung: matchForm.climbRung,
+                defenseRating: matchForm.defenseRating,
+                loseCommunication: matchForm.loseCommunication,
+                robotBreak: matchForm.robotBreak,
+                yellowCard: matchForm.yellowCard,
+                redCard: matchForm.redCard,
+                endComment: matchForm.endComment,
+                followUp: matchForm.followUp,
+                followUpComment: matchForm.followUpComment,
+                loading: false,
+            });
             setActiveSlider(0);
         },
     });
-
-    useEffect(() => {
-        if (climbTime === null) {
-            return;
-        }
-        if (climbTime === 0) {
-            setClimbRung(null);
-            if (swiper.current) {
-                swiper.current.swiper.update();
-            }
-        } else if (climbTime > 0) {
-            if (swiper.current) {
-                swiper.current.swiper.update();
-            }
-        }
-    }, [climbTime]);
-
-    useEffect(() => {
-        if (swiper.current) {
-            swiper.current.swiper.update();
-        }
-    }, [markedFollowUp]);
 
     function calculateImageScale() {
         let scale;
@@ -234,56 +241,39 @@ function MatchForm() {
         return (screenWidth / 25) * scale;
     }
 
-    const drawPoint = useCallback((x, y) => {
-        setStartingPosition({ x: x, y: y });
-        let ctx = canvas.current.getContext('2d');
-        ctx.lineWidth = '4';
-        ctx.strokeStyle = 'green';
-        ctx.beginPath();
-        ctx.arc(x, y, calculateCircleRadius(), 0, 2 * Math.PI);
-        ctx.stroke();
+    const drawImage = useCallback((point) => {
+        const canvasElement = canvas.current;
+        if (canvasElement !== null) {
+            const ctx = canvasElement.getContext('2d');
+            let img = new Image();
+            img.src = Field;
+            img.onload = () => {
+                let scale = calculateImageScale();
+                canvasElement.width = 414 * scale;
+                canvasElement.height = 414 * scale;
+                ctx.drawImage(img, 0, 0, 414 * scale, 414 * scale);
+                if (swiper.current) {
+                    swiper.current.swiper.update();
+                }
+                if (point.x && point.y) {
+                    let ctx = canvasElement.getContext('2d');
+                    ctx.lineWidth = '4';
+                    ctx.strokeStyle = 'green';
+                    ctx.beginPath();
+                    ctx.arc(point.x * calculateImageScale(), point.y * calculateImageScale(), calculateCircleRadius(), 0, 2 * Math.PI);
+                    ctx.stroke();
+                }
+                if (!initialDrawn.current) initialDrawn.current = true;
+            };
+        }
     }, []);
 
-    const drawImage = useCallback(
-        (x = null, y = null, fromTab = false) => {
-            const canvasElement = canvas.current;
-            if (canvas.current !== null) {
-                const ctx = canvas.current.getContext('2d');
-                let prevWidth = fromTab ? imagePrevDimensionsRef.current.x : canvasElement.width;
-                let prevHeight = fromTab ? imagePrevDimensionsRef.current.y : canvasElement.height;
-                let img = new Image();
-                img.src = Field;
-                img.onload = () => {
-                    let scale = calculateImageScale();
-                    canvasElement.width = 414 * scale;
-                    canvasElement.height = 414 * scale;
-                    setImagePrevDimensions({ x: canvasElement.width, y: canvasElement.height });
-                    ctx.drawImage(img, 0, 0, 414 * scale, 414 * scale);
-                    if (x && y) {
-                        drawPoint(x, y);
-                    } else if (startingPositionRef.current.x && startingPositionRef.current.y) {
-                        let transformX = canvasElement.width / prevWidth;
-                        let transformY = canvasElement.height / prevHeight;
-                        drawPoint(startingPositionRef.current.x * transformX, startingPositionRef.current.y * transformY);
-                    }
-                };
-            }
-        },
-        [drawPoint]
-    );
-
     const resizeCanvas = useCallback(() => {
-        if (activeSlider === 0) {
+        if (initialDrawn.current) {
             clearTimeout(doResize);
-            doResize = setTimeout(() => drawImage(null, null, true), 250);
+            doResize = setTimeout(() => drawImage(matchFormData.startingPosition), 250);
         }
-    }, [drawImage, activeSlider]);
-
-    useEffect(() => {
-        if (activeSlider === 0) {
-            drawImage(null, null, true);
-        }
-    }, [drawImage, activeSlider]);
+    }, [drawImage, matchFormData.startingPosition]);
 
     useEffect(() => {
         window.addEventListener('resize', resizeCanvas);
@@ -291,16 +281,46 @@ function MatchForm() {
         return () => window.removeEventListener('resize', resizeCanvas);
     }, [resizeCanvas]);
 
+    useEffect(() => {
+        if (!matchFormData.loading && activeSlider === 0 && eventName && teamName) {
+            drawImage(matchFormData.startingPosition);
+        }
+    }, [matchFormData.loading, activeSlider, drawImage, matchFormData.startingPosition, eventName, teamName]);
+
+    useEffect(() => {
+        if (swiper.current) {
+            swiper.current.swiper.update();
+        }
+    }, [matchFormData.climbTime]);
+
+    useEffect(() => {
+        if (swiper.current) {
+            swiper.current.swiper.update();
+        }
+    }, [matchFormData.followUp]);
+
+    useEffect(() => {
+        if (safeToSave.current) {
+            localStorage.setItem('MatchFormData', JSON.stringify({ ...matchFormData, eventKeyParam, matchNumberParam, stationParam }));
+        } else if (!matchFormData.loading) {
+            safeToSave.current = true;
+        }
+    }, [matchFormData, eventKeyParam, matchNumberParam, stationParam]);
+
     function validPreAuto() {
-        return preLoadedCargo !== null && startingPosition.x !== null && startingPosition.y !== null;
+        return matchFormData.preLoadedCargo !== null && matchFormData.startingPosition.x !== null && matchFormData.startingPosition.y !== null;
     }
 
     function validPostAuto() {
-        return crossTarmac !== null;
+        return matchFormData.crossTarmac !== null;
     }
 
     function validTele() {
-        return climbTime > 0 ? climbRung !== null : true;
+        return matchFormData.climbTime > 0 ? matchFormData.climbRung !== null : true;
+    }
+
+    function validPost() {
+        return matchFormData.loseCommunication !== null && matchFormData.robotBreak !== null && matchFormData.yellowCard !== null && matchFormData.redCard !== null;
     }
 
     function validateTab(tab) {
@@ -310,6 +330,8 @@ function MatchForm() {
             return validPostAuto();
         } else if (tab === 'Teleop') {
             return validTele();
+        } else if (tab === 'Post-Game') {
+            return validPost();
         } else {
             return true;
         }
@@ -323,14 +345,18 @@ function MatchForm() {
                 duration: 3000,
                 isClosable: true,
             });
-            navigate('/');
-            navigate('/');
+            if (location.state && location.state.previousRoute && location.state.previousRoute === 'matches') {
+                navigate('/matches');
+            } else {
+                navigate('/');
+            }
+            localStorage.removeItem('MatchFormData');
         },
         onError(err) {
             console.log(JSON.stringify(err, null, 2));
             toast({
-                title: 'Apollo Error, check console',
-                description: 'Call Daniel',
+                title: 'Apollo Error',
+                description: 'Match form could not be updated',
                 status: 'error',
                 duration: 3000,
                 isClosable: true,
@@ -340,7 +366,7 @@ function MatchForm() {
 
     function submit() {
         setSubmitAttempted(true);
-        if (!markedFollowUp) {
+        if (!matchFormData.followUp) {
             let toastText = [];
             if (!validPreAuto()) {
                 toastText.push('Pre-Auto');
@@ -350,6 +376,9 @@ function MatchForm() {
             }
             if (!validTele()) {
                 toastText.push('Teleop');
+            }
+            if (!validPost()) {
+                toastText.push('Post');
             }
             if (toastText.length !== 0) {
                 toast({
@@ -361,7 +390,7 @@ function MatchForm() {
                 });
                 return;
             }
-        } else if (followUpComment.trim() === '') {
+        } else if (matchFormData.followUpComment.trim() === '') {
             toast({
                 title: 'Missing fields',
                 description: 'Leave a follow up comment',
@@ -380,26 +409,26 @@ function MatchForm() {
                     matchNumber: matchNumberParam,
                     teamNumber: parseInt(teamNumber),
                     teamName: teamName,
-                    preLoadedCargo: preLoadedCargo,
-                    startingPosition: { ...startingPosition, width: imagePrevDimensions.x, height: imagePrevDimensions.y },
-                    pickedUpAuto: pickedUpAuto,
-                    lowerCargoAuto: lowerCargoAuto,
-                    upperCargoAuto: upperCargoAuto,
-                    crossTarmac: crossTarmac,
-                    autoComment: autoComment,
-                    pickedUpTele: pickedUpTele,
-                    lowerCargoTele: lowerCargoTele,
-                    upperCargoTele: upperCargoTele,
-                    climbTime: climbTime,
-                    climbRung: climbRung,
-                    defenseRating: defenseRating,
-                    loseCommunication: loseCommunication,
-                    robotBreak: robotBreak,
-                    yellowCard: yellowCard,
-                    redCard: redCard,
-                    endComment: endComment,
-                    followUp: markedFollowUp,
-                    followUpComment: markedFollowUp ? followUpComment : '',
+                    preLoadedCargo: matchFormData.preLoadedCargo,
+                    startingPosition: matchFormData.startingPosition,
+                    missedAuto: matchFormData.missedAuto,
+                    lowerCargoAuto: matchFormData.lowerCargoAuto,
+                    upperCargoAuto: matchFormData.upperCargoAuto,
+                    crossTarmac: matchFormData.crossTarmac,
+                    autoComment: matchFormData.autoComment,
+                    missedTele: matchFormData.missedTele,
+                    lowerCargoTele: matchFormData.lowerCargoTele,
+                    upperCargoTele: matchFormData.upperCargoTele,
+                    climbTime: matchFormData.climbTime,
+                    climbRung: matchFormData.climbRung,
+                    defenseRating: matchFormData.defenseRating,
+                    loseCommunication: matchFormData.loseCommunication,
+                    robotBreak: matchFormData.robotBreak,
+                    yellowCard: matchFormData.yellowCard,
+                    redCard: matchFormData.redCard,
+                    endComment: matchFormData.endComment,
+                    followUp: matchFormData.followUp,
+                    followUpComment: matchFormData.followUp ? matchFormData.followUpComment : '',
                 },
             },
         });
@@ -416,18 +445,18 @@ function MatchForm() {
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
-                                    outline={preLoadedCargo === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.preLoadedCargo === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
-                                    colorScheme={preLoadedCargo === true ? 'green' : 'gray'}
-                                    onClick={() => setPreLoadedCargo(true)}
+                                    colorScheme={matchFormData.preLoadedCargo === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, preLoadedCargo: true })}
                                 >
                                     Yes
                                 </Button>
                                 <Button
-                                    outline={preLoadedCargo === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.preLoadedCargo === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
-                                    colorScheme={preLoadedCargo === false ? 'green' : 'gray'}
-                                    onClick={() => setPreLoadedCargo(false)}
+                                    colorScheme={matchFormData.preLoadedCargo === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, preLoadedCargo: false })}
                                 >
                                     No
                                 </Button>
@@ -440,14 +469,12 @@ function MatchForm() {
                                 <canvas
                                     width={414 * calculateImageScale()}
                                     height={414 * calculateImageScale()}
-                                    style={{ zIndex: 2, outline: startingPosition.x === null && submitAttempted && !markedFollowUp ? '4px solid red' : 'none' }}
+                                    style={{ zIndex: 2, outline: matchFormData.startingPosition.x === null && submitAttempted && !matchFormData.followUp ? '4px solid red' : 'none' }}
                                     onClick={(event) => {
-                                        if (canvas.current !== undefined) {
-                                            var bounds = event.target.getBoundingClientRect();
-                                            var x = event.clientX - bounds.left;
-                                            var y = event.clientY - bounds.top;
-                                            drawImage(x, y);
-                                        }
+                                        var bounds = event.target.getBoundingClientRect();
+                                        var x = event.clientX - bounds.left;
+                                        var y = event.clientY - bounds.top;
+                                        setMatchFormData({ ...matchFormData, startingPosition: { x: x / calculateImageScale(), y: y / calculateImageScale() } });
                                     }}
                                     ref={canvas}
                                 ></canvas>
@@ -460,39 +487,45 @@ function MatchForm() {
                     <Box minH={'calc(100vh - 200px)'}>
                         <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Pickup Up:
-                            </Text>
-                            <Center marginBottom={'20px'}>
-                                <HStack>
-                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
-                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                        {pickedUpAuto}
-                                    </Text>
-                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpAuto((prevCargo) => prevCargo + 1)} />
-                                </HStack>
-                            </Center>
-                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Lower Hub:
                             </Text>
                             <Center marginBottom={'20px'}>
                                 <HStack>
-                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <CustomMinusButton
+                                        fontSize={{ base: '30px', md: '40px', lg: '40px' }}
+                                        onClick={() => setMatchFormData({ ...matchFormData, lowerCargoAuto: matchFormData.lowerCargoAuto === 0 ? 0 : matchFormData.lowerCargoAuto - 1 })}
+                                    />
                                     <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                        {lowerCargoAuto}
+                                        {matchFormData.lowerCargoAuto}
                                     </Text>
-                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoAuto((prevCargo) => prevCargo + 1)} />
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, lowerCargoAuto: matchFormData.lowerCargoAuto + 1 })} />
                                 </HStack>
                             </Center>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Upper Hub:
                             </Text>
+                            <Center marginBottom={'20px'}>
+                                <HStack>
+                                    <CustomMinusButton
+                                        fontSize={{ base: '30px', md: '40px', lg: '40px' }}
+                                        onClick={() => setMatchFormData({ ...matchFormData, upperCargoAuto: matchFormData.upperCargoAuto === 0 ? 0 : matchFormData.upperCargoAuto - 1 })}
+                                    />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {matchFormData.upperCargoAuto}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, upperCargoAuto: matchFormData.upperCargoAuto + 1 })} />
+                                </HStack>
+                            </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Missed:
+                            </Text>
                             <Center marginBottom={'10px'}>
                                 <HStack>
-                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoAuto((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, missedAuto: matchFormData.missedAuto === 0 ? 0 : matchFormData.missedAuto - 1 })} />
                                     <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                        {upperCargoAuto}
+                                        {matchFormData.missedAuto}
                                     </Text>
-                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoAuto((prevCargo) => prevCargo + 1)} />
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, missedAuto: matchFormData.missedAuto + 1 })} />
                                 </HStack>
                             </Center>
                         </Box>
@@ -507,18 +540,18 @@ function MatchForm() {
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
-                                    outline={crossTarmac === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.crossTarmac === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
-                                    colorScheme={crossTarmac === true ? 'green' : 'gray'}
-                                    onClick={() => setCrossTarmac(true)}
+                                    colorScheme={matchFormData.crossTarmac === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, crossTarmac: true })}
                                 >
                                     Yes
                                 </Button>
                                 <Button
-                                    outline={crossTarmac === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.crossTarmac === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
-                                    colorScheme={crossTarmac === false ? 'green' : 'gray'}
-                                    onClick={() => setCrossTarmac(false)}
+                                    colorScheme={matchFormData.crossTarmac === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, crossTarmac: false })}
                                 >
                                     No
                                 </Button>
@@ -529,8 +562,8 @@ function MatchForm() {
                             <Center marginBottom={'10px'}>
                                 <Textarea
                                     _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
-                                    onChange={(event) => setAutoComment(event.target.value)}
-                                    value={autoComment}
+                                    onChange={(event) => setMatchFormData({ ...matchFormData, autoComment: event.target.value })}
+                                    value={matchFormData.autoComment}
                                     placeholder='Any comments about auto'
                                     w={'85%'}
                                 ></Textarea>
@@ -543,27 +576,18 @@ function MatchForm() {
                     <Box minH={'calc(100vh - 200px)'}>
                         <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Pickup Up:
-                            </Text>
-                            <Center marginBottom={'20px'}>
-                                <HStack>
-                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
-                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                        {pickedUpTele}
-                                    </Text>
-                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setPickedUpTele((prevCargo) => prevCargo + 1)} />
-                                </HStack>
-                            </Center>
-                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Lower Hub:
                             </Text>
                             <Center marginBottom={'20px'}>
                                 <HStack>
-                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <CustomMinusButton
+                                        fontSize={{ base: '30px', md: '40px', lg: '40px' }}
+                                        onClick={() => setMatchFormData({ ...matchFormData, lowerCargoTele: matchFormData.lowerCargoTele === 0 ? 0 : matchFormData.lowerCargoTele - 1 })}
+                                    />
                                     <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                        {lowerCargoTele}
+                                        {matchFormData.lowerCargoTele}
                                     </Text>
-                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setLowerCargoTele((prevCargo) => prevCargo + 1)} />
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, lowerCargoTele: matchFormData.lowerCargoTele + 1 })} />
                                 </HStack>
                             </Center>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
@@ -571,22 +595,35 @@ function MatchForm() {
                             </Text>
                             <Center marginBottom={'20px'}>
                                 <HStack>
-                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoTele((prevCargo) => (prevCargo === 0 ? 0 : prevCargo - 1))} />
+                                    <CustomMinusButton
+                                        fontSize={{ base: '30px', md: '40px', lg: '40px' }}
+                                        onClick={() => setMatchFormData({ ...matchFormData, upperCargoTele: matchFormData.upperCargoTele === 0 ? 0 : matchFormData.upperCargoTele - 1 })}
+                                    />
                                     <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
-                                        {upperCargoTele}
+                                        {matchFormData.upperCargoTele}
                                     </Text>
-                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setUpperCargoTele((prevCargo) => prevCargo + 1)} />
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, upperCargoTele: matchFormData.upperCargoTele + 1 })} />
+                                </HStack>
+                            </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Missed:
+                            </Text>
+                            <Center marginBottom={'20px'}>
+                                <HStack>
+                                    <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, missedTele: matchFormData.missedTele === 0 ? 0 : matchFormData.missedTele - 1 })} />
+                                    <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
+                                        {matchFormData.missedTele}
+                                    </Text>
+                                    <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, missedTele: matchFormData.missedTele + 1 })} />
                                 </HStack>
                             </Center>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Climb:
                             </Text>
-                            {climbTime !== null ? (
-                                <Center marginBottom={'10px'}>
-                                    <StopWatch setParentTimer={setClimbTime} initTime={climbTime}></StopWatch>
-                                </Center>
-                            ) : null}
-                            {climbTime > 0 ? (
+                            <Center marginBottom={'10px'}>
+                                <StopWatch setMatchFormData={setMatchFormData} initTime={matchFormData.climbTime}></StopWatch>
+                            </Center>
+                            {matchFormData.climbTime > 0 ? (
                                 <Box>
                                     <Text marginBottom={'10px'} marginLeft={'10px'} fontWeight={'bold'} fontSize={'100%'}>
                                         Where:
@@ -595,14 +632,14 @@ function MatchForm() {
                                         <Flex flexWrap={'wrap'} marginBottom={'2px'} justifyContent={'center'}>
                                             {rungs.map((rung) => (
                                                 <Button
-                                                    outline={climbRung === null && submitAttempted && !markedFollowUp ? '2px solid red' : 'none'}
+                                                    outline={matchFormData.climbRung === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
                                                     maxW={'125px'}
                                                     minW={'125px'}
                                                     margin={'8px'}
                                                     key={rung.id}
                                                     _focus={{ outline: 'none' }}
-                                                    colorScheme={climbRung === rung.label ? 'green' : 'gray'}
-                                                    onClick={() => setClimbRung(rung.label)}
+                                                    colorScheme={matchFormData.climbRung === rung.label ? 'green' : 'gray'}
+                                                    onClick={() => setMatchFormData({ ...matchFormData, climbRung: rung.label })}
                                                 >
                                                     {rung.label}
                                                 </Button>
@@ -622,7 +659,7 @@ function MatchForm() {
                                 Played Defense:
                             </Text>
                             <Center marginBottom={'30px'}>
-                                <Slider className='swiper-no-swiping' colorScheme={'green'} w={'80%'} value={defenseRating} min={0} max={5} step={1} onChange={(value) => setDefenseRating(value)}>
+                                <Slider className='swiper-no-swiping' colorScheme={'green'} w={'80%'} value={matchFormData.defenseRating} min={0} max={5} step={1} onChange={(value) => setMatchFormData({ ...matchFormData, defenseRating: value })}>
                                     {defenseRatings.map((rating) => (
                                         <SliderMark mr={rating.value === 0 ? 'px' : '0px'} mt={'10px'} key={rating.id} value={rating.value}>
                                             {rating.value === 0 ? 'None' : rating.value}
@@ -638,10 +675,20 @@ function MatchForm() {
                                 Lose Communication:
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                                <Button _focus={{ outline: 'none' }} colorScheme={loseCommunication === true ? 'green' : 'gray'} onClick={() => setLoseCommunication(true)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.loseCommunication === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.loseCommunication === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, loseCommunication: true })}
+                                >
                                     Yes
                                 </Button>
-                                <Button _focus={{ outline: 'none' }} colorScheme={loseCommunication === false ? 'green' : 'gray'} onClick={() => setLoseCommunication(false)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.loseCommunication === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.loseCommunication === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, loseCommunication: false })}
+                                >
                                     No
                                 </Button>
                             </HStack>
@@ -649,10 +696,20 @@ function MatchForm() {
                                 Robot broke:
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                                <Button _focus={{ outline: 'none' }} colorScheme={robotBreak === true ? 'green' : 'gray'} onClick={() => setRobotBreak(true)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.robotBreak === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.robotBreak === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, robotBreak: true })}
+                                >
                                     Yes
                                 </Button>
-                                <Button _focus={{ outline: 'none' }} colorScheme={robotBreak === false ? 'green' : 'gray'} onClick={() => setRobotBreak(false)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.robotBreak === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.robotBreak === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, robotBreak: false })}
+                                >
                                     No
                                 </Button>
                             </HStack>
@@ -660,10 +717,20 @@ function MatchForm() {
                                 Yellow Card:
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                                <Button _focus={{ outline: 'none' }} colorScheme={yellowCard === true ? 'green' : 'gray'} onClick={() => setYellowCard(true)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.yellowCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.yellowCard === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, yellowCard: true })}
+                                >
                                     Yes
                                 </Button>
-                                <Button _focus={{ outline: 'none' }} colorScheme={yellowCard === false ? 'green' : 'gray'} onClick={() => setYellowCard(false)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.yellowCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.yellowCard === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, yellowCard: false })}
+                                >
                                     No
                                 </Button>
                             </HStack>
@@ -671,10 +738,20 @@ function MatchForm() {
                                 Red Card:
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
-                                <Button _focus={{ outline: 'none' }} colorScheme={redCard === true ? 'green' : 'gray'} onClick={() => setRedCard(true)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.redCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.redCard === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, redCard: true })}
+                                >
                                     Yes
                                 </Button>
-                                <Button _focus={{ outline: 'none' }} colorScheme={redCard === false ? 'green' : 'gray'} onClick={() => setRedCard(false)}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.redCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.redCard === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, redCard: false })}
+                                >
                                     No
                                 </Button>
                             </HStack>
@@ -682,7 +759,13 @@ function MatchForm() {
                                 Ending Comment:
                             </Text>
                             <Center marginBottom={'10px'}>
-                                <Textarea _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }} onChange={(event) => setEndComment(event.target.value)} value={endComment} placeholder='Any ending comments' w={'85%'}></Textarea>
+                                <Textarea
+                                    _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                    onChange={(event) => setMatchFormData({ ...matchFormData, endComment: event.target.value })}
+                                    value={matchFormData.endComment}
+                                    placeholder='Any ending comments'
+                                    w={'85%'}
+                                ></Textarea>
                             </Center>
                             <Center>
                                 <Checkbox
@@ -694,19 +777,19 @@ function MatchForm() {
                                         }
                                     `}
                                     colorScheme={'green'}
-                                    isChecked={markedFollowUp}
-                                    onChange={() => setMarkedFollowUp(!markedFollowUp)}
+                                    isChecked={matchFormData.followUp}
+                                    onChange={() => setMatchFormData({ ...matchFormData, followUp: !matchFormData.followUp })}
                                 >
                                     Mark For Follow Up
                                 </Checkbox>
                             </Center>
-                            {markedFollowUp ? (
+                            {matchFormData.followUp ? (
                                 <Center marginTop={'10px'}>
                                     <Textarea
-                                        isInvalid={markedFollowUp && submitAttempted && followUpComment.trim() === ''}
+                                        isInvalid={matchFormData.followUp && submitAttempted && matchFormData.followUpComment.trim() === ''}
                                         _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
-                                        onChange={(event) => setFollowUpComment(event.target.value)}
-                                        value={followUpComment}
+                                        onChange={(event) => setMatchFormData({ ...matchFormData, followUpComment: event.target.value })}
+                                        value={matchFormData.followUpComment}
                                         placeholder='What is the reason for the follow up?'
                                         w={'85%'}
                                     ></Textarea>
@@ -733,7 +816,90 @@ function MatchForm() {
         );
     }
 
-    if (!dataLoaded || !validMatch || !validEvent || loadingMatchData || loadingEvent || ((matchDataError || eventError) && error !== false)) {
+    if (loadResponse === 'Required') {
+        return (
+            <AlertDialog
+                closeOnEsc={false}
+                closeOnOverlayClick={false}
+                isOpen={matchFormDialog}
+                leastDestructiveRef={cancelRef}
+                onClose={() => {
+                    setMatchFormDialog(false);
+                }}
+            >
+                <AlertDialogOverlay>
+                    <AlertDialogContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='25%'>
+                        <AlertDialogHeader color='black' fontSize='lg' fontWeight='bold'>
+                            Unsaved Data
+                        </AlertDialogHeader>
+                        <AlertDialogBody>You have unsaved data for this match form. Would you like to load it, delete it, or pull data from the cloud?</AlertDialogBody>
+                        <AlertDialogFooter>
+                            <Button
+                                onClick={() => {
+                                    setMatchFormDialog(false);
+                                    setLoadResponse(false);
+                                    localStorage.removeItem('MatchFormData');
+                                }}
+                                _focus={{ outline: 'none' }}
+                                colorScheme='red'
+                            >
+                                Delete
+                            </Button>
+                            <Button
+                                colorScheme='yellow'
+                                ml={3}
+                                _focus={{ outline: 'none' }}
+                                onClick={() => {
+                                    setMatchFormDialog(false);
+                                    setLoadResponse(false);
+                                }}
+                            >
+                                Cloud
+                            </Button>
+                            <Button
+                                colorScheme='blue'
+                                ml={3}
+                                _focus={{ outline: 'none' }}
+                                onClick={() => {
+                                    setMatchFormDialog(false);
+                                    setLoadResponse(true);
+                                    let matchForm = JSON.parse(localStorage.getItem('MatchFormData'));
+                                    setMatchFormData({
+                                        preLoadedCargo: matchForm.preLoadedCargo,
+                                        startingPosition: { x: matchForm.startingPosition.x, y: matchForm.startingPosition.y },
+                                        missedAuto: matchForm.missedAuto,
+                                        lowerCargoAuto: matchForm.lowerCargoAuto,
+                                        upperCargoAuto: matchForm.upperCargoAuto,
+                                        crossTarmac: matchForm.crossTarmac,
+                                        autoComment: matchForm.autoComment,
+                                        missedTele: matchForm.missedTele,
+                                        lowerCargoTele: matchForm.lowerCargoTele,
+                                        upperCargoTele: matchForm.upperCargoTele,
+                                        climbTime: matchForm.climbTime,
+                                        climbRung: matchForm.climbRung,
+                                        defenseRating: matchForm.defenseRating,
+                                        loseCommunication: matchForm.loseCommunication,
+                                        robotBreak: matchForm.robotBreak,
+                                        yellowCard: matchForm.yellowCard,
+                                        redCard: matchForm.redCard,
+                                        endComment: matchForm.endComment,
+                                        followUp: matchForm.followUp,
+                                        followUpComment: matchForm.followUpComment,
+                                        loading: false,
+                                    });
+                                    setActiveSlider(0);
+                                }}
+                            >
+                                Load
+                            </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
+            </AlertDialog>
+        );
+    }
+
+    if (matchFormData.loading || !validMatch || loadingMatchData || (matchDataError && error !== false) || teamName === null || eventName === null) {
         return (
             <Center>
                 <Spinner></Spinner>
@@ -748,7 +914,7 @@ function MatchForm() {
                     <Button disabled={activeSlider === 0 || activeSlider === null} className='slider-button-prev' _focus={{ outline: 'none' }}>
                         Prev
                     </Button>
-                    <Text textAlign={'center'} color={submitAttempted && !markedFollowUp && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
+                    <Text textAlign={'center'} color={submitAttempted && !matchFormData.followUp && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
                         {tabs[activeSlider]}
                     </Text>
                     <Button className='slider-button-next' _focus={{ outline: 'none' }}>
@@ -777,7 +943,6 @@ function MatchForm() {
                 <SwiperSlide> {renderTab('Teleop')}</SwiperSlide>
                 <SwiperSlide> {renderTab('Post')}</SwiperSlide>
             </Swiper>
-            {/* {renderTab('Auto')} */}
         </Box>
     );
 }

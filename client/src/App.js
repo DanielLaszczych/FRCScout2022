@@ -6,7 +6,6 @@ import HomePage from './pages/HomePage';
 import PitForm from './pages/PitForm';
 import PitPage from './pages/PitsPage';
 import AdminPage from './pages/AdminPage';
-import MatchForm from './pages/MatchForm';
 import MatchesPage from './pages/MatchesPage';
 import NotFoundPage from './pages/NotFoundPage';
 import PreMatchForm from './pages/PreMatchForm';
@@ -15,6 +14,7 @@ import WebDataConnector from './pages/WebDataConnector';
 import AdminErrorPage from './pages/AdminErrorPage';
 import FailedLoginPage from './pages/FailedLoginPage';
 import TeamPageHelper from './pages/TeamPageHelper';
+import MatchForm from './pages/MatchForm';
 // import { createBreakpoints } from '@chakra-ui/theme-tools';
 
 // const breakpoints = createBreakpoints({

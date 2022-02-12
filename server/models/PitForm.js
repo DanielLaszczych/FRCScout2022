@@ -26,17 +26,6 @@ const wheelSchema = new Schema({
     },
 });
 
-const abilitySchema = new Schema({
-    label: {
-        type: String,
-        required: true,
-    },
-    value: {
-        type: Boolean,
-        required: true,
-    },
-});
-
 const pitFormSchema = new Schema(
     {
         eventKey: {
@@ -90,7 +79,7 @@ const pitFormSchema = new Schema(
             type: String,
         },
         abilities: {
-            type: [abilitySchema],
+            type: [String],
         },
         holdingCapacity: {
             type: Number,
