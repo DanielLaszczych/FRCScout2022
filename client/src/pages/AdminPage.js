@@ -61,10 +61,7 @@ function AdminPage() {
 
     function handleScrollAction(ref) {
         let targetEle = ref.current;
-        let curTop = -25;
-        if (ref.current.innerHTML === 'Week 1') {
-            curTop = -100;
-        }
+        let curTop = window.innerWidth <= 285 ? -175 : -100;
         window.scrollTo({ top: findPos(targetEle, curTop), behavior: 'smooth' });
     }
 
@@ -385,8 +382,22 @@ function AdminPage() {
                     </ModalContent>
                 </ModalOverlay>
             </Modal>
-            {position > findPos(linkRef.current, -100) ? (
-                <Circle backgroundColor={'gray.200'} zIndex={2} position={'fixed'} cursor={'pointer'} onClick={() => handleScrollAction(linkRef)} bottom={'2%'} right={'2%'} padding={'10px'} borderRadius={'50%'} border={'2px solid black'}>
+            {position > findPos(linkRef.current, window.innerWidth <= 285 ? -150 : -75) ? (
+                <Circle
+                    backgroundColor={'gray.200'}
+                    zIndex={2}
+                    position={'fixed'}
+                    cursor={'pointer'}
+                    onClick={() => {
+                        // handleScrollAction(linkRef);
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }}
+                    bottom={'2%'}
+                    right={'2%'}
+                    padding={'10px'}
+                    borderRadius={'50%'}
+                    border={'2px solid black'}
+                >
                     <ArrowUpIcon fontSize={'150%'} />
                 </Circle>
             ) : null}
