@@ -192,7 +192,7 @@ function PitPage() {
                     <Spinner></Spinner>
                 </Center>
             ) : (
-                <Box paddingBottom={'25px'}>
+                <Box marginBottom={'25px'}>
                     {event.teams
                         .sort((a, b) => a.number - b.number)
                         .map((team, index) => (

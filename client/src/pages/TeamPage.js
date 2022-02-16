@@ -19,7 +19,6 @@ import {
     PopoverCloseButton,
     PopoverContent,
     PopoverTrigger,
-    Portal,
     Spinner,
     Text,
 } from '@chakra-ui/react';
@@ -39,6 +38,7 @@ import {
     getSuccessfulClimbTimes,
     getSucessfulClimbRungMode,
     medianArr,
+    roundToHundredth,
     sortBlueAllianceEvents,
     sortMatches,
 } from '../util/helperFunctions';
@@ -47,6 +47,7 @@ import { GrMap } from 'react-icons/gr';
 import Field from '../images/Field.png';
 import { BiCommentEdit } from 'react-icons/bi';
 import HeatMap from '../components/HeatMap';
+import { v4 as uuidv4 } from 'uuid';
 
 let doResize;
 
@@ -174,7 +175,10 @@ function TeamPage() {
         return (screenWidth / 25) * scale;
     }
 
-    const drawPopoverImage = useCallback((point, id) => {
+    const drawPopoverImage = useCallback(async (point, id) => {
+        while (document.getElementById(`${id}`) === null) {
+            await new Promise((resolve) => requestAnimationFrame(resolve));
+        }
         const canvasElement = document.getElementById(`${id}`);
         if (canvasElement !== null) {
             const ctx = canvasElement.getContext('2d');
@@ -259,7 +263,7 @@ function TeamPage() {
                             {pitForm && pitForm.image !== '' ? (
                                 <ChakraImage margin={'0 auto'} w={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} minW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} maxW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} src={pitForm.image} />
                             ) : (
-                                <Box w={{ base: '90%', sm: '75%' }} margin={'0 auto'} boxShadow={'rgba(0, 0, 0, 0.35) 0px 3px 8px'} marginBottom={'25px'} textAlign={'center'} border={'2px black solid'} borderRadius={'10px'} padding={'10px'}>
+                                <Box w={{ base: '90%', sm: '75%' }} margin={'0 auto'} boxShadow={'rgba(0, 0, 0, 0.35) 0px 3px 8px'} textAlign={'center'} border={'2px black solid'} borderRadius={'10px'} padding={'10px'}>
                                     No Image Available
                                 </Box>
                             )}
@@ -281,10 +285,11 @@ function TeamPage() {
                                             Missed (Median): {medianArr(getFields(matchForms, 'missedAuto'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Hub Percentage: {matchForms.find((matchForm) => matchForm.missedAuto > 0 || matchForm.lowerCargoAuto > 0 || matchForm.upperCargoAuto > 0) ? `${getHubPercentage(matchForms, 'Auto') * 100}%` : 'N/A'}
+                                            Hub Percentage:{' '}
+                                            {matchForms.find((matchForm) => matchForm.missedAuto > 0 || matchForm.lowerCargoAuto > 0 || matchForm.upperCargoAuto > 0) ? `${roundToHundredth(getHubPercentage(matchForms, 'Auto') * 100)}%` : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Taxi Percentage: {getPercentageForTFField(matchForms, 'crossTarmac') * 100}%
+                                            Taxi Percentage: {roundToHundredth(getPercentageForTFField(matchForms, 'crossTarmac') * 100)}%
                                         </Text>
                                     </Box>
                                 ) : (
@@ -309,7 +314,8 @@ function TeamPage() {
                                             Missed (Median): {medianArr(getFields(matchForms, 'missedTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Hub Percentage: {matchForms.find((matchForm) => matchForm.missedTele > 0 || matchForm.lowerCargoTele > 0 || matchForm.upperCargoTele > 0) ? `${getHubPercentage(matchForms, 'Tele') * 100}%` : 'N/A'}
+                                            Hub Percentage:{' '}
+                                            {matchForms.find((matchForm) => matchForm.missedTele > 0 || matchForm.lowerCargoTele > 0 || matchForm.upperCargoTele > 0) ? `${roundToHundredth(getHubPercentage(matchForms, 'Tele') * 100)}%` : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Climb Success Rate: {getFractionForClimb(matchForms)}
@@ -360,7 +366,7 @@ function TeamPage() {
                 );
             case 1:
                 return pitForm ? (
-                    <Box paddingBottom={'25px'}>
+                    <Box marginBottom={'25px'}>
                         <Box w={{ base: '90%', sm: '75%' }} margin={'0 auto'} boxShadow={'rgba(0, 0, 0, 0.35) 0px 3px 8px'} marginBottom={'25px'} textAlign={'start'} border={'2px black solid'} borderRadius={'10px'} padding={'10px'}>
                             <Text textAlign={'center'} marginBottom={'5px'} textDecoration={'underline'} fontWeight={'bold'} fontSize={'125%'}>
                                 Basics:
@@ -467,9 +473,9 @@ function TeamPage() {
                 );
             case 2:
                 return matchForms.length > 0 ? (
-                    <Box paddingBottom={'25px'}>
+                    <Box marginBottom={'25px'}>
                         <Box overflowX={'auto'}>
-                            <Grid minW={'974px'} margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
+                            <Grid minW={'1490px'} margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                         Match # : Station
@@ -543,7 +549,7 @@ function TeamPage() {
                             </Grid>
                             {sortMatches(matchForms).map((match, index) => (
                                 <Grid
-                                    minW={'974px'}
+                                    minW={'1490px'}
                                     margin={'0 auto'}
                                     borderTop={'1px solid black'}
                                     backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'}
@@ -589,18 +595,16 @@ function TeamPage() {
                                             <PopoverTrigger>
                                                 <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<GrMap />} _focus={{ outline: 'none' }} size='sm' />
                                             </PopoverTrigger>
-                                            <Portal>
-                                                <PopoverContent padding={'25px'} width={'max-content'} height={'max-content'} _focus={{ outline: 'none' }}>
-                                                    <PopoverArrow />
-                                                    <PopoverCloseButton />
-                                                    <PopoverBody>
-                                                        <Center>
-                                                            <Spinner pos={'absolute'} zIndex={-1}></Spinner>
-                                                            <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 2 }}></canvas>
-                                                        </Center>
-                                                    </PopoverBody>
-                                                </PopoverContent>
-                                            </Portal>
+                                            <PopoverContent padding={'25px'} width={'max-content'} height={'max-content'} _focus={{ outline: 'none' }}>
+                                                <PopoverArrow />
+                                                <PopoverCloseButton />
+                                                <PopoverBody>
+                                                    <Center>
+                                                        <Spinner pos={'absolute'} zIndex={-1}></Spinner>
+                                                        <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 0 }}></canvas>
+                                                    </Center>
+                                                </PopoverBody>
+                                            </PopoverContent>
                                         </Popover>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
@@ -639,16 +643,18 @@ function TeamPage() {
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                        <Popover isLazy={true} flip={false} placement='bottom'>
+                                        <Popover key={uuidv4()} flip={false} placement='bottom-start'>
                                             <PopoverTrigger>
                                                 <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<BiCommentEdit />} _focus={{ outline: 'none' }} size='sm' />
                                             </PopoverTrigger>
-                                            <PopoverContent maxWidth={'75vw'} padding={'15px'} width={'max-content'} height={'max-content'} _focus={{ outline: 'none' }}>
+                                            <PopoverContent maxWidth={'75vw'} padding={'15px'} _focus={{ outline: 'none' }}>
                                                 <PopoverArrow />
                                                 <PopoverCloseButton />
                                                 <PopoverBody>
-                                                    <Text>Auto Comment: {match.autoComment}</Text>
-                                                    <Text>End Comment: {match.endComment}</Text>
+                                                    <Box>
+                                                        <Text>Auto Comment: {match.autoComment || 'None'}</Text>
+                                                        <Text>End Comment: {match.endComment || 'None'}</Text>
+                                                    </Box>
                                                 </PopoverBody>
                                             </PopoverContent>
                                         </Popover>
@@ -664,7 +670,7 @@ function TeamPage() {
                 );
             case 3:
                 return matchForms.length > 0 ? (
-                    <Box paddingBottom={'25px'}>
+                    <Box marginBottom={'25px'}>
                         <Center>
                             <HeatMap data={matchForms} largeScale={0.2} mediumScale={0.5} smallScale={0.8} maxOccurances={3}></HeatMap>
                         </Center>

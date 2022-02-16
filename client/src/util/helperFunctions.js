@@ -133,7 +133,7 @@ export const medianArr = (x) => {
 export function getPercentageForTFField(arr, field) {
     let total = 0;
     arr.forEach((a) => (total += a[field]));
-    return roundToHundredth(total / arr.length);
+    return total / arr.length;
 }
 
 export function countOccurencesForTFField(arr, field) {
@@ -181,7 +181,7 @@ export function getHubPercentage(arr, gameStage) {
         totalScored += a[`lowerCargo${gameStage}`];
         totalScored += a[`upperCargo${gameStage}`];
     });
-    return roundToHundredth(totalScored / (totalMissed + totalScored));
+    return totalScored / (totalMissed + totalScored);
 }
 
 export function roundToHundredth(value) {

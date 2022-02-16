@@ -195,12 +195,16 @@ function PitForm() {
     function handleSetWeight(value) {
         if (value.trim() !== '') {
             setPitFormData({ ...pitFormData, weight: twoPrecision(parseFloat(value)) });
+        } else if (value.trim() === '') {
+            setPitFormData({ ...pitFormData, weight: null });
         }
     }
 
     function handleSetHeight(value) {
         if (value.trim() !== '') {
             setPitFormData({ ...pitFormData, height: twoPrecision(parseFloat(value)) });
+        } else if (value.trim() === '') {
+            setPitFormData({ ...pitFormData, height: null });
         }
     }
 
@@ -458,7 +462,7 @@ function PitForm() {
             });
             setPitFormData({
                 weight: pitForm.weight,
-                height: pitForm.headers,
+                height: pitForm.height,
                 driveTrain: pitForm.driveTrain,
                 motors: modifiedMotors,
                 wheels: modifiedWheels,
@@ -554,18 +558,18 @@ function PitForm() {
                     driveTrain: pitFormData.driveTrain,
                     motors: modifiedMotors,
                     wheels: modifiedWheels,
-                    driveTrainComment: pitFormData.driveTrainComment,
+                    driveTrainComment: pitFormData.driveTrainComment.trim(),
                     programmingLanguage: pitFormData.programmingLanguage,
                     startingPosition: pitFormData.startingPosition,
                     taxi: pitFormData.taxi,
-                    autoComment: pitFormData.autoComment,
+                    autoComment: pitFormData.autoComment.trim(),
                     abilities: pitFormData.abilities,
                     holdingCapacity: parseInt(pitFormData.holdingCapacity),
-                    workingComment: pitFormData.workingComment,
-                    closingComment: pitFormData.closingComment,
+                    workingComment: pitFormData.workingComment.trim(),
+                    closingComment: pitFormData.closingComment.trim(),
                     image: pitFormData.image,
                     followUp: pitFormData.followUp,
-                    followUpComment: pitFormData.followUp ? pitFormData.followUpComment : '',
+                    followUpComment: pitFormData.followUp ? pitFormData.followUpComment.trim() : '',
                 },
             },
         });
@@ -629,7 +633,7 @@ function PitForm() {
                                     let pitForm = JSON.parse(localStorage.getItem('PitFormData'));
                                     setPitFormData({
                                         weight: pitForm.weight,
-                                        height: pitForm.headers,
+                                        height: pitForm.height,
                                         driveTrain: pitForm.driveTrain,
                                         motors: pitForm.motors,
                                         wheels: pitForm.wheels,

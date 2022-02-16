@@ -5,7 +5,7 @@ import CSSTransition from './CSSTransition';
 
 function TBAEventsMemo({ eventType, mutatingEventKey, handleAddEvent }) {
     return (
-        <Box margin='0 auto' paddingBottom={'25px'}>
+        <Box margin='0 auto' marginBottom={'25px'}>
             <Box marginBottom={'10px'}>
                 <h2 ref={eventType.ref} style={{ fontWeight: '500', fontSize: '30px', lineHeight: '1.1' }}>
                     {eventType.name} <small style={{ fontSize: '65%', color: '#777', lineHeight: '1' }}>{eventType.count} Events</small>

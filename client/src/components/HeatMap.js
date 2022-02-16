@@ -59,7 +59,6 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
 
     // create a grayscale blurred circle image that we'll use for drawing points
     const createCircleBrushCanvas = useCallback((r, blur) => {
-        // console.log('Heatmap.createCircleBrushCanvas(): radius, blur', {r, blur});
         circleCanvas.current = createCanvas('circleCanvas');
         /* eslint-disable prefer-const */
         let circleCanvasContext = circleCanvas.current.getContext('2d');
@@ -166,7 +165,6 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
 
             ctx.clearRect(0, 0, 414 * calculateHeatMapScale(), 414 * calculateHeatMapScale());
             let modifiedData = getStartingPoints(data, calculateHeatMapScale());
-            console.log(modifiedData);
             // draw a grayscale heatmap by putting a blurred circle at each data point
             for (let i = 0, len = modifiedData.length, p; i < len; i++) {
                 p = modifiedData[i];

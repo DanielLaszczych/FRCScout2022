@@ -127,7 +127,7 @@ function MatchesPage() {
                     <Spinner></Spinner>
                 </Center>
             ) : matchForms.length > 0 ? (
-                <Box paddingBottom={'25px'}>
+                <Box marginBottom={'25px'}>
                     <Grid borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr' gap={'5px'}>
                         <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
                             <Input
