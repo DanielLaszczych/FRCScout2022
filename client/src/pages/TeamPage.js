@@ -643,11 +643,11 @@ function TeamPage() {
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                        <Popover key={uuidv4()} flip={false} placement='bottom-start'>
+                                        <Popover flip={false} placement='bottom-start'>
                                             <PopoverTrigger>
                                                 <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<BiCommentEdit />} _focus={{ outline: 'none' }} size='sm' />
                                             </PopoverTrigger>
-                                            <PopoverContent maxWidth={'75vw'} padding={'15px'} _focus={{ outline: 'none' }}>
+                                            <PopoverContent key={uuidv4()} maxWidth={'75vw'} padding={'15px'} _focus={{ outline: 'none' }}>
                                                 <PopoverArrow />
                                                 <PopoverCloseButton />
                                                 <PopoverBody>
