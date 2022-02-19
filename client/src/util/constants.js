@@ -6,4 +6,4 @@ const dev = {
 };
 
 export const config = process.env.NODE_ENV === 'development' ? dev : prod;
-export const year = 2019;
+export const year = 2022;
