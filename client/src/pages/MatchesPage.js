@@ -133,45 +133,67 @@ function MatchesPage() {
                             <Input
                                 value={matchFilter}
                                 onChange={(event) => setMatchFilter(event.target.value)}
-                                borderColor={'black'}
+                                borderColor={'gray.600'}
                                 placeholder='Match #'
                                 _placeholder={{ color: 'black', opacity: '0.75' }}
-                                _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px', borderColor: 'black', width: 'max(80%, 100px)' }}
+                                _hover={{ borderColor: 'black' }}
                                 w={'80%'}
                                 pos={'relative'}
                                 top={'50%'}
                                 transform={'translateY(-50%)'}
+                                onKeyPress={(event) => {
+                                    if (event.key === 'Enter') {
+                                        event.target.blur();
+                                    }
+                                }}
+                                enterKeyHint='done'
                             />
                         </GridItem>
-                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                        <GridItem padding={'0px 0px 0px 0px'} _focus={{ zIndex: 1 }} textAlign={'center'}>
                             <Input
                                 value={teamFilter}
                                 onChange={(event) => setTeamFilter(event.target.value)}
-                                borderColor={'black'}
+                                borderColor={'gray.600'}
                                 placeholder='Team #'
+                                margin={'0 auto'}
                                 _placeholder={{ color: 'black', opacity: '0.75' }}
-                                _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px', borderColor: 'black', width: 'max(80%, 90px)', backgroundColor: 'gray.300', zIndex: 1 }}
+                                _hover={{ borderColor: 'black' }}
                                 w={'80%'}
                                 pos={'relative'}
                                 top={'50%'}
                                 transform={'translateY(-50%)'}
+                                onKeyPress={(event) => {
+                                    if (event.key === 'Enter') {
+                                        event.target.blur();
+                                    }
+                                }}
+                                enterKeyHint='done'
                             />
                         </GridItem>
-                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                        <GridItem position={'relative'} _focus={{ zIndex: 1 }} padding={'0px 0px 0px 0px'} textAlign={'center'}>
                             <Input
                                 value={scouterFilter}
                                 onChange={(event) => setScouterFilter(event.target.value)}
-                                borderColor={'black'}
-                                placeholder='Scouter Name'
+                                borderColor={'gray.600'}
+                                placeholder='Scouter'
                                 _placeholder={{ color: 'black', opacity: '0.75' }}
-                                _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px', borderColor: 'black', width: 'max(80%, 110px)', backgroundColor: 'gray.300', zIndex: 1 }}
+                                _hover={{ borderColor: 'black' }}
                                 w={'80%'}
                                 pos={'relative'}
                                 top={'50%'}
                                 transform={'translateY(-50%)'}
+                                onKeyPress={(event) => {
+                                    if (event.key === 'Enter') {
+                                        event.target.blur();
+                                    }
+                                }}
+                                enterKeyHint='done'
                             />
                         </GridItem>
-                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                        <GridItem padding={'0px 0px 0px 0px'} _focus={{ zIndex: 1 }} textAlign={'center'}>
                             <Popover flip={false} placement='bottom'>
                                 <PopoverTrigger>
                                     <Text w='fit-content' margin={'0 auto'} cursor={'help'} pos={'relative'} fontSize={'20px'} top={'50%'} transform={'translateY(-50%)'}>
@@ -227,7 +249,7 @@ function MatchesPage() {
                                         _focus={{ outline: 'none' }}
                                         size='sm'
                                         as={Link}
-                                        to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`}
+                                        to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}/${match.teamNumber}`}
                                         state={{ previousRoute: 'matches' }}
                                     />
                                 ) : (
@@ -238,14 +260,14 @@ function MatchesPage() {
                                         <PopoverContent maxWidth={'50vw'} _focus={{ outline: 'none' }}>
                                             <PopoverArrow />
                                             <PopoverCloseButton />
-                                            <PopoverHeader color='black' fontSize='md' fontWeight='bold'>
+                                            <PopoverHeader margin={'0 auto'} maxWidth={'165px'} color='black' fontSize='md' fontWeight='bold'>
                                                 Follow Up Comment
                                             </PopoverHeader>
                                             <PopoverBody maxHeight={'125px'} overflowY={'auto'}>
                                                 <Text>{match.followUpComment}</Text>
                                             </PopoverBody>
                                             <PopoverFooter>
-                                                <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}`} state={{ previousRoute: 'matches' }}>
+                                                <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}/${match.teamNumber}`} state={{ previousRoute: 'matches' }}>
                                                     Go To
                                                 </Button>
                                             </PopoverFooter>

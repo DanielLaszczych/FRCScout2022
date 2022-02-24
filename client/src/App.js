@@ -55,7 +55,7 @@ function App() {
                     <Route exact path='matches' element={<MatchesPage />} />
                     <Route exact path='/pitForm/:eventKey/:teamNumber' element={<PitForm />} />
                     <Route exact path='/preMatchForm' element={<PreMatchForm />} />
-                    <Route exact path='/matchForm/:eventKey/:matchNumber/:station' element={<MatchForm />} />
+                    <Route exact path='/matchForm/:eventKey/:matchNumber/:station/:teamNumber' element={<MatchForm />} />
                     <Route exact path='/team/:teamNumber' element={<TeamPageHelper />} />
                     <Route exact path='/admin' element={user.admin ? <AdminPage /> : <AdminErrorPage />} />
                     <Route exact path='/tableau' element={<WebDataConnector />} />

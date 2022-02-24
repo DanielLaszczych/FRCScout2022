@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { Box, Button, Center, HStack, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Spinner, Text } from '@chakra-ui/react';
+import { ChevronDownIcon, LockIcon, UnlockIcon } from '@chakra-ui/icons';
+import { Box, Button, Center, HStack, IconButton, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Spinner, Text } from '@chakra-ui/react';
 import { React, useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GET_CURRENT_EVENT } from '../graphql/queries';
@@ -35,6 +35,7 @@ function PreMatchForm() {
     const [tieBreaker, setTieBreaker] = useState(false);
     const [fetchingTeam, setFetchingTeam] = useState(false);
     const [teamNumber, setTeamNumber] = useState('');
+    const [manualMode, setManualMode] = useState(false);
 
     useEffect(() => {
         if (localStorage.getItem('PreMatchFormData')) {
@@ -134,10 +135,12 @@ function PreMatchForm() {
                     setError(error);
                 });
         }
-        setTeamNumber('');
-        clearTimeout(doGetTeam);
-        doGetTeam = setTimeout(() => getTeamNumber(), 350);
-    }, [station, matchType, matchNumber1, tieBreaker, currentEvent, getMatchKey]);
+        if (!manualMode) {
+            setTeamNumber('');
+            clearTimeout(doGetTeam);
+            doGetTeam = setTimeout(() => getTeamNumber(), 350);
+        }
+    }, [station, matchType, matchNumber1, tieBreaker, currentEvent, getMatchKey, manualMode]);
 
     function validSetup() {
         return station !== '' && matchType !== '' && matchNumber1 !== '' && teamNumber !== '';
@@ -163,9 +166,12 @@ function PreMatchForm() {
         <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
             <Box>
                 <Box border={'black solid'} borderRadius={'10px'} padding={'10px'}>
-                    <Text marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
-                        Competition: {currentEvent.name}
-                    </Text>
+                    <HStack spacing={'auto'} marginBottom={'20px'}>
+                        <Text fontWeight={'bold'} fontSize={'110%'}>
+                            Competition: {currentEvent.name}
+                        </Text>
+                        <IconButton _focus={{ outline: 'none' }} onClick={() => setManualMode(!manualMode)} icon={!manualMode ? <LockIcon /> : <UnlockIcon />}></IconButton>
+                    </HStack>
                     <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                         Alliance Station:
                     </Text>
@@ -229,6 +235,11 @@ function PreMatchForm() {
                                 }}
                             >
                                 <NumberInputField
+                                    onKeyPress={(event) => {
+                                        if (event.key === 'Enter') {
+                                            event.target.blur();
+                                        }
+                                    }}
                                     enterKeyHint='done'
                                     _focus={{
                                         outline: 'none',
@@ -246,11 +257,40 @@ function PreMatchForm() {
                         )}
                     </HStack>
                     <HStack spacing={'25px'} pos={'relative'}>
-                        <Text marginTop={'10px'} marginBottom={'20px'} fontWeight={'bold'} fontSize={'110%'}>
-                            Team Number: {teamNumber}
+                        <Text marginTop={'10px'} marginBottom={manualMode ? '10px' : '10px'} fontWeight={'bold'} fontSize={'110%'}>
+                            Team Number: {!manualMode ? teamNumber : ''}
                         </Text>
-                        {fetchingTeam ? <Spinner position={'absolute'} left={'120px'} bottom={'19px'} fontSize={'50px'} /> : null}
+                        {fetchingTeam && !manualMode ? <Spinner position={'absolute'} left={'120px'} bottom={'10px'} fontSize={'50px'} /> : null}
                     </HStack>
+                    {manualMode ? (
+                        <NumberInput
+                            marginLeft={'10px'}
+                            onChange={(value) => setTeamNumber(value)}
+                            value={teamNumber}
+                            min={1}
+                            precision={0}
+                            width={{
+                                base: '75%',
+                                md: '66%',
+                                lg: '50%',
+                            }}
+                        >
+                            <NumberInputField
+                                onKeyPress={(event) => {
+                                    if (event.key === 'Enter') {
+                                        event.target.blur();
+                                    }
+                                }}
+                                enterKeyHint='done'
+                                _focus={{
+                                    outline: 'none',
+                                    boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
+                                }}
+                                textAlign={'center'}
+                                placeholder='Enter Team #'
+                            />
+                        </NumberInput>
+                    ) : null}
                 </Box>
                 <Center>
                     <Button
@@ -260,7 +300,7 @@ function PreMatchForm() {
                         marginTop={'20px'}
                         onClick={() => {
                             localStorage.setItem('PreMatchFormData', JSON.stringify({ station, matchType }));
-                            navigate(`/matchForm/${currentEvent.key}/${getMatchKey()}/${station.value}`);
+                            navigate(`/matchForm/${currentEvent.key}/${getMatchKey()}/${station.value}/${teamNumber}`);
                         }}
                     >
                         Confirm

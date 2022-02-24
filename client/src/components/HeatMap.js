@@ -131,14 +131,19 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
             ctx.fillStyle = 'white';
             ctx.strokeStyle = 'black';
             ctx.lineWidth = (25 * scale) / 5;
-            let xOffSet = 5 * scale;
+            let xOffSet = 0 * scale;
             let yOffset = -18 * scale;
             for (const analyzedPoint of data) {
                 let totalScored = sum(analyzedPoint.lowerCargoAuto) + sum(analyzedPoint.upperCargoAuto);
-                let percentage = totalScored / (totalScored + sum(analyzedPoint.missedAuto));
-                percentage = roundToHundredth(percentage);
-                ctx.strokeText(`${percentage * 100}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
-                ctx.fillText(`${percentage * 100}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
+                if (totalScored + sum(analyzedPoint.missedAuto) !== 0) {
+                    let percentage = totalScored / (totalScored + sum(analyzedPoint.missedAuto));
+                    percentage = roundToHundredth(percentage);
+                    ctx.strokeText(`${percentage * 100}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
+                    ctx.fillText(`${percentage * 100}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
+                } else {
+                    ctx.strokeText(`N/A`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
+                    ctx.fillText(`N/A`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
+                }
                 ctx.strokeText(`${median(analyzedPoint.lowerCargoAuto) * 2 + median(analyzedPoint.upperCargoAuto) * 4} pts`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset - 25 * scale);
                 ctx.fillText(`${median(analyzedPoint.lowerCargoAuto) * 2 + median(analyzedPoint.upperCargoAuto) * 4} pts`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset - 25 * scale);
             }
@@ -180,7 +185,12 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
                     }
                 }
                 if (!found) {
-                    analysis.current.push({ point: { x: p.x, y: p.y }, lowerCargoAuto: [p.lowerCargoAuto], upperCargoAuto: [p.upperCargoAuto], missedAuto: [p.missedAuto] });
+                    analysis.current.push({
+                        point: { x: p.x, y: p.y },
+                        lowerCargoAuto: [p.lowerCargoAuto],
+                        upperCargoAuto: [p.upperCargoAuto],
+                        missedAuto: [p.missedAuto],
+                    });
                 }
                 ctx.globalAlpha = Math.min(Math.max(p.occurances / maxOccurances, opacity), 1);
                 ctx.drawImage(circleCanvas.current, p.x - circleCanvasRadius.current, p.y - circleCanvasRadius.current);

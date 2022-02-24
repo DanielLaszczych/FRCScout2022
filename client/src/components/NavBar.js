@@ -72,6 +72,7 @@ function NavBar() {
                         onKeyPress={(event) => {
                             if (event.key === 'Enter') {
                                 navigate(`/team/${teamNumber}`);
+                                event.target.blur();
                             }
                         }}
                         enterKeyHint='search'

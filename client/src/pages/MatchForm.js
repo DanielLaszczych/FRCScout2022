@@ -58,7 +58,7 @@ function MatchForm() {
     const location = useLocation();
     const navigate = useNavigate();
     const toast = useToast();
-    const { eventKey: eventKeyParam, matchNumber: matchNumberParam, station: stationParam } = useParams();
+    const { eventKey: eventKeyParam, matchNumber: matchNumberParam, station: stationParam, teamNumber: teamNumberParam } = useParams();
 
     const canvas = useRef(null);
     const swiper = useRef(null);
@@ -100,31 +100,38 @@ function MatchForm() {
     const [error, setError] = useState(null);
 
     useEffect(() => {
-        if (!/[rb][123]/.test(stationParam)) {
+        if (stationParam.length !== 2 || !/[rb][123]/.test(stationParam)) {
             setError('Invalid station in the url');
             return;
         }
-        fetch(`/blueAlliance/match/${eventKeyParam}_${matchNumberParam}/simple`)
-            .then((response) => response.json())
-            .then((data) => {
-                if (!data.Error) {
-                    let stationNumber = parseInt(stationParam.charAt(1)) - 1;
-                    let teamKey;
-                    if (stationParam.charAt(0) === 'r') {
-                        teamKey = data.alliances.red.team_keys[stationNumber];
-                    } else {
-                        teamKey = data.alliances.blue.team_keys[stationNumber];
-                    }
-                    setTeamNumber(teamKey.substring(3));
-                    setValidMatch(true);
-                } else {
-                    setError(data.Error);
-                }
-            })
-            .catch((error) => {
-                setError(error);
-            });
-    }, [eventKeyParam, matchNumberParam, stationParam]);
+        if (!/[0-9]+$/.test(teamNumberParam)) {
+            setError('Invalid team number in the url');
+            return;
+        } else {
+            setTeamNumber(teamNumberParam);
+            setValidMatch(true);
+        }
+        // fetch(`/blueAlliance/match/${eventKeyParam}_${matchNumberParam}/simple`)
+        // 	.then((response) => response.json())
+        // 	.then((data) => {
+        // 		if (!data.Error) {
+        // 			let stationNumber = parseInt(stationParam.charAt(1)) - 1;
+        // 			let teamKey;
+        // 			if (stationParam.charAt(0) === 'r') {
+        // 				teamKey = data.alliances.red.team_keys[stationNumber];
+        // 			} else {
+        // 				teamKey = data.alliances.blue.team_keys[stationNumber];
+        // 			}
+        // 			setTeamNumber(teamKey.substring(3));
+        // 			setValidMatch(true);
+        // 		} else {
+        // 			setError(data.Error);
+        // 		}
+        // 	})
+        // 	.catch((error) => {
+        // 		setError(error);
+        // 	});
+    }, [eventKeyParam, matchNumberParam, stationParam, teamNumberParam]);
 
     useEffect(() => {
         if (localStorage.getItem('MatchFormData')) {

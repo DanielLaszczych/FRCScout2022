@@ -110,6 +110,7 @@ function WebDataConnector() {
                                 });
                         }
                     }}
+                    enterKeyHint='done'
                 />
                 <InputRightElement width='4.5rem'>
                     <Button _focus={{ outline: 'none' }} h='1.75rem' size='sm' onClick={() => setShow((prevShow) => !prevShow)}>
