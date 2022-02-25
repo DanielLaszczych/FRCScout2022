@@ -194,7 +194,7 @@ function MatchesPage() {
                             />
                         </GridItem>
                         <GridItem padding={'0px 0px 0px 0px'} _focus={{ zIndex: 1 }} textAlign={'center'}>
-                            <Popover flip={false} placement='bottom'>
+                            <Popover flip={true} placement='auto'>
                                 <PopoverTrigger>
                                     <Text w='fit-content' margin={'0 auto'} cursor={'help'} pos={'relative'} fontSize={'20px'} top={'50%'} transform={'translateY(-50%)'}>
                                         🐯?
@@ -253,7 +253,7 @@ function MatchesPage() {
                                         state={{ previousRoute: 'matches' }}
                                     />
                                 ) : (
-                                    <Popover flip={false} placement='bottom'>
+                                    <Popover flip={true} placement='bottom'>
                                         <PopoverTrigger>
                                             <IconButton icon={<WarningIcon />} colorScheme={'yellow'} _focus={{ outline: 'none' }} size='sm' />
                                         </PopoverTrigger>

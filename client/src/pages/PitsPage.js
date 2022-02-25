@@ -224,7 +224,7 @@ function PitPage() {
                                             state={{ previousRoute: 'pits' }}
                                         />
                                     ) : (
-                                        <Popover flip={false} placement='bottom'>
+                                        <Popover flip={true} placement='bottom'>
                                             <PopoverTrigger>
                                                 <IconButton icon={getPitFormStatusIcon(team.name)} colorScheme={getPitFormStatusColor(team.name)} _focus={{ outline: 'none' }} size='sm' />
                                             </PopoverTrigger>

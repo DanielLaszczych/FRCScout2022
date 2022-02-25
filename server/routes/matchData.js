@@ -10,7 +10,7 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
             return;
         } else {
             try {
-                const matchForms = await MatchForm.find({ eventKey: req.params.eventKey }).exec();
+                const matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).exec();
                 res.send(matchForms);
             } catch (err) {
                 res.send(err);
@@ -22,7 +22,7 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
             .then(async (result) => {
                 if (result) {
                     try {
-                        const matchForms = await MatchForm.find({ eventKey: req.params.eventKey }).exec();
+                        const matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).exec();
                         res.send(matchForms);
                     } catch (err) {
                         res.send(err);
