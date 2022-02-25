@@ -63,6 +63,7 @@ function TeamPage() {
     const [matchForms, setMatchForms] = useState(null);
     const [tab, setTab] = useState(0);
     const [currentPopoverData, setCurrentPopoverData] = useState(null);
+    const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1200);
 
     useEffect(() => {
         fetch(`/blueAlliance/team/frc${teamNumberParam}/events/${year}/simple`)
@@ -149,15 +150,26 @@ function TeamPage() {
         },
     });
 
+    const updateDesktop = () => {
+        setIsDesktop(window.innerWidth > 1200);
+    };
+
+    useEffect(() => {
+        window.addEventListener('resize', updateDesktop);
+
+        return () => window.removeEventListener('resize', updateDesktop);
+    }, []);
+
     function calculatePopoverImageScale() {
         let scale;
         let screenWidth = window.innerWidth;
+        let isDesktop = window.innerWidth > 1200;
         if (screenWidth < 768) {
-            scale = 0.5;
+            scale = isDesktop ? 0.5 : 0.25;
         } else if (screenWidth < 992) {
-            scale = 0.35;
+            scale = isDesktop ? 0.35 : 0.175;
         } else {
-            scale = 0.2;
+            scale = isDesktop ? 0.2 : 0.15;
         }
         return (screenWidth / 414) * scale;
     }
@@ -165,12 +177,13 @@ function TeamPage() {
     function calculatePopoverCircleRadius() {
         let scale;
         let screenWidth = window.innerWidth;
+        let isDesktop = window.innerWidth > 1200;
         if (screenWidth < 768) {
-            scale = 0.5;
+            scale = isDesktop ? 0.5 : 0.25;
         } else if (screenWidth < 992) {
-            scale = 0.35;
+            scale = isDesktop ? 0.35 : 0.175;
         } else {
-            scale = 0.2;
+            scale = isDesktop ? 0.2 : 0.15;
         }
         return (screenWidth / 25) * scale;
     }
@@ -202,19 +215,29 @@ function TeamPage() {
     }, []);
 
     const resizePopover = useCallback(() => {
-        if (currentPopoverData !== null && tab === 2) {
+        if (tab === 2) {
             clearTimeout(doResize);
-            doResize = setTimeout(() => drawPopoverImage(currentPopoverData.point, currentPopoverData.id), 250);
+            if (isDesktop && currentPopoverData !== null) {
+                doResize = setTimeout(() => drawPopoverImage(currentPopoverData.point, currentPopoverData.id), 250);
+            } else {
+                doResize = setTimeout(() => sortMatches(matchForms).map((match) => drawPopoverImage(match.startingPosition, match._id)), 250);
+            }
         } else {
             clearTimeout(doResize);
         }
-    }, [drawPopoverImage, currentPopoverData, tab]);
+    }, [drawPopoverImage, currentPopoverData, tab, isDesktop, matchForms]);
 
     useEffect(() => {
         window.addEventListener('resize', resizePopover);
 
         return () => window.removeEventListener('resize', resizePopover);
     }, [resizePopover]);
+
+    useEffect(() => {
+        if (tab === 2 && !isDesktop) {
+            sortMatches(matchForms).map((match) => drawPopoverImage(match.startingPosition, match._id));
+        }
+    }, [tab, isDesktop, matchForms, drawPopoverImage]);
 
     if (error) {
         return (
@@ -474,194 +497,245 @@ function TeamPage() {
             case 2:
                 return matchForms.length > 0 ? (
                     <Box marginBottom={'25px'}>
-                        <Box overflowX={'auto'}>
-                            <Grid minW={'1490px'} margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Match # : Station
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Scouter
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Lower Hub (Auto)
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Upper Hub (Auto)
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Missed (Auto)
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Starting Position
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Taxi
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Lower Hub (Tele)
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Upper Hub (Tele)
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Missed (Tele)
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Climb Time
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Climb Rung
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Played Defense (1-5)
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        Comments
-                                    </Text>
-                                </GridItem>
-                            </Grid>
-                            {sortMatches(matchForms).map((match, index) => (
-                                <Grid
-                                    minW={'1490px'}
-                                    margin={'0 auto'}
-                                    borderTop={'1px solid black'}
-                                    backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'}
-                                    key={match._id}
-                                    templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
-                                    gap={'5px'}
-                                >
+                        {!isDesktop ? (
+                            sortMatches(matchForms).map((match) => (
+                                <div key={match._id} className='grid'>
+                                    <div className='grid-column'>
+                                        <div className='grid-item header'>
+                                            {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                        </div>
+                                        <div className='grid-item header'>{`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}</div>
+                                    </div>
+                                    <div className='grid-column'>
+                                        <div className='grid-item header'>Pre-Auto</div>
+                                        <div className='grid-item header'>Auto</div>
+                                        <div className='grid-item header'>Post-Auto</div>
+                                    </div>
+                                    <div className='grid-column'>
+                                        <div className='grid-item' style={{ textAlign: 'center' }}>
+                                            <Center paddingTop={'5px'} paddingBottom={'5px'} pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                <Spinner pos={'absolute'} zIndex={-1}></Spinner>
+                                                <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 0 }}></canvas>
+                                            </Center>
+                                        </div>
+                                        <div className='grid-item'>
+                                            <div>Lower Hub: {match.lowerCargoAuto}</div>
+                                            <div>Upper Hub: {match.upperCargoAuto}</div>
+                                            <div>Missed: {match.missedAuto}</div>
+                                        </div>
+                                        <Box className='grid-item'>
+                                            <div>Taxi: {match.crossTarmac ? 'Yes' : 'No'}</div>
+                                            <Text flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
+                                                Auto Comment: {match.autoComment || 'None'}
+                                            </Text>
+                                        </Box>
+                                    </div>
+                                    <div className='grid-column'>
+                                        <div className='grid-item header'>Teleop</div>
+                                        <div className='grid-item header'>End-Game</div>
+                                        <div className='grid-item header'>Post-Game</div>
+                                    </div>
+                                    <div className='grid-column'>
+                                        <div className='grid-item'>
+                                            <div>Lower Hub: {match.lowerCargoTele}</div>
+                                            <div>Upper Hub: {match.upperCargoTele}</div>
+                                            <div>Missed: {match.missedTele}</div>
+                                        </div>
+                                        <div className='grid-item'>
+                                            <div>Climb Time: {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}</div>
+                                            <div>Rung: {match.climbTime > 0 ? match.climbRung : 'N/A'}</div>
+                                        </div>
+                                        <div className='grid-item'>
+                                            <div>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
+                                            <Text flexBasis={'100px'} flexGrow={2} overflowY={'auto'}>
+                                                End Comment: {match.endComment || 'None'}
+                                            </Text>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))
+                        ) : (
+                            <Box>
+                                <Grid margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            Match # : Station
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            Scouter
+                                        </Text>
+                                    </GridItem>
                                     <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                            Lower Hub (Auto)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}
+                                            Upper Hub (Auto)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.lowerCargoAuto}
+                                            Missed (Auto)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.upperCargoAuto}
+                                            Starting Position
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.missedAuto}
-                                        </Text>
-                                    </GridItem>
-                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                        <Popover
-                                            onOpen={() => {
-                                                drawPopoverImage(match.startingPosition, match._id);
-                                                setCurrentPopoverData({ point: match.startingPosition, id: match._id });
-                                            }}
-                                            onClose={() => setCurrentPopoverData(null)}
-                                            flip={false}
-                                            placement='bottom'
-                                        >
-                                            <PopoverTrigger>
-                                                <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<GrMap />} _focus={{ outline: 'none' }} size='sm' />
-                                            </PopoverTrigger>
-                                            <PopoverContent padding={'25px'} width={'max-content'} height={'max-content'} _focus={{ outline: 'none' }}>
-                                                <PopoverArrow />
-                                                <PopoverCloseButton />
-                                                <PopoverBody>
-                                                    <Center>
-                                                        <Spinner pos={'absolute'} zIndex={-1}></Spinner>
-                                                        <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 0 }}></canvas>
-                                                    </Center>
-                                                </PopoverBody>
-                                            </PopoverContent>
-                                        </Popover>
-                                    </GridItem>
-                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.crossTarmac ? 'Yes' : 'No'}
+                                            Taxi
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.lowerCargoTele}
+                                            Lower Hub (Tele)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.upperCargoTele}
+                                            Upper Hub (Tele)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.missedTele}
+                                            Missed (Tele)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}
+                                            Climb Time
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.climbTime > 0 ? match.climbRung : 'N/A'}
+                                            Climb Rung
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            {match.defenseRating > 0 ? match.defenseRating : 'N/A'}
+                                            Played Defense (1-5)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                        <Popover flip={false} placement='bottom-start'>
-                                            <PopoverTrigger>
-                                                <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<BiCommentEdit />} _focus={{ outline: 'none' }} size='sm' />
-                                            </PopoverTrigger>
-                                            <PopoverContent key={uuidv4()} maxWidth={'75vw'} padding={'15px'} _focus={{ outline: 'none' }}>
-                                                <PopoverArrow />
-                                                <PopoverCloseButton />
-                                                <PopoverBody>
-                                                    <Box>
-                                                        <Text>Auto Comment: {match.autoComment || 'None'}</Text>
-                                                        <Text>End Comment: {match.endComment || 'None'}</Text>
-                                                    </Box>
-                                                </PopoverBody>
-                                            </PopoverContent>
-                                        </Popover>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            Comments
+                                        </Text>
                                     </GridItem>
                                 </Grid>
-                            ))}
-                        </Box>
+                                {sortMatches(matchForms).map((match, index) => (
+                                    <Grid margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={match._id} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
+                                        <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.lowerCargoAuto}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.upperCargoAuto}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.missedAuto}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Popover
+                                                onOpen={() => {
+                                                    drawPopoverImage(match.startingPosition, match._id);
+                                                    setCurrentPopoverData({ point: match.startingPosition, id: match._id });
+                                                }}
+                                                onClose={() => setCurrentPopoverData(null)}
+                                                flip={false}
+                                                placement='bottom'
+                                            >
+                                                <PopoverTrigger>
+                                                    <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<GrMap />} _focus={{ outline: 'none' }} size='sm' />
+                                                </PopoverTrigger>
+                                                <PopoverContent padding={'25px'} width={'max-content'} height={'max-content'} _focus={{ outline: 'none' }}>
+                                                    <PopoverArrow />
+                                                    <PopoverCloseButton />
+                                                    <PopoverBody>
+                                                        <Center>
+                                                            <Spinner pos={'absolute'} zIndex={-1}></Spinner>
+                                                            <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 0 }}></canvas>
+                                                        </Center>
+                                                    </PopoverBody>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.crossTarmac ? 'Yes' : 'No'}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.lowerCargoTele}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.upperCargoTele}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.missedTele}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.climbTime > 0 ? match.climbRung : 'N/A'}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.defenseRating > 0 ? match.defenseRating : 'N/A'}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Popover flip={false} placement='bottom-start'>
+                                                <PopoverTrigger>
+                                                    <IconButton pos={'relative'} top={'50%'} transform={'translateY(-50%)'} icon={<BiCommentEdit />} _focus={{ outline: 'none' }} size='sm' />
+                                                </PopoverTrigger>
+                                                <PopoverContent key={uuidv4()} maxWidth={'75vw'} padding={'15px'} _focus={{ outline: 'none' }}>
+                                                    <PopoverArrow />
+                                                    <PopoverCloseButton />
+                                                    <PopoverBody>
+                                                        <Box>
+                                                            <Text>Auto Comment: {match.autoComment || 'None'}</Text>
+                                                            <Text>End Comment: {match.endComment || 'None'}</Text>
+                                                        </Box>
+                                                    </PopoverBody>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </GridItem>
+                                    </Grid>
+                                ))}
+                            </Box>
+                        )}
                     </Box>
                 ) : (
                     <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>

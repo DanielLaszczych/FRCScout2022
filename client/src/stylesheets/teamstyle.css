@@ -49,6 +49,41 @@
     min-width: 50%;
 }
 
+.grid {
+    display: flex;
+    flex: 0 0 50%;
+    border: 1px solid black;
+    flex-direction: column;
+    margin-bottom: 25px;
+}
+.grid-column {
+    display: flex;
+    flex: 1 0 auto;
+}
+
+.grid .grid-column:nth-child(3n) {
+    background-color: #f9f9f9;
+}
+
+.grid .grid-column:nth-child(5n) {
+    background: white;
+}
+
+.grid-item {
+    flex: 1 1 0px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid black;
+    line-height: 2em;
+    padding: 0 5px;
+}
+
+.header {
+    background: var(--chakra-colors-gray-300);
+    font-weight: bold;
+    text-align: center;
+}
+
 @media all and (max-width: 480px) {
     .robotFlex1 {
         min-width: 100%;
