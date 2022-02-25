@@ -71,6 +71,7 @@ function MatchForm() {
     const [validMatch, setValidMatch] = useState(false); //Used to check if the eventKeyParam and matchNumberParam leads to an actual match by using TBA API
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [matchFormDialog, setMatchFormDialog] = useState(false);
+    const [fieldRotation, setFieldRotation] = useState(0);
     const [loadResponse, setLoadResponse] = useState(null);
     const initialDrawn = useRef(false);
     const safeToSave = useRef(false);
@@ -267,6 +268,8 @@ function MatchForm() {
                     ctx.lineWidth = '4';
                     ctx.strokeStyle = 'green';
                     ctx.beginPath();
+                    let pointX = (point.x - 207) * Math.cos(Math.PI) - (point.y - 207) * Math.sin(Math.PI) + 207;
+                    let pointY = (point.x - 207) * Math.sin(Math.PI) + (point.y - 207) * Math.cos(Math.PI) + 207;
                     ctx.arc(point.x * calculateImageScale(), point.y * calculateImageScale(), calculateCircleRadius(), 0, 2 * Math.PI);
                     ctx.stroke();
                 }
