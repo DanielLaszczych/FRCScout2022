@@ -217,6 +217,7 @@ function TeamPage() {
     const resizePopover = useCallback(() => {
         if (tab === 2) {
             clearTimeout(doResize);
+            console.log('resizing captured, starting redraw');
             if (isDesktop && currentPopoverData !== null) {
                 doResize = setTimeout(() => drawPopoverImage(currentPopoverData.point, currentPopoverData.id), 250);
             } else {
