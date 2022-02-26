@@ -15,6 +15,7 @@ import {
     Checkbox,
     Flex,
     HStack,
+    IconButton,
     Slider,
     SliderFilledTrack,
     SliderMark,
@@ -35,8 +36,10 @@ import CustomMinusButton from '../components/CustomMinusButton';
 import CustomPlusButton from '../components/CustomPlusButton';
 import StopWatch from '../components/StopWatch';
 import { UPDATE_MATCHFORM } from '../graphql/mutations';
+import { AiOutlineRotateRight } from 'react-icons/ai';
 
 let tabs = ['Pre-Auto', 'Auto', 'Post-Auto', 'Teleop', 'Post-Game'];
+let rotations = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
 let rungs = [
     { label: 'Low Rung', id: uuidv4() },
     { label: 'Mid Rung', id: uuidv4() },
@@ -71,7 +74,7 @@ function MatchForm() {
     const [validMatch, setValidMatch] = useState(false); //Used to check if the eventKeyParam and matchNumberParam leads to an actual match by using TBA API
     const [submitAttempted, setSubmitAttempted] = useState(false);
     const [matchFormDialog, setMatchFormDialog] = useState(false);
-    const [fieldRotation, setFieldRotation] = useState(0);
+    const [fieldRotationIndex, setFieldRotationIndex] = useState(0);
     const [loadResponse, setLoadResponse] = useState(null);
     const initialDrawn = useRef(false);
     const safeToSave = useRef(false);
@@ -145,6 +148,9 @@ function MatchForm() {
             }
         } else {
             setLoadResponse(false);
+        }
+        if (localStorage.getItem('Field Rotation')) {
+            setFieldRotationIndex(parseInt(localStorage.getItem('Field Rotation')));
         }
     }, [eventKeyParam, matchNumberParam, stationParam]);
 
@@ -249,7 +255,7 @@ function MatchForm() {
         return (screenWidth / 25) * scale;
     }
 
-    const drawImage = useCallback((point) => {
+    const drawImage = useCallback((point, rotation) => {
         const canvasElement = canvas.current;
         if (canvasElement !== null) {
             const ctx = canvasElement.getContext('2d');
@@ -259,6 +265,11 @@ function MatchForm() {
                 let scale = calculateImageScale();
                 canvasElement.width = 414 * scale;
                 canvasElement.height = 414 * scale;
+                ctx.translate(207 * scale, 207 * scale);
+                // ctx.setTransform(scale, 0, 0, scale, 207 * scale, 207 * scale); // sets scale and origin
+                ctx.rotate(rotation);
+                ctx.translate(-207 * scale, -207 * scale);
+                // ctx.drawImage(img, -207, -207);
                 ctx.drawImage(img, 0, 0, 414 * scale, 414 * scale);
                 if (swiper.current) {
                     swiper.current.swiper.update();
@@ -268,8 +279,8 @@ function MatchForm() {
                     ctx.lineWidth = '4';
                     ctx.strokeStyle = 'green';
                     ctx.beginPath();
-                    let pointX = (point.x - 207) * Math.cos(Math.PI) - (point.y - 207) * Math.sin(Math.PI) + 207;
-                    let pointY = (point.x - 207) * Math.sin(Math.PI) + (point.y - 207) * Math.cos(Math.PI) + 207;
+                    // let pointX = (point.x - 207) * Math.cos(rotation) - (point.y - 207) * Math.sin(rotation) + 207;
+                    // let pointY = (point.x - 207) * Math.sin(rotation) + (point.y - 207) * Math.cos(rotation) + 207;
                     ctx.arc(point.x * calculateImageScale(), point.y * calculateImageScale(), calculateCircleRadius(), 0, 2 * Math.PI);
                     ctx.stroke();
                 }
@@ -281,9 +292,9 @@ function MatchForm() {
     const resizeCanvas = useCallback(() => {
         if (initialDrawn.current) {
             clearTimeout(doResize);
-            doResize = setTimeout(() => drawImage(matchFormData.startingPosition), 250);
+            doResize = setTimeout(() => drawImage(matchFormData.startingPosition, rotations[fieldRotationIndex]), 250);
         }
-    }, [drawImage, matchFormData.startingPosition]);
+    }, [drawImage, matchFormData.startingPosition, fieldRotationIndex]);
 
     useEffect(() => {
         window.addEventListener('resize', resizeCanvas);
@@ -293,9 +304,9 @@ function MatchForm() {
 
     useEffect(() => {
         if (!matchFormData.loading && activeSlider === 0 && eventName && teamName) {
-            drawImage(matchFormData.startingPosition);
+            drawImage(matchFormData.startingPosition, rotations[fieldRotationIndex]);
         }
-    }, [matchFormData.loading, activeSlider, drawImage, matchFormData.startingPosition, eventName, teamName]);
+    }, [matchFormData.loading, activeSlider, drawImage, matchFormData.startingPosition, eventName, teamName, fieldRotationIndex]);
 
     useEffect(() => {
         if (swiper.current) {
@@ -355,6 +366,7 @@ function MatchForm() {
                 duration: 3000,
                 isClosable: true,
             });
+            localStorage.setItem('Field Rotation', fieldRotationIndex);
             if (location.state && location.state.previousRoute && location.state.previousRoute === 'matches') {
                 navigate('/matches');
             } else {
@@ -471,9 +483,12 @@ function MatchForm() {
                                     No
                                 </Button>
                             </HStack>
-                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Starting Position:
-                            </Text>
+                            <HStack marginBottom={'10px'} spacing={'auto'}>
+                                <Text fontWeight={'bold'} fontSize={'110%'}>
+                                    Starting Position:
+                                </Text>
+                                <IconButton _focus={{ outline: 'none' }} onClick={() => setFieldRotationIndex(fieldRotationIndex === 3 ? 0 : fieldRotationIndex + 1)} icon={<AiOutlineRotateRight />}></IconButton>
+                            </HStack>
                             <Center marginBottom={'10px'}>
                                 <Spinner pos={'absolute'} zIndex={-1}></Spinner>
                                 <canvas
@@ -481,10 +496,21 @@ function MatchForm() {
                                     height={414 * calculateImageScale()}
                                     style={{ zIndex: 2, outline: matchFormData.startingPosition.x === null && submitAttempted && !matchFormData.followUp ? '4px solid red' : 'none' }}
                                     onClick={(event) => {
-                                        var bounds = event.target.getBoundingClientRect();
-                                        var x = event.clientX - bounds.left;
-                                        var y = event.clientY - bounds.top;
-                                        setMatchFormData({ ...matchFormData, startingPosition: { x: x / calculateImageScale(), y: y / calculateImageScale() } });
+                                        let bounds = event.target.getBoundingClientRect();
+                                        let x = event.clientX - bounds.left;
+                                        let y = event.clientY - bounds.top;
+                                        let pointX =
+                                            (x - 207 * calculateImageScale()) * Math.cos(2 * Math.PI - rotations[fieldRotationIndex]) -
+                                            (y - 207 * calculateImageScale()) * Math.sin(2 * Math.PI - rotations[fieldRotationIndex]) +
+                                            207 * calculateImageScale();
+                                        let pointY =
+                                            (x - 207 * calculateImageScale()) * Math.sin(2 * Math.PI - rotations[fieldRotationIndex]) +
+                                            (y - 207 * calculateImageScale()) * Math.cos(2 * Math.PI - rotations[fieldRotationIndex]) +
+                                            207 * calculateImageScale();
+                                        setMatchFormData({
+                                            ...matchFormData,
+                                            startingPosition: { x: pointX / calculateImageScale(), y: pointY / calculateImageScale() },
+                                        });
                                     }}
                                     ref={canvas}
                                 ></canvas>
@@ -703,7 +729,7 @@ function MatchForm() {
                                 </Button>
                             </HStack>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Robot broke:
+                                Robot Broke:
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button

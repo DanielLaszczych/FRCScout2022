@@ -14,6 +14,7 @@ let titleMap = [
     { path: '/pitForm', title: 'Pit Form' },
     { path: '/preMatchForm', title: 'Pre Match Form' },
     { path: '/matchForm', title: 'Match Form' },
+    { path: '/matchAnalysis', title: 'Match Analysis' },
     { path: '/team', title: 'Team' },
     { path: '/admin', title: 'Admin' },
 ];
@@ -118,7 +119,7 @@ function NavBar() {
                             <MenuItem as={Link} to={'/matches'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
                                 Matches
                             </MenuItem>
-                            <MenuItem as={Link} to={'/analysis'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
+                            <MenuItem as={Link} to={'/matchAnalysis'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
                                 Analysis
                             </MenuItem>
                             <MenuItem as={Link} to={'/admin'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>

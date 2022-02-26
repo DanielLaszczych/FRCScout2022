@@ -1,6 +1,6 @@
 import { Center, Spinner } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import Field from '../images/HeatMapField2.png';
+import Field from '../images/Field.png';
 import { getStartingPoints, roundToHundredth } from '../util/helperFunctions';
 import { median, sum } from 'mathjs';
 

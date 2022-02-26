@@ -77,6 +77,7 @@ module.exports = gql`
         getMatchFormByStation(eventKey: String!, matchNumber: String!, station: String!): MatchForm
         getTeamsMatchForms(teamNumber: Int!): [MatchForm]
         getMatchFormsFromMatch(eventKey: String!, matchNumber: String!): [MatchForm]
+        getMatchFormsForAnalysis(eventKey: String!, teams: [Int!]!): [MatchForm]
         getEventsMatchForms(eventKey: String!): [MatchForm]
     }
 

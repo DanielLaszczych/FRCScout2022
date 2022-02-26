@@ -52,6 +52,17 @@ module.exports = {
                 throw new Error(err);
             }
         },
+        async getMatchFormsForAnalysis(_, { eventKey, teams }, context) {
+            if (!context.req.user) {
+                throw new Error('You must be logged in');
+            }
+            try {
+                const matchForms = await MatchForm.find({ eventKey: eventKey, teamNumber: { $in: teams } }).exec();
+                return matchForms;
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
         async getEventsMatchForms(_, { eventKey }, context) {
             if (!context.req.user) {
                 throw new Error('You must be logged in');

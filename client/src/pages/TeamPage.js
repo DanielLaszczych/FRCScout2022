@@ -269,7 +269,7 @@ function TeamPage() {
                 return (
                     <Flex flexWrap={'wrap'}>
                         <Box flex={1} className='robotFlex1'>
-                            <Box w={'100%'} margin={'0 auto'} marginBottom={'25px'} textAlign={'center'} padding={'10px'} paddingBottom={'0px'}>
+                            <Box w={'100%'} margin={'0 auto'} marginBottom={'25px'} textAlign={'center'} padding={'0 10px'}>
                                 <Text marginBottom={'0px'} fontWeight={'600'} fontSize={'150%'}>
                                     Team Number: {teamNumberParam}
                                 </Text>
@@ -524,7 +524,7 @@ function TeamPage() {
                                             <div>Missed: {match.missedAuto}</div>
                                         </div>
                                         <Box className='grid-item'>
-                                            <div>Taxi: {match.crossTarmac ? 'Yes' : 'No'}</div>
+                                            <div style={{ borderBottom: '1px solid black', margin: '0 -5px', padding: '0 5px' }}>Taxi: {match.crossTarmac ? 'Yes' : 'No'}</div>
                                             <Text flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
                                                 Auto Comment: {match.autoComment || 'None'}
                                             </Text>
@@ -546,7 +546,7 @@ function TeamPage() {
                                             <div>Rung: {match.climbTime > 0 ? match.climbRung : 'N/A'}</div>
                                         </div>
                                         <div className='grid-item'>
-                                            <div>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
+                                            <div style={{ borderBottom: '1px solid black', margin: '0 -5px', padding: '0 5px' }}>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
                                             <Text flexBasis={'100px'} flexGrow={2} overflowY={'auto'}>
                                                 End Comment: {match.endComment || 'None'}
                                             </Text>
@@ -745,9 +745,45 @@ function TeamPage() {
             case 3:
                 return matchForms.length > 0 ? (
                     <Box marginBottom={'25px'}>
-                        <Center>
+                        <Center marginBottom={'10px'}>
                             <HeatMap data={matchForms} largeScale={0.2} mediumScale={0.5} smallScale={0.8} maxOccurances={3}></HeatMap>
                         </Center>
+                        <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+                            {matchForms.filter((matchForm) => matchForm.yellowCard || matchForm.redCard || matchForm.robotBreak || matchForm.loseCommunication).length === 0 ? 'No Concerns' : 'Concerns'}
+                        </Box>
+                        {sortMatches(matchForms.filter((matchForm) => matchForm.yellowCard || matchForm.redCard || matchForm.robotBreak || matchForm.loseCommunication)).map((match) => (
+                            <div key={match._id} style={{ marginTop: '10px' }} className='grid'>
+                                <div className='grid-column'>
+                                    <div className='grid-item header'>
+                                        {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                    </div>
+                                    <div className='grid-item header'>{`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}</div>
+                                </div>
+                                <div className='grid-column'>
+                                    <div className='grid-item header'>Problems</div>
+                                    <div className='grid-item header'>Auto Comment</div>
+                                    <div className='grid-item header'>End Comment</div>
+                                </div>
+                                <div className='grid-column'>
+                                    <div className='grid-item'>
+                                        {match.loseCommunication ? <div style={{ wordBreak: 'break-word' }}>Lost Communication</div> : null}
+                                        {match.robotBreak ? <div>Robot broke</div> : null}
+                                        {match.yellowCard ? <div>Yellow Card Given</div> : null}
+                                        {match.redCard ? <div>Red Card Given</div> : null}
+                                    </div>
+                                    <Box className='grid-item'>
+                                        <Text flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
+                                            Auto Comment: {match.autoComment || 'None'}
+                                        </Text>
+                                    </Box>
+                                    <Box className='grid-item'>
+                                        <Text flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
+                                            End Comment: {match.endComment || 'None'}
+                                        </Text>
+                                    </Box>
+                                </div>
+                            </div>
+                        ))}
                     </Box>
                 ) : (
                     <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
