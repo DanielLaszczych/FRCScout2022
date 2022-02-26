@@ -227,12 +227,14 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
 
     useEffect(() => {
         // Create a new canvas element and append as a child it to main canvas
+        console.log('initial drawing');
         draw();
         drawFieldCanvas();
     }, [draw, drawFieldCanvas]);
 
     const resizeHeatMap = useCallback(() => {
         clearTimeout(doResize);
+        console.log('resizing captured, starting redraw');
         doResize = setTimeout(() => {
             draw();
             drawFieldCanvas();
