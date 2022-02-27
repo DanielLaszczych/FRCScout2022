@@ -33,7 +33,7 @@ function MatchAnalystPage() {
     const [focusedEvent, setFocusedEvent] = useState('');
     const [matchType, setMatchType] = useState('');
     const [focusedMatchType, setFocusedMatchType] = useState('');
-    const [matchNumber, setMatchNumber] = useState(null);
+    const [matchNumber, setMatchNumber] = useState('');
     const [tieBreaker, setTieBreaker] = useState(false);
     const [fetchingTeams, setFetchingTeams] = useState(false);
     const [teams, setTeams] = useState(null);
@@ -370,7 +370,10 @@ function MatchAnalystPage() {
                                     backgroundColor={(currentEvent.name === eventItem.name && focusedEvent === '') || focusedEvent === eventItem.name ? 'gray.100' : 'none'}
                                     maxW={'75vw'}
                                     key={eventItem.key}
-                                    onClick={() => setCurrentEvent({ name: eventItem.name, key: eventItem.key })}
+                                    onClick={() => {
+                                        setTeams(null);
+                                        setCurrentEvent({ name: eventItem.name, key: eventItem.key });
+                                    }}
                                 >
                                     {eventItem.name}
                                 </MenuItem>
@@ -409,7 +412,7 @@ function MatchAnalystPage() {
                 </Box>
                 <HStack margin={'0 auto'} marginBottom={'10px'} justifyContent='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
                     {matchType !== '' ? (
-                        <NumberInput value={matchNumber} onChange={(value) => setMatchNumber(parseInt(value))} precision={0}>
+                        <NumberInput value={matchNumber} onChange={(value) => setMatchNumber(value !== '' ? parseInt(value) : '')} precision={0}>
                             <NumberInputField
                                 h={'45px'}
                                 textAlign={'center'}
