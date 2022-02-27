@@ -29,6 +29,11 @@ const cache = new InMemoryCache({
                         return incoming;
                     },
                 },
+                getMatchFormsForAnalysis: {
+                    merge(existing, incoming) {
+                        return incoming;
+                    },
+                },
             },
         },
     },
