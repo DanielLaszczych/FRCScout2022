@@ -238,3 +238,41 @@ export const GET_TEAMS_MATCHFORMS = gql`
         }
     }
 `;
+
+export const GET_MATCHFORMS_FOR_ANALYSIS = gql`
+    query ($eventKey: String!, $teams: [Int!]!) {
+        getMatchFormsForAnalysis(eventKey: $eventKey, teams: $teams) {
+            _id
+            eventKey
+            eventName
+            station
+            matchNumber
+            teamNumber
+            teamName
+            scouter
+            preLoadedCargo
+            startingPosition {
+                _id
+                x
+                y
+            }
+            missedAuto
+            lowerCargoAuto
+            upperCargoAuto
+            crossTarmac
+            autoComment
+            missedTele
+            lowerCargoTele
+            upperCargoTele
+            climbTime
+            climbRung
+            defenseRating
+            loseCommunication
+            robotBreak
+            yellowCard
+            redCard
+            endComment
+            followUp
+        }
+    }
+`;

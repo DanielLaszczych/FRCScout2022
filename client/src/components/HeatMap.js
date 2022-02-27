@@ -11,7 +11,6 @@ let defaultGradient = {
     0.8: 'yellow',
     1.0: 'red',
 };
-let doResize;
 
 function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
     const canvas = useRef(null);
@@ -22,6 +21,7 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
     const gradient = useRef(null);
     const analysis = useRef([]);
     const prevWidth = useRef(window.innerWidth);
+    const doResize = useRef(null);
 
     const [loadingHeatMap, setLoadingHeatMap] = useState(true);
     const [loadingField, setLoadingField] = useState(true);
@@ -228,18 +228,16 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
 
     useEffect(() => {
         // Create a new canvas element and append as a child it to main canvas
-        console.log('initial drawing');
         prevWidth.current = window.innerWidth;
         draw();
         drawFieldCanvas();
     }, [draw, drawFieldCanvas]);
 
     const resizeHeatMap = useCallback(() => {
-        clearTimeout(doResize);
+        clearTimeout(doResize.current);
         if (window.innerWidth !== prevWidth.current) {
             prevWidth.current = window.innerWidth;
-            console.log('resizing captured, starting redraw');
-            doResize = setTimeout(() => {
+            doResize.current = setTimeout(() => {
                 draw();
                 drawFieldCanvas();
             }, 250);

@@ -22,7 +22,7 @@ import {
     Spinner,
     Text,
 } from '@chakra-ui/react';
-import { React, useCallback, useEffect, useState } from 'react';
+import { React, useCallback, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { GET_CURRENT_EVENT, GET_TEAMS_MATCHFORMS, GET_TEAMS_PITFORMS } from '../graphql/queries';
 import { year } from '../util/constants';
@@ -64,6 +64,7 @@ function TeamPage() {
     const [tab, setTab] = useState(0);
     const [currentPopoverData, setCurrentPopoverData] = useState(null);
     const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1200);
+    const prevWidth = useRef(window.innerWidth);
 
     useEffect(() => {
         fetch(`/blueAlliance/team/frc${teamNumberParam}/events/${year}/simple`)
@@ -217,11 +218,13 @@ function TeamPage() {
     const resizePopover = useCallback(() => {
         if (tab === 2) {
             clearTimeout(doResize);
-            console.log('resizing captured, starting redraw');
-            if (isDesktop && currentPopoverData !== null) {
-                doResize = setTimeout(() => drawPopoverImage(currentPopoverData.point, currentPopoverData.id), 250);
-            } else {
-                doResize = setTimeout(() => sortMatches(matchForms).map((match) => drawPopoverImage(match.startingPosition, match._id)), 250);
+            if (window.innerWidth !== prevWidth.current) {
+                prevWidth.current = window.innerWidth;
+                if (isDesktop && currentPopoverData !== null) {
+                    doResize = setTimeout(() => drawPopoverImage(currentPopoverData.point, currentPopoverData.id), 250);
+                } else {
+                    doResize = setTimeout(() => sortMatches(matchForms).map((match) => drawPopoverImage(match.startingPosition, match._id)), 250);
+                }
             }
         } else {
             clearTimeout(doResize);
@@ -236,6 +239,7 @@ function TeamPage() {
 
     useEffect(() => {
         if (tab === 2 && !isDesktop) {
+            prevWidth.current = window.innerWidth;
             sortMatches(matchForms).map((match) => drawPopoverImage(match.startingPosition, match._id));
         }
     }, [tab, isDesktop, matchForms, drawPopoverImage]);
@@ -513,20 +517,20 @@ function TeamPage() {
                                         <div className='grid-item header'>Post-Auto</div>
                                     </div>
                                     <div className='grid-column'>
-                                        <div className='grid-item' style={{ textAlign: 'center' }}>
+                                        <div className='grid-item'>
                                             <Center paddingTop={'5px'} paddingBottom={'5px'} pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                                 <Spinner pos={'absolute'} zIndex={-1}></Spinner>
                                                 <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 0 }}></canvas>
                                             </Center>
                                         </div>
                                         <div className='grid-item'>
-                                            <div>Lower Hub: {match.lowerCargoAuto}</div>
-                                            <div>Upper Hub: {match.upperCargoAuto}</div>
+                                            <div className='grid-text-item'>Lower Hub: {match.lowerCargoAuto}</div>
+                                            <div className='grid-text-item'>Upper Hub: {match.upperCargoAuto}</div>
                                             <div>Missed: {match.missedAuto}</div>
                                         </div>
                                         <Box className='grid-item'>
-                                            <div style={{ borderBottom: '1px solid black', margin: '0 -5px', padding: '0 5px' }}>Taxi: {match.crossTarmac ? 'Yes' : 'No'}</div>
-                                            <Text flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
+                                            <div className='grid-text-item'>Taxi: {match.crossTarmac ? 'Yes' : 'No'}</div>
+                                            <Text className='grid-comment-item' flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
                                                 Auto Comment: {match.autoComment || 'None'}
                                             </Text>
                                         </Box>
@@ -538,17 +542,17 @@ function TeamPage() {
                                     </div>
                                     <div className='grid-column'>
                                         <div className='grid-item'>
-                                            <div>Lower Hub: {match.lowerCargoTele}</div>
-                                            <div>Upper Hub: {match.upperCargoTele}</div>
+                                            <div className='grid-text-item'>Lower Hub: {match.lowerCargoTele}</div>
+                                            <div className='grid-text-item'>Upper Hub: {match.upperCargoTele}</div>
                                             <div>Missed: {match.missedTele}</div>
                                         </div>
                                         <div className='grid-item'>
-                                            <div>Climb Time: {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}</div>
+                                            <div className='grid-text-item'>Climb Time: {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}</div>
                                             <div>Rung: {match.climbTime > 0 ? match.climbRung : 'N/A'}</div>
                                         </div>
                                         <div className='grid-item'>
-                                            <div style={{ borderBottom: '1px solid black', margin: '0 -5px', padding: '0 5px' }}>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
-                                            <Text flexBasis={'100px'} flexGrow={2} overflowY={'auto'}>
+                                            <div className='grid-text-item'>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
+                                            <Text className='grid-comment-item' flexBasis={'100px'} flexGrow={2} overflowY={'auto'}>
                                                 End Comment: {match.endComment || 'None'}
                                             </Text>
                                         </div>
@@ -659,6 +663,7 @@ function TeamPage() {
                                         <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                             <Popover
                                                 onOpen={() => {
+                                                    prevWidth.current = window.innerWidth;
                                                     drawPopoverImage(match.startingPosition, match._id);
                                                     setCurrentPopoverData({ point: match.startingPosition, id: match._id });
                                                 }}

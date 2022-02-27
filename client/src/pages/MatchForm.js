@@ -66,6 +66,7 @@ function MatchForm() {
     const canvas = useRef(null);
     const swiper = useRef(null);
     const cancelRef = useRef(null);
+    const prevWidth = useRef(window.innerWidth);
 
     const [activeSlider, setActiveSlider] = useState(null);
     const [teamNumber, setTeamNumber] = useState(null);
@@ -292,7 +293,10 @@ function MatchForm() {
     const resizeCanvas = useCallback(() => {
         if (initialDrawn.current) {
             clearTimeout(doResize);
-            doResize = setTimeout(() => drawImage(matchFormData.startingPosition, rotations[fieldRotationIndex]), 250);
+            if (window.innerWidth !== prevWidth.current) {
+                prevWidth.current = window.innerWidth;
+                doResize = setTimeout(() => drawImage(matchFormData.startingPosition, rotations[fieldRotationIndex]), 250);
+            }
         }
     }, [drawImage, matchFormData.startingPosition, fieldRotationIndex]);
 
@@ -304,6 +308,7 @@ function MatchForm() {
 
     useEffect(() => {
         if (!matchFormData.loading && activeSlider === 0 && eventName && teamName) {
+            prevWidth.current = window.innerWidth;
             drawImage(matchFormData.startingPosition, rotations[fieldRotationIndex]);
         }
     }, [matchFormData.loading, activeSlider, drawImage, matchFormData.startingPosition, eventName, teamName, fieldRotationIndex]);
