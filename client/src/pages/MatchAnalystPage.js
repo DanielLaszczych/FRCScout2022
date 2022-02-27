@@ -409,7 +409,7 @@ function MatchAnalystPage() {
                 </Box>
                 <HStack margin={'0 auto'} marginBottom={'10px'} justifyContent='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
                     {matchType !== '' ? (
-                        <NumberInput onChange={(value) => setMatchNumber(parseInt(value))} precision={0}>
+                        <NumberInput value={matchNumber} onChange={(value) => setMatchNumber(parseInt(value))} precision={0}>
                             <NumberInputField
                                 h={'45px'}
                                 textAlign={'center'}
