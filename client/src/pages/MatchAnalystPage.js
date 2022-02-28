@@ -37,6 +37,14 @@ function MatchAnalystPage() {
     const [tieBreaker, setTieBreaker] = useState(false);
     const [fetchingTeams, setFetchingTeams] = useState(false);
     const [teams, setTeams] = useState(null);
+    const [collapseStates, setCollapseStates] = useState({
+        Red1: false,
+        Red2: false,
+        Red3: false,
+        Blue1: false,
+        Blue2: false,
+        Blue3: false,
+    });
 
     const {
         loading: loadingEvents,
@@ -165,6 +173,18 @@ function MatchAnalystPage() {
         },
     });
 
+    function setAllToShow() {
+        let newStates = {
+            Red1: false,
+            Red2: false,
+            Red3: false,
+            Blue1: false,
+            Blue2: false,
+            Blue3: false,
+        };
+        setCollapseStates(newStates);
+    }
+
     function renderTeamData(teamNumber, allianceColor, station) {
         let teamMatchForms = matchFormsData.filter((matchForm) => matchForm.teamNumber === teamNumber);
         if (teamMatchForms.length === 0) {
@@ -185,13 +205,24 @@ function MatchAnalystPage() {
                     </div>
                 </div>
             );
-        } else {
+        } else if (!collapseStates[`${allianceColor}${station}`]) {
             if (!isDesktop) {
                 return (
                     <div className='grid'>
                         <div className='grid-column'>
                             <div className='grid-item header' style={{ background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}>
                                 {teamMatchForms[0].teamNumber}
+                            </div>
+                            <div
+                                onClick={() => {
+                                    let modifiedCollapseStates = { ...collapseStates };
+                                    modifiedCollapseStates[`${allianceColor}${station}`] = !modifiedCollapseStates[`${allianceColor}${station}`];
+                                    setCollapseStates(modifiedCollapseStates);
+                                }}
+                                className='grid-item header'
+                                style={{ flexGrow: 0.2, cursor: 'pointer', background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}
+                            >
+                                {collapseStates[`${allianceColor}${station}`] ? 'Show' : 'Hide'}
                             </div>
                             <div className='grid-item header' style={{ background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}>
                                 {allianceColor} Station {station}
@@ -267,6 +298,17 @@ function MatchAnalystPage() {
                             <div className='grid-item header' style={{ background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}>
                                 {teamMatchForms[0].teamNumber}
                             </div>
+                            <div
+                                onClick={() => {
+                                    let modifiedCollapseStates = { ...collapseStates };
+                                    modifiedCollapseStates[`${allianceColor}${station}`] = !modifiedCollapseStates[`${allianceColor}${station}`];
+                                    setCollapseStates(modifiedCollapseStates);
+                                }}
+                                className='grid-item header'
+                                style={{ flexGrow: 0.2, cursor: 'pointer', background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}
+                            >
+                                {collapseStates[`${allianceColor}${station}`] ? 'Show' : 'Hide'}
+                            </div>
                             <div className='grid-item header' style={{ background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}>
                                 {allianceColor} Station {station}
                             </div>
@@ -331,6 +373,30 @@ function MatchAnalystPage() {
                     </div>
                 );
             }
+        } else {
+            return (
+                <div className='grid'>
+                    <div className='grid-column'>
+                        <div className='grid-item header' style={{ background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}>
+                            {teamMatchForms[0].teamNumber}
+                        </div>
+                        <div
+                            onClick={() => {
+                                let modifiedCollapseStates = { ...collapseStates };
+                                modifiedCollapseStates[`${allianceColor}${station}`] = !modifiedCollapseStates[`${allianceColor}${station}`];
+                                setCollapseStates(modifiedCollapseStates);
+                            }}
+                            className='grid-item header'
+                            style={{ flexGrow: 0.2, cursor: 'pointer', background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}
+                        >
+                            {collapseStates[`${allianceColor}${station}`] ? 'Show' : 'Hide'}
+                        </div>
+                        <div className='grid-item header' style={{ background: allianceColor === 'Red' ? 'var(--chakra-colors-red-400)' : 'var(--chakra-colors-blue-400)' }}>
+                            {allianceColor} Station {station}
+                        </div>
+                    </div>
+                </div>
+            );
         }
     }
 
@@ -421,6 +487,7 @@ function MatchAnalystPage() {
                                         event.target.blur();
                                         if (matchNumber) {
                                             getTeams();
+                                            setAllToShow();
                                             localStorage.setItem('Analysis Match Type', JSON.stringify(matchType));
                                         }
                                     }
@@ -446,6 +513,7 @@ function MatchAnalystPage() {
                     disabled={!matchNumber}
                     onClick={() => {
                         getTeams();
+                        setAllToShow();
                         localStorage.setItem('Analysis Match Type', JSON.stringify(matchType));
                     }}
                 >

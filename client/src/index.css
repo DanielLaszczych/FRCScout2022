@@ -1,7 +1,7 @@
 * {
     -webkit-tap-highlight-color: transparent;
 }
-
+/* 
 ::-webkit-scrollbar {
     -webkit-appearance: none;
 }
@@ -20,7 +20,7 @@
 ::-webkit-scrollbar-track {
     border-radius: 8px;
     background-color: transparent;
-}
+} */
 
 body {
     margin: 0px;

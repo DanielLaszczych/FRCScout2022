@@ -37,6 +37,7 @@ import CustomPlusButton from '../components/CustomPlusButton';
 import StopWatch from '../components/StopWatch';
 import { UPDATE_MATCHFORM } from '../graphql/mutations';
 import { AiOutlineRotateRight } from 'react-icons/ai';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 
 let tabs = ['Pre-Auto', 'Auto', 'Post-Auto', 'Teleop', 'Post-Game'];
 let rotations = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
@@ -952,15 +953,15 @@ function MatchForm() {
         <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
             <Center>
                 <HStack marginBottom={'25px'} spacing={'10px'}>
-                    <Button disabled={activeSlider === 0 || activeSlider === null} className='slider-button-prev' _focus={{ outline: 'none' }}>
+                    <IconButton icon={<ChevronLeftIcon />} disabled={activeSlider === 0 || activeSlider === null} className='slider-button-prev' _focus={{ outline: 'none' }}>
                         Prev
-                    </Button>
+                    </IconButton>
                     <Text textAlign={'center'} color={submitAttempted && !matchFormData.followUp && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
-                        {tabs[activeSlider]}
+                        {tabs[activeSlider]} · {teamNumber}
                     </Text>
-                    <Button className='slider-button-next' _focus={{ outline: 'none' }}>
+                    <IconButton icon={<ChevronRightIcon />} className='slider-button-next' _focus={{ outline: 'none' }}>
                         Next
-                    </Button>
+                    </IconButton>
                 </HStack>
             </Center>
             <Swiper

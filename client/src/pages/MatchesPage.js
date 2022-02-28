@@ -35,6 +35,7 @@ function MatchesPage() {
     const [matchFilter, setMatchFilter] = useState('');
     const [teamFilter, setTeamFilter] = useState('');
     const [scouterFilter, setScouterFilter] = useState('');
+    const [followUpFilter, setFollowUpFilter] = useState(false);
 
     const {
         loading: loadingEvents,
@@ -97,6 +98,17 @@ function MatchesPage() {
 
     return (
         <Box margin={'0 auto'} width={{ base: '90%', md: '66%', lg: '66%' }}>
+            <IconButton
+                position={'absolute'}
+                right={'10px'}
+                top={'95px'}
+                onClick={() => setFollowUpFilter(!followUpFilter)}
+                icon={<WarningIcon />}
+                colorScheme={followUpFilter ? 'yellow' : 'black'}
+                variant={followUpFilter ? 'solid' : 'outline'}
+                _focus={{ outline: 'none' }}
+                size='sm'
+            />
             <Center marginBottom={'25px'}>
                 <Menu placement='auto'>
                     <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
@@ -220,7 +232,7 @@ function MatchesPage() {
                         </GridItem>
                     </Grid>
                     {sortMatches(
-                        matchForms
+                        (followUpFilter ? matchForms.filter((match) => match.followUp) : matchForms)
                             .filter((match) => match.matchNumber.match(new RegExp(`^${matchFilter}`, 'gim')))
                             .filter((match) => match.teamNumber.toString().match(new RegExp(`${teamFilter}`, 'gim')))
                             .filter((match) => match.scouter.match(new RegExp(`^${scouterFilter}`, 'gim')))

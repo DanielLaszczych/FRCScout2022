@@ -24,13 +24,14 @@ import {
     PopoverFooter,
 } from '@chakra-ui/react';
 import { GET_EVENT, GET_EVENTS_KEYS_NAMES, GET_EVENTS_PITFORMS } from '../graphql/queries';
-import { CheckCircleIcon, ChevronDownIcon, EditIcon, WarningTwoIcon } from '@chakra-ui/icons';
+import { CheckCircleIcon, ChevronDownIcon, EditIcon, WarningIcon } from '@chakra-ui/icons';
 import { sortRegisteredEvents } from '../util/helperFunctions';
 
 function PitPage() {
     const [error, setError] = useState(null);
     const [currentEvent, setCurrentEvent] = useState({ name: '', key: '' });
     const [focusedEvent, setFocusedEvent] = useState('');
+    const [followUpFilter, setFollowUpFilter] = useState(false);
 
     const {
         loading: loadingEvents,
@@ -102,7 +103,7 @@ function PitPage() {
         if (pitForm === null) {
             return <EditIcon />;
         } else if (pitForm.followUp) {
-            return <WarningTwoIcon />;
+            return <WarningIcon />;
         } else {
             return <CheckCircleIcon />;
         }
@@ -162,6 +163,17 @@ function PitPage() {
 
     return (
         <Box margin={'0 auto'} width={{ base: '90%', md: '66%', lg: '66%' }}>
+            <IconButton
+                position={'absolute'}
+                right={'10px'}
+                top={'95px'}
+                onClick={() => setFollowUpFilter(!followUpFilter)}
+                icon={<WarningIcon />}
+                colorScheme={followUpFilter ? 'yellow' : 'black'}
+                variant={followUpFilter ? 'solid' : 'outline'}
+                _focus={{ outline: 'none' }}
+                size='sm'
+            />
             <Center marginBottom={'25px'}>
                 <Menu placement='auto'>
                     <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
@@ -193,7 +205,7 @@ function PitPage() {
                 </Center>
             ) : (
                 <Box marginBottom={'25px'}>
-                    {event.teams
+                    {(followUpFilter ? event.teams.filter((team) => getPitFormStatusColor(team.name) !== 'green') : event.teams)
                         .sort((a, b) => a.number - b.number)
                         .map((team, index) => (
                             <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={team.key} templateColumns='1fr 2fr 1fr 1fr' gap={'5px'}>
@@ -231,7 +243,7 @@ function PitPage() {
                                             <PopoverContent maxWidth={'50vw'} _focus={{ outline: 'none' }}>
                                                 <PopoverArrow />
                                                 <PopoverCloseButton />
-                                                <PopoverHeader color='black' fontSize='md' fontWeight='bold'>
+                                                <PopoverHeader margin={'0 auto'} maxWidth={'165px'} color='black' fontSize='md' fontWeight='bold'>
                                                     Follow Up Comment
                                                 </PopoverHeader>
                                                 <PopoverBody maxHeight={'125px'} overflowY={'auto'}>
