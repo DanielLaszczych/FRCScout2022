@@ -104,6 +104,7 @@ export const GET_EVENTS_KEYS_NAMES = gql`
             currentEvent
             startDate
             endDate
+            pitMapImage
         }
     }
 `;

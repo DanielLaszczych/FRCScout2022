@@ -18,6 +18,7 @@ module.exports = gql`
         teams: [Team]
         key: String!
         currentEvent: Boolean!
+        pitMapImage: String
     }
 
     input TeamInput {
@@ -48,5 +49,6 @@ module.exports = gql`
         createEvent(eventInput: EventInput!): Event
         removeEvent(key: String!): Event
         setCurrentEvent(key: String!): Event
+        setEventPitMap(key: String!, image: String!): Event
     }
 `;

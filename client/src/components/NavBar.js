@@ -122,6 +122,9 @@ function NavBar() {
                             <MenuItem as={Link} to={'/matchAnalysis'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
                                 Analysis
                             </MenuItem>
+                            <MenuItem as={Link} to={'/pitMap'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
+                                Pit Map
+                            </MenuItem>
                             <MenuItem as={Link} to={'/admin'} _focus={{ backgroundColor: 'none' }} _hover={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', textColor: 'white' }} fontSize={'15px'} marginBottom={'0px'} color={'white'}>
                                 Admin
                             </MenuItem>

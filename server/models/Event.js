@@ -51,6 +51,10 @@ const eventSchema = new Schema({
         required: true,
         default: false,
     },
+    pitMapImage: {
+        type: String,
+        required: false,
+    },
 });
 
 const Event = model('Event', eventSchema);

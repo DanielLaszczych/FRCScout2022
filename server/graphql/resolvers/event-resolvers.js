@@ -1,4 +1,5 @@
 const Event = require('../../models/Event');
+const cloudinary = require('cloudinary').v2;
 
 module.exports = {
     Query: {
@@ -96,7 +97,7 @@ module.exports = {
                         return prevEvent;
                     } else {
                         prevEvent.currentEvent = false;
-                        prevEvent.save();
+                        await prevEvent.save();
                     }
                 }
                 if (key === 'None') {
@@ -107,8 +108,34 @@ module.exports = {
                     throw new Error('This event is not registered inside the databse');
                 } else {
                     newEvent.currentEvent = true;
-                    newEvent.save();
+                    await newEvent.save();
                     return newEvent;
+                }
+            } catch (err) {
+                throw new Error(err);
+            }
+        },
+        async setEventPitMap(_, { key, image }, context) {
+            if (!context.req.user) {
+                throw new Error('You must be logged in');
+            } else if (!context.req.user.admin) {
+                throw new Error('You must be an admin to change the current event');
+            }
+            try {
+                const event = await Event.findOne({ key: key }).exec();
+                if (!event) {
+                    throw new Error('This event is not registered inside the databse');
+                } else {
+                    let imageUrl;
+                    await cloudinary.uploader.upload(image, (error, result) => {
+                        if (error) {
+                            throw new Error('Could not upload image');
+                        }
+                        imageUrl = result.secure_url;
+                    });
+                    event.pitMapImage = imageUrl;
+                    await event.save();
+                    return event;
                 }
             } catch (err) {
                 throw new Error(err);

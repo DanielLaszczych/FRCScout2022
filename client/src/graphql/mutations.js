@@ -54,3 +54,12 @@ export const UPDATE_MATCHFORM = gql`
         }
     }
 `;
+
+export const UPDATE_PITMAP = gql`
+    mutation ($key: String!, $image: String!) {
+        setEventPitMap(key: $key, image: $image) {
+            key
+            pitMapImage
+        }
+    }
+`;

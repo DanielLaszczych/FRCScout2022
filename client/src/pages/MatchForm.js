@@ -493,7 +493,7 @@ function MatchForm() {
                                 <Text fontWeight={'bold'} fontSize={'110%'}>
                                     Starting Position:
                                 </Text>
-                                <IconButton _focus={{ outline: 'none' }} onClick={() => setFieldRotationIndex(fieldRotationIndex === 3 ? 0 : fieldRotationIndex + 1)} icon={<AiOutlineRotateRight />}></IconButton>
+                                <IconButton _focus={{ outline: 'none' }} onClick={() => setFieldRotationIndex(fieldRotationIndex === 3 ? 0 : fieldRotationIndex + 1)} icon={<AiOutlineRotateRight />} size='sm'></IconButton>
                             </HStack>
                             <Center marginBottom={'10px'}>
                                 <Spinner pos={'absolute'} zIndex={-1}></Spinner>
