@@ -838,6 +838,7 @@ function PitForm() {
                             <Text
                                 textColor={submitAttempted && !pitFormData.followUp && motor.value === 0 ? 'red' : 'black'}
                                 textDecoration={deletingMotors ? '3px underline red' : 'none'}
+                                cursor={deletingMotors ? 'pointer' : 'default'}
                                 onClick={(event) => {
                                     if (deletingMotors) {
                                         handleRemoveMotor(motor.label);
@@ -913,6 +914,7 @@ function PitForm() {
                             <GridItem>
                                 <Text
                                     textDecoration={deletingWheels ? '3px underline red' : 'none'}
+                                    cursor={deletingWheels ? 'pointer' : 'default'}
                                     onClick={(event) => {
                                         if (deletingWheels) {
                                             handleRemoveWheel(wheel.label);

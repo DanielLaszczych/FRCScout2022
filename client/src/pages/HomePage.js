@@ -2,7 +2,7 @@ import { React, useContext, useRef, useState } from 'react';
 import { AlertDialog, AlertDialogBody, AlertDialogContent, AlertDialogFooter, AlertDialogHeader, AlertDialogOverlay, Box, Button, Center, Input, Spinner, Text, VStack } from '@chakra-ui/react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/auth';
-import { config } from '../util/constants';
+import { config, year } from '../util/constants';
 import { useQuery } from '@apollo/client';
 import { GET_CURRENT_EVENT } from '../graphql/queries';
 
@@ -16,6 +16,8 @@ function HomePage() {
     const [error, setError] = useState(null);
     const [pitFormDialog, setPitFormDialog] = useState(false);
     const [pitTeamNumber, setPitTeamNumber] = useState('');
+    const [pitPopoverError, setPitPopoverError] = useState(null);
+    const [fetchingConfirmation, setFetchingConfirmation] = useState(false);
 
     const {
         loading: loadingCurrentEvent,
@@ -33,6 +35,30 @@ function HomePage() {
             }
         },
     });
+
+    function handlePitFormConfirm() {
+        setFetchingConfirmation(true);
+        fetch(`/blueAlliance/team/frc${parseInt(pitTeamNumber)}/events/${year}/simple`)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.Error) {
+                    let event = data.find((event) => event.key === currentEvent.key);
+                    if (event === undefined) {
+                        setPitPopoverError('This team is not competing at this event');
+                        setFetchingConfirmation(false);
+                    } else {
+                        navigate(`/pitForm/${currentEvent.key}/${pitTeamNumber}`);
+                    }
+                } else {
+                    setPitPopoverError(data.Error);
+                    setFetchingConfirmation(false);
+                }
+            })
+            .catch((error) => {
+                setPitPopoverError(error);
+                setFetchingConfirmation(false);
+            });
+    }
 
     if (error) {
         return (
@@ -74,6 +100,8 @@ function HomePage() {
                             onClose={() => {
                                 setPitFormDialog(false);
                                 setPitTeamNumber('');
+                                setPitPopoverError(null);
+                                setFetchingConfirmation(false);
                             }}
                         >
                             <AlertDialogOverlay
@@ -83,8 +111,8 @@ function HomePage() {
                                     }
                                 }}
                                 onKeyPress={(event) => {
-                                    if (event.key === 'Enter' && pitTeamNumber.trim() !== '') {
-                                        navigate(`/pitForm/${currentEvent.key}/${pitTeamNumber}`);
+                                    if (event.key === 'Enter' && pitTeamNumber.trim() !== '' && !fetchingConfirmation) {
+                                        handlePitFormConfirm();
                                     }
                                 }}
                             >
@@ -101,19 +129,26 @@ function HomePage() {
                                             value={pitTeamNumber}
                                             onChange={(e) => setPitTeamNumber(e.target.value)}
                                         />
+                                        {pitPopoverError && (
+                                            <Center color={'red.500'} marginTop={'5px'}>
+                                                {pitPopoverError}
+                                            </Center>
+                                        )}
                                     </AlertDialogBody>
-                                    <AlertDialogFooter>
+                                    <AlertDialogFooter paddingTop={pitPopoverError ? 0 : 'var(--chakra-space-4)'}>
                                         <Button
                                             ref={cancelRef}
                                             onClick={() => {
                                                 setPitFormDialog(false);
                                                 setPitTeamNumber('');
+                                                setPitPopoverError(null);
+                                                setFetchingConfirmation(false);
                                             }}
                                             _focus={{ outline: 'none' }}
                                         >
                                             Cancel
                                         </Button>
-                                        <Button colorScheme='blue' ml={3} disabled={pitTeamNumber.trim() === ''} _focus={{ outline: 'none' }} onClick={() => navigate(`/pitForm/${currentEvent.key}/${pitTeamNumber}`)}>
+                                        <Button colorScheme='blue' ml={3} disabled={pitTeamNumber.trim() === '' || fetchingConfirmation} _focus={{ outline: 'none' }} onClick={() => handlePitFormConfirm()}>
                                             Confirm
                                         </Button>
                                     </AlertDialogFooter>
