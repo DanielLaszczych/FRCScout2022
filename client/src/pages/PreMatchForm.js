@@ -35,6 +35,7 @@ function PreMatchForm() {
     const [tieBreaker, setTieBreaker] = useState(false);
     const [fetchingTeam, setFetchingTeam] = useState(false);
     const [teamNumber, setTeamNumber] = useState('');
+    const [teamNumberError, setTeamNumberError] = useState('');
     const [manualMode, setManualMode] = useState(false);
 
     useEffect(() => {
@@ -42,6 +43,7 @@ function PreMatchForm() {
             let data = JSON.parse(localStorage.getItem('PreMatchFormData'));
             setStation(data.station);
             setMatchType(data.matchType);
+            // setManualMode(data.manualMode);
         }
     }, []);
 
@@ -76,6 +78,7 @@ function PreMatchForm() {
             switch (matchType.value) {
                 case 'qf':
                     if (matchNumber1 > 8 || (matchNumber1 > 4 && tieBreaker)) {
+                        setTeamNumberError('Error: Invalid match number for quarters');
                         return null;
                     }
                     param1 = matchNumber1 % 4 === 0 ? 4 : matchNumber1 % 4;
@@ -83,6 +86,7 @@ function PreMatchForm() {
                     break;
                 case 'sf':
                     if (matchNumber1 > 4 || (matchNumber1 > 2 && tieBreaker)) {
+                        setTeamNumberError('Error: Invalid match number for semis');
                         return null;
                     }
                     param1 = matchNumber1 % 2 === 0 ? 2 : matchNumber1 % 2;
@@ -90,6 +94,7 @@ function PreMatchForm() {
                     break;
                 case 'f':
                     if (matchNumber1 > 3) {
+                        setTeamNumberError('Error: Invalid match number for finals');
                         return null;
                     }
                     param1 = 1;
@@ -126,6 +131,7 @@ function PreMatchForm() {
                         setTeamNumber(teamNumber);
                     } else {
                         setTeamNumber('');
+                        setTeamNumberError(`Error: (${data.Error})`);
                         // setError(data.Error);
                     }
                     setFetchingTeam(false);
@@ -135,6 +141,7 @@ function PreMatchForm() {
                     setError(error);
                 });
         }
+        setTeamNumberError('');
         if (!manualMode) {
             setTeamNumber('');
             clearTimeout(doGetTeam);
@@ -229,7 +236,7 @@ function PreMatchForm() {
                                 min={1}
                                 precision={0}
                                 width={{
-                                    base: matchType === 'Quals' ? '75%' : '45%',
+                                    base: matchType === 'Quals' ? '75%' : '62%',
                                     md: '66%',
                                     lg: '50%',
                                 }}
@@ -257,9 +264,14 @@ function PreMatchForm() {
                         )}
                     </HStack>
                     <HStack spacing={'25px'} pos={'relative'}>
-                        <Text marginTop={'10px'} marginBottom={manualMode ? '10px' : '10px'} fontWeight={'bold'} fontSize={'110%'}>
+                        <Text marginTop={'10px'} marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                             Team Number: {!manualMode ? teamNumber : ''}
                         </Text>
+                        {!manualMode && teamNumberError !== '' && (
+                            <Text color={'red.500'} marginTop={'10px'} marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                {teamNumberError}
+                            </Text>
+                        )}
                         {fetchingTeam && !manualMode ? <Spinner position={'absolute'} left={'120px'} bottom={'10px'} fontSize={'50px'} /> : null}
                     </HStack>
                     {manualMode ? (
@@ -299,7 +311,7 @@ function PreMatchForm() {
                         marginBottom={'20px'}
                         marginTop={'20px'}
                         onClick={() => {
-                            localStorage.setItem('PreMatchFormData', JSON.stringify({ station, matchType }));
+                            localStorage.setItem('PreMatchFormData', JSON.stringify({ station, matchType, manualMode }));
                             navigate(`/matchForm/${currentEvent.key}/${getMatchKey()}/${station.value}/${teamNumber}`);
                         }}
                     >

@@ -175,7 +175,7 @@ function PitPage() {
                 size='sm'
             />
             <Center marginBottom={'25px'}>
-                <Menu placement='auto'>
+                <Menu placement='bottom'>
                     <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
                         <Box overflow={'hidden'} textOverflow={'ellipsis'}>
                             {currentEvent.name}

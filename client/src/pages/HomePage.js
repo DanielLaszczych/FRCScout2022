@@ -86,7 +86,7 @@ function HomePage() {
                 </a>
             ) : (
                 <Box>
-                    <Text textAlign={'center'} fontSize={'25px'} fontWeight={'medium'}>
+                    <Text textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '85%', lg: '100%' }}>
                         Current Event: {currentEvent.name}
                     </Text>
                     <VStack spacing={'25px'} marginTop={'40px'}>

@@ -164,7 +164,7 @@ function PitMapPage() {
                 </HStack>
             )}
             <Box margin={'0 auto'} marginBottom={'25px'} textAlign='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
-                <Menu placement='auto'>
+                <Menu placement='bottom'>
                     <MenuButton disabled={uploadingPitMap} maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
                         <Box overflow={'hidden'} textOverflow={'ellipsis'}>
                             {currentEvent.name}

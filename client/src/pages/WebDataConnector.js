@@ -152,7 +152,7 @@ function WebDataConnector() {
     ) : (
         <Box margin={'0 auto'} textAlign={'center'} width={{ base: '85%', sm: '66%', md: '50%', lg: '25%' }}>
             <Center>
-                <Menu placement='auto'>
+                <Menu placement='bottom'>
                     <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
                         <Box overflow={'hidden'} textOverflow={'ellipsis'}>
                             {currentEvent.name}

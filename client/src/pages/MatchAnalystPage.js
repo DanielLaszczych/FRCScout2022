@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
-import { ChevronDownIcon } from '@chakra-ui/icons';
-import { Box, Button, Center, HStack, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Spinner, Text } from '@chakra-ui/react';
+import { ChevronDownIcon, LockIcon, UnlockIcon } from '@chakra-ui/icons';
+import { Box, Button, Center, HStack, IconButton, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Spinner, Text } from '@chakra-ui/react';
 import { React, useCallback, useEffect, useState } from 'react';
 import { GET_EVENTS_KEYS_NAMES, GET_MATCHFORMS_FOR_ANALYSIS } from '../graphql/queries';
 import {
@@ -45,6 +45,9 @@ function MatchAnalystPage() {
         Blue2: false,
         Blue3: false,
     });
+    const [manualMode, setManualMode] = useState(false);
+    const [matchNumberError, setMatchNumberError] = useState('');
+    const [manualTeams, setManualTeams] = useState(null);
 
     const {
         loading: loadingEvents,
@@ -105,6 +108,7 @@ function MatchAnalystPage() {
             switch (matchType.value) {
                 case 'qf':
                     if (matchNumber > 8 || (matchNumber > 4 && tieBreaker)) {
+                        setMatchNumberError('Error: Invalid match number for quarters');
                         return null;
                     }
                     param1 = matchNumber % 4 === 0 ? 4 : matchNumber % 4;
@@ -112,6 +116,7 @@ function MatchAnalystPage() {
                     break;
                 case 'sf':
                     if (matchNumber > 4 || (matchNumber > 2 && tieBreaker)) {
+                        setMatchNumberError('Error: Invalid match number for semis');
                         return null;
                     }
                     param1 = matchNumber % 2 === 0 ? 2 : matchNumber % 2;
@@ -119,6 +124,7 @@ function MatchAnalystPage() {
                     break;
                 case 'f':
                     if (matchNumber > 3) {
+                        setMatchNumberError('Error: Invalid match number for finals');
                         return null;
                     }
                     param1 = 1;
@@ -145,6 +151,7 @@ function MatchAnalystPage() {
                         setTeams(data.alliances.red.team_keys.map((team_key) => parseInt(team_key.substring(3))).concat(data.alliances.blue.team_keys.map((team_key) => parseInt(team_key.substring(3)))));
                     } else {
                         setTeams(null);
+                        setMatchNumberError(`Error: (${data.Error})`);
                         // setError(data.Error);
                     }
                     setFetchingTeams(false);
@@ -184,6 +191,20 @@ function MatchAnalystPage() {
         };
         setCollapseStates(newStates);
     }
+
+    useEffect(() => {
+        setTeams(null);
+        if (manualMode) {
+            setManualTeams([
+                { id: uuidv4(), teamNumber: '' },
+                { id: uuidv4(), teamNumber: '' },
+                { id: uuidv4(), teamNumber: '' },
+                { id: uuidv4(), teamNumber: '' },
+                { id: uuidv4(), teamNumber: '' },
+                { id: uuidv4(), teamNumber: '' },
+            ]);
+        }
+    }, [manualMode]);
 
     function renderTeamData(teamNumber, allianceColor, station) {
         let teamMatchForms = matchFormsData.filter((matchForm) => matchForm.teamNumber === teamNumber);
@@ -418,9 +439,10 @@ function MatchAnalystPage() {
 
     return (
         <Box marginBottom={'25px'}>
+            <IconButton position={'absolute'} right={'10px'} top={'95px'} _focus={{ outline: 'none' }} size={'sm'} onClick={() => setManualMode(!manualMode)} icon={!manualMode ? <LockIcon /> : <UnlockIcon />}></IconButton>
             <Box margin={'0 auto'} marginBottom={'25px'} textAlign='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
-                <Box marginBottom={'10px'}>
-                    <Menu placement='auto'>
+                <Box marginBottom={'15px'}>
+                    <Menu placement='bottom'>
                         <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
                             <Box overflow={'hidden'} textOverflow={'ellipsis'}>
                                 {currentEvent.name}
@@ -447,71 +469,115 @@ function MatchAnalystPage() {
                         </MenuList>
                     </Menu>
                 </Box>
-                <Box marginBottom={'10px'}>
-                    <Menu placement='bottom'>
-                        <MenuButton maxW={'75vw'} onClick={() => setFocusedMatchType(matchType)} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
-                            <Box overflow={'hidden'} textOverflow={'ellipsis'}>
-                                {matchType === '' ? 'Choose Match Type' : matchType.label}
-                            </Box>
-                        </MenuButton>
-                        <MenuList>
-                            {matchTypes.map((matchTypeItem) => (
-                                <MenuItem
-                                    textAlign={'center'}
-                                    justifyContent={'center'}
-                                    _focus={{ backgroundColor: 'none' }}
-                                    onMouseEnter={() => setFocusedMatchType(matchTypeItem)}
-                                    backgroundColor={(matchType.value === matchTypeItem.value && focusedMatchType === '') || focusedMatchType.value === matchTypeItem.value ? 'gray.100' : 'none'}
-                                    maxW={'75vw'}
-                                    key={matchTypeItem.id}
-                                    onClick={() => {
-                                        setMatchNumber('');
-                                        setTieBreaker(false);
-                                        setMatchType(matchTypeItem);
-                                    }}
-                                >
-                                    {matchTypeItem.label}
-                                </MenuItem>
-                            ))}
-                        </MenuList>
-                    </Menu>
-                </Box>
-                <HStack margin={'0 auto'} marginBottom={'10px'} justifyContent='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
-                    {matchType !== '' ? (
-                        <NumberInput value={matchNumber} onChange={(value) => setMatchNumber(value !== '' ? parseInt(value) : '')} precision={0}>
-                            <NumberInputField
-                                h={'45px'}
-                                textAlign={'center'}
-                                onKeyPress={(event) => {
-                                    if (event.key === 'Enter') {
-                                        event.target.blur();
-                                        if (matchNumber) {
-                                            getTeams();
-                                            setAllToShow();
-                                            localStorage.setItem('Analysis Match Type', JSON.stringify(matchType));
-                                        }
+                {!manualMode ? (
+                    <Box>
+                        <Box marginBottom={'15px'}>
+                            <Menu placement='bottom'>
+                                <MenuButton maxW={'75vw'} onClick={() => setFocusedMatchType(matchType)} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>
+                                    <Box overflow={'hidden'} textOverflow={'ellipsis'}>
+                                        {matchType === '' ? 'Choose Match Type' : matchType.label}
+                                    </Box>
+                                </MenuButton>
+                                <MenuList>
+                                    {matchTypes.map((matchTypeItem) => (
+                                        <MenuItem
+                                            textAlign={'center'}
+                                            justifyContent={'center'}
+                                            _focus={{ backgroundColor: 'none' }}
+                                            onMouseEnter={() => setFocusedMatchType(matchTypeItem)}
+                                            backgroundColor={(matchType.value === matchTypeItem.value && focusedMatchType === '') || focusedMatchType.value === matchTypeItem.value ? 'gray.100' : 'none'}
+                                            maxW={'75vw'}
+                                            key={matchTypeItem.id}
+                                            onClick={() => {
+                                                setMatchNumber('');
+                                                setTieBreaker(false);
+                                                setMatchType(matchTypeItem);
+                                            }}
+                                        >
+                                            {matchTypeItem.label}
+                                        </MenuItem>
+                                    ))}
+                                </MenuList>
+                            </Menu>
+                        </Box>
+                        <HStack margin={'0 auto'} marginBottom={'15px'} justifyContent='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
+                            {matchType !== '' ? (
+                                <NumberInput value={matchNumber} onChange={(value) => setMatchNumber(value !== '' ? parseInt(value) : '')} precision={0}>
+                                    <NumberInputField
+                                        h={'45px'}
+                                        textAlign={'center'}
+                                        onKeyPress={(event) => {
+                                            if (event.key === 'Enter') {
+                                                event.target.blur();
+                                                if (matchNumber) {
+                                                    setMatchNumberError('');
+                                                    getTeams();
+                                                    setAllToShow();
+                                                    localStorage.setItem('Analysis Match Type', JSON.stringify(matchType));
+                                                }
+                                            }
+                                        }}
+                                        enterKeyHint='search'
+                                        _focus={{
+                                            outline: 'none',
+                                        }}
+                                        borderRadius={'5px'}
+                                        placeholder='Match Number'
+                                    />
+                                </NumberInput>
+                            ) : null}
+                            {matchType.value === 'q' || matchType.value === 'f' || matchType === '' ? null : (
+                                <Button _focus={{ outline: 'none' }} colorScheme={tieBreaker ? 'green' : 'gray'} onClick={() => setTieBreaker(!tieBreaker)}>
+                                    Tie
+                                </Button>
+                            )}
+                        </HStack>{' '}
+                    </Box>
+                ) : (
+                    <Box>
+                        {manualTeams !== null &&
+                            manualTeams.map((team, index) => (
+                                <NumberInput
+                                    key={team.id}
+                                    value={team.teamNumber}
+                                    onChange={(value) =>
+                                        setManualTeams((prevManualTeams) =>
+                                            prevManualTeams.map((prevTeam) => {
+                                                if (prevTeam.id === team.id) {
+                                                    return { ...prevTeam, teamNumber: value !== '' ? parseInt(value) : '' };
+                                                } else {
+                                                    return prevTeam;
+                                                }
+                                            })
+                                        )
                                     }
-                                }}
-                                enterKeyHint='search'
-                                _focus={{
-                                    outline: 'none',
-                                }}
-                                borderRadius={'5px'}
-                                placeholder='Match Number'
-                            />
-                        </NumberInput>
-                    ) : null}
-                    {matchType.value === 'q' || matchType.value === 'f' || matchType === '' ? null : (
-                        <Button _focus={{ outline: 'none' }} colorScheme={tieBreaker ? 'green' : 'gray'} onClick={() => setTieBreaker(!tieBreaker)}>
-                            Tie
-                        </Button>
-                    )}
-                </HStack>
+                                    precision={0}
+                                >
+                                    <NumberInputField
+                                        h={'45px'}
+                                        textAlign={'center'}
+                                        onKeyPress={(event) => {
+                                            if (event.key === 'Enter') {
+                                                event.target.blur();
+                                            }
+                                        }}
+                                        enterKeyHint='done'
+                                        _focus={{
+                                            outline: 'none',
+                                        }}
+                                        borderRadius={'5px'}
+                                        placeholder={index < 3 ? `Enter Red ${index + 1}` : `Enter Blue ${index - 2}`}
+                                    />
+                                </NumberInput>
+                            ))}
+                    </Box>
+                )}
                 <Button
-                    marginBottom={'10px'}
+                    marginBottom={'15px'}
                     _focus={{ outline: 'none' }}
                     disabled={!matchNumber}
                     onClick={() => {
+                        setMatchNumberError('');
                         getTeams();
                         setAllToShow();
                         localStorage.setItem('Analysis Match Type', JSON.stringify(matchType));
@@ -524,6 +590,10 @@ function MatchAnalystPage() {
                 <Center>
                     <Spinner></Spinner>
                 </Center>
+            ) : matchNumberError !== '' ? (
+                <Text textAlign={'center'} color={'red.500'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '85%', lg: '100%' }}>
+                    {matchNumberError}
+                </Text>
             ) : teams !== null ? (
                 <Box>
                     {renderTeamData(teams[0], 'Red', 1)}
