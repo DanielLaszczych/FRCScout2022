@@ -171,7 +171,7 @@ function MatchAnalystPage() {
         skip: teams === null,
         variables: {
             eventKey: currentEvent.key,
-            teams: teams,
+            teams: teams !== null ? teams.filter((team) => team !== null) : teams,
         },
         fetchPolicy: 'network-only',
         onError(err) {
@@ -194,16 +194,15 @@ function MatchAnalystPage() {
 
     useEffect(() => {
         setTeams(null);
-        if (manualMode) {
-            setManualTeams([
-                { id: uuidv4(), teamNumber: '' },
-                { id: uuidv4(), teamNumber: '' },
-                { id: uuidv4(), teamNumber: '' },
-                { id: uuidv4(), teamNumber: '' },
-                { id: uuidv4(), teamNumber: '' },
-                { id: uuidv4(), teamNumber: '' },
-            ]);
-        }
+        setMatchNumber('');
+        setManualTeams([
+            { id: uuidv4(), teamNumber: '' },
+            { id: uuidv4(), teamNumber: '' },
+            { id: uuidv4(), teamNumber: '' },
+            { id: uuidv4(), teamNumber: '' },
+            { id: uuidv4(), teamNumber: '' },
+            { id: uuidv4(), teamNumber: '' },
+        ]);
     }, [manualMode]);
 
     function renderTeamData(teamNumber, allianceColor, station) {
@@ -534,53 +533,102 @@ function MatchAnalystPage() {
                         </HStack>{' '}
                     </Box>
                 ) : (
-                    <Box>
-                        {manualTeams !== null &&
-                            manualTeams.map((team, index) => (
-                                <NumberInput
-                                    key={team.id}
-                                    value={team.teamNumber}
-                                    onChange={(value) =>
-                                        setManualTeams((prevManualTeams) =>
-                                            prevManualTeams.map((prevTeam) => {
-                                                if (prevTeam.id === team.id) {
-                                                    return { ...prevTeam, teamNumber: value !== '' ? parseInt(value) : '' };
-                                                } else {
-                                                    return prevTeam;
+                    <Box margin={'0 auto'} marginBottom={'15px'} width={{ base: '100%', md: '66%', lg: '50%' }}>
+                        <HStack marginBottom={'15px'}>
+                            {manualTeams !== null &&
+                                manualTeams.slice(0, 3).map((team, index) => (
+                                    <NumberInput
+                                        key={team.id}
+                                        value={team.teamNumber}
+                                        onChange={(value) =>
+                                            setManualTeams((prevManualTeams) =>
+                                                prevManualTeams.map((prevTeam) => {
+                                                    if (prevTeam.id === team.id) {
+                                                        return { ...prevTeam, teamNumber: value !== '' ? parseInt(value) : '' };
+                                                    } else {
+                                                        return prevTeam;
+                                                    }
+                                                })
+                                            )
+                                        }
+                                        precision={0}
+                                    >
+                                        <NumberInputField
+                                            h={'45px'}
+                                            textAlign={'center'}
+                                            onKeyPress={(event) => {
+                                                if (event.key === 'Enter') {
+                                                    let filteredTeams = manualTeams.map((team) => (team.teamNumber !== '' ? team.teamNumber : null));
+                                                    setTeams(filteredTeams);
+                                                    setAllToShow();
                                                 }
-                                            })
-                                        )
-                                    }
-                                    precision={0}
-                                >
-                                    <NumberInputField
-                                        h={'45px'}
-                                        textAlign={'center'}
-                                        onKeyPress={(event) => {
-                                            if (event.key === 'Enter') {
-                                                event.target.blur();
-                                            }
-                                        }}
-                                        enterKeyHint='done'
-                                        _focus={{
-                                            outline: 'none',
-                                        }}
-                                        borderRadius={'5px'}
-                                        placeholder={index < 3 ? `Enter Red ${index + 1}` : `Enter Blue ${index - 2}`}
-                                    />
-                                </NumberInput>
-                            ))}
+                                            }}
+                                            enterKeyHint='done'
+                                            _focus={{
+                                                outline: 'none',
+                                            }}
+                                            borderRadius={'5px'}
+                                            placeholder={`Red ${index + 1}`}
+                                        />
+                                    </NumberInput>
+                                ))}
+                        </HStack>
+                        <HStack>
+                            {manualTeams !== null &&
+                                manualTeams.slice(3).map((team, index) => (
+                                    <NumberInput
+                                        key={team.id}
+                                        value={team.teamNumber}
+                                        onChange={(value) =>
+                                            setManualTeams((prevManualTeams) =>
+                                                prevManualTeams.map((prevTeam) => {
+                                                    if (prevTeam.id === team.id) {
+                                                        return { ...prevTeam, teamNumber: value !== '' ? parseInt(value) : '' };
+                                                    } else {
+                                                        return prevTeam;
+                                                    }
+                                                })
+                                            )
+                                        }
+                                        precision={0}
+                                    >
+                                        <NumberInputField
+                                            h={'45px'}
+                                            textAlign={'center'}
+                                            onKeyPress={(event) => {
+                                                if (event.key === 'Enter') {
+                                                    let filteredTeams = manualTeams.map((team) => (team.teamNumber !== '' ? team.teamNumber : null));
+                                                    setTeams(filteredTeams);
+                                                    setAllToShow();
+                                                }
+                                            }}
+                                            enterKeyHint='done'
+                                            _focus={{
+                                                outline: 'none',
+                                            }}
+                                            borderRadius={'5px'}
+                                            placeholder={`Blue ${index + 1}`}
+                                        />
+                                    </NumberInput>
+                                ))}
+                        </HStack>
                     </Box>
                 )}
                 <Button
                     marginBottom={'15px'}
                     _focus={{ outline: 'none' }}
-                    disabled={!matchNumber}
+                    disabled={!manualMode && !matchNumber}
                     onClick={() => {
-                        setMatchNumberError('');
-                        getTeams();
-                        setAllToShow();
-                        localStorage.setItem('Analysis Match Type', JSON.stringify(matchType));
+                        if (manualMode) {
+                            let filteredTeams = manualTeams.map((team) => (team.teamNumber !== '' ? team.teamNumber : null));
+                            setTeams(filteredTeams);
+                            setAllToShow();
+                        } else {
+                            setMatchNumberError('');
+                            getTeams();
+                            setAllToShow();
+                            localStorage.setItem('Analysis Match Type', JSON.stringify(matchType));
+                        }
                     }}
                 >
                     Search
@@ -596,12 +644,12 @@ function MatchAnalystPage() {
                 </Text>
             ) : teams !== null ? (
                 <Box>
-                    {renderTeamData(teams[0], 'Red', 1)}
-                    {renderTeamData(teams[1], 'Red', 2)}
-                    {renderTeamData(teams[2], 'Red', 3)}
-                    {renderTeamData(teams[3], 'Blue', 1)}
-                    {renderTeamData(teams[4], 'Blue', 2)}
-                    {renderTeamData(teams[5], 'Blue', 3)}
+                    {teams[0] !== null && renderTeamData(teams[0], 'Red', 1)}
+                    {teams[1] !== null && renderTeamData(teams[1], 'Red', 2)}
+                    {teams[2] !== null && renderTeamData(teams[2], 'Red', 3)}
+                    {teams[3] !== null && renderTeamData(teams[3], 'Blue', 1)}
+                    {teams[4] !== null && renderTeamData(teams[4], 'Blue', 2)}
+                    {teams[5] !== null && renderTeamData(teams[5], 'Blue', 3)}
                 </Box>
             ) : null}
         </Box>
