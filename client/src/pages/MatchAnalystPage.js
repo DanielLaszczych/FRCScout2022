@@ -194,6 +194,7 @@ function MatchAnalystPage() {
 
     useEffect(() => {
         setTeams(null);
+        setMatchNumberError('');
         setMatchNumber('');
         setManualTeams([
             { id: uuidv4(), teamNumber: '' },
@@ -504,6 +505,7 @@ function MatchAnalystPage() {
                                 <NumberInput value={matchNumber} onChange={(value) => setMatchNumber(value !== '' ? parseInt(value) : '')} precision={0}>
                                     <NumberInputField
                                         h={'45px'}
+                                        padding={'0px'}
                                         textAlign={'center'}
                                         onKeyPress={(event) => {
                                             if (event.key === 'Enter') {
@@ -555,6 +557,7 @@ function MatchAnalystPage() {
                                     >
                                         <NumberInputField
                                             h={'45px'}
+                                            padding={'0px'}
                                             textAlign={'center'}
                                             onKeyPress={(event) => {
                                                 if (event.key === 'Enter') {
@@ -594,6 +597,7 @@ function MatchAnalystPage() {
                                     >
                                         <NumberInputField
                                             h={'45px'}
+                                            padding={'0px'}
                                             textAlign={'center'}
                                             onKeyPress={(event) => {
                                                 if (event.key === 'Enter') {
