@@ -1,7 +1,7 @@
 import { React, useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/auth';
-import { Button, Icon, Input, HStack, Box, Image, Text, Avatar, Menu, MenuButton, MenuList, MenuItem, Flex } from '@chakra-ui/react';
+import { Button, Icon, Input, HStack, Box, Image, Text, Avatar, Menu, MenuButton, MenuList, MenuItem, Flex, NumberInputField, NumberInput } from '@chakra-ui/react';
 import { BsSearch } from 'react-icons/bs';
 import logo from '../images/TigerOnlyLogo.png';
 import { config } from '../util/constants';
@@ -68,25 +68,23 @@ function NavBar() {
             </Link>
             <Box className='search' flex={1} h={'75px'}>
                 <HStack width={{ base: '75%', sm: '75%', md: '60%', lg: '50%' }} margin={{ base: 'auto', md: '0 0 0 22%' }} pos={'relative'} top='50%' transform={'translateY(-50%)'} spacing={0}>
-                    <Input
-                        h='45px'
-                        onKeyPress={(event) => {
-                            if (event.key === 'Enter') {
-                                navigate(`/team/${teamNumber}`);
-                                event.target.blur();
-                            }
-                        }}
-                        type='number'
-                        inputMode='numeric'
-                        enterKeyHint='search'
-                        value={teamNumber}
-                        onChange={(event) => setTeamNumber(event.target.value)}
-                        placeholder='Search team'
-                        fontSize='17px'
-                        borderRadius={'5px 0px 0px 5px'}
-                        bgColor={'white'}
-                        _focus={{ boxShadow: 'none' }}
-                    />
+                    <NumberInput value={teamNumber} onChange={(value) => setTeamNumber(value)} precision={0}>
+                        <NumberInputField
+                            h='45px'
+                            onKeyPress={(event) => {
+                                if (event.key === 'Enter') {
+                                    navigate(`/team/${teamNumber}`);
+                                    event.target.blur();
+                                }
+                            }}
+                            enterKeyHint='search'
+                            placeholder='Search team'
+                            fontSize='17px'
+                            borderRadius={'5px 0px 0px 5px'}
+                            bgColor={'white'}
+                            _focus={{ boxShadow: 'none' }}
+                        />
+                    </NumberInput>
                     <Button h='45px' onClick={() => navigate(`/team/${teamNumber}`)} _hover={{ bgColor: 'white' }} borderRadius='0px 5px 5px 0px' bgColor={'white'} _focus={{ boxShadow: 'none' }}>
                         <Icon as={BsSearch} boxSize='5' />
                     </Button>
