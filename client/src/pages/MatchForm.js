@@ -94,6 +94,8 @@ function MatchForm() {
         climbTime: 0,
         climbRung: null,
         defenseRating: 0,
+        receivedDefense: null,
+        autoReject: null,
         loseCommunication: null,
         robotBreak: null,
         yellowCard: null,
@@ -218,6 +220,8 @@ function MatchForm() {
                 climbTime: matchForm.climbTime,
                 climbRung: matchForm.climbRung,
                 defenseRating: matchForm.defenseRating,
+                receivedDefense: matchForm.receivedDefense,
+                autoReject: matchForm.autoReject,
                 loseCommunication: matchForm.loseCommunication,
                 robotBreak: matchForm.robotBreak,
                 yellowCard: matchForm.yellowCard,
@@ -347,7 +351,7 @@ function MatchForm() {
     }
 
     function validPost() {
-        return matchFormData.loseCommunication !== null && matchFormData.robotBreak !== null && matchFormData.yellowCard !== null && matchFormData.redCard !== null;
+        return matchFormData.receivedDefense !== null && matchFormData.autoReject !== null && matchFormData.loseCommunication !== null && matchFormData.robotBreak !== null && matchFormData.yellowCard !== null && matchFormData.redCard !== null;
     }
 
     function validateTab(tab) {
@@ -450,6 +454,8 @@ function MatchForm() {
                     climbTime: matchFormData.climbTime,
                     climbRung: matchFormData.climbRung,
                     defenseRating: matchFormData.defenseRating,
+                    receivedDefense: matchFormData.receivedDefense,
+                    autoReject: matchFormData.autoReject,
                     loseCommunication: matchFormData.loseCommunication,
                     robotBreak: matchFormData.robotBreak,
                     yellowCard: matchFormData.yellowCard,
@@ -700,7 +706,7 @@ function MatchForm() {
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Played Defense:
                             </Text>
-                            <Center marginBottom={'30px'}>
+                            <Center marginBottom={'40px'}>
                                 <Slider className='swiper-no-swiping' colorScheme={'green'} w={'80%'} value={matchFormData.defenseRating} min={0} max={5} step={1} onChange={(value) => setMatchFormData({ ...matchFormData, defenseRating: value })}>
                                     {defenseRatings.map((rating) => (
                                         <SliderMark mr={rating.value === 0 ? 'px' : '0px'} mt={'10px'} key={rating.id} value={rating.value}>
@@ -713,6 +719,48 @@ function MatchForm() {
                                     <SliderThumb backgroundColor={'blackAlpha.900'} boxSize={5} _focus={{ outline: 'none' }} />
                                 </Slider>
                             </Center>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Was Defended:
+                            </Text>
+                            <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.receivedDefense === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.receivedDefense === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, receivedDefense: true })}
+                                >
+                                    Yes
+                                </Button>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.receivedDefense === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.receivedDefense === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, receivedDefense: false })}
+                                >
+                                    No
+                                </Button>
+                            </HStack>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Auto Reject:
+                            </Text>
+                            <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.autoReject === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.autoReject === true ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, autoReject: true })}
+                                >
+                                    Yes
+                                </Button>
+                                <Button
+                                    _focus={{ outline: 'none' }}
+                                    outline={matchFormData.autoReject === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    colorScheme={matchFormData.autoReject === false ? 'green' : 'gray'}
+                                    onClick={() => setMatchFormData({ ...matchFormData, autoReject: false })}
+                                >
+                                    No
+                                </Button>
+                            </HStack>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Lose Communication:
                             </Text>
@@ -920,6 +968,8 @@ function MatchForm() {
                                         climbTime: matchForm.climbTime,
                                         climbRung: matchForm.climbRung,
                                         defenseRating: matchForm.defenseRating,
+                                        receivedDefense: matchForm.receivedDefense,
+                                        autoReject: matchForm.autoReject,
                                         loseCommunication: matchForm.loseCommunication,
                                         robotBreak: matchForm.robotBreak,
                                         yellowCard: matchForm.yellowCard,

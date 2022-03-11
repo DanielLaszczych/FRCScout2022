@@ -4,6 +4,7 @@ import { Box, Button, Center, HStack, IconButton, Menu, MenuButton, MenuItem, Me
 import { React, useCallback, useEffect, useState } from 'react';
 import { GET_EVENTS_KEYS_NAMES, GET_MATCHFORMS_FOR_ANALYSIS } from '../graphql/queries';
 import {
+    averageArr,
     countOccurencesForTFField,
     getDefenseRatings,
     getFields,
@@ -48,6 +49,7 @@ function MatchAnalystPage() {
     const [manualMode, setManualMode] = useState(false);
     const [matchNumberError, setMatchNumberError] = useState('');
     const [manualTeams, setManualTeams] = useState(null);
+    const [dataMedian, setDataMedian] = useState(true);
 
     const {
         loading: loadingEvents,
@@ -264,9 +266,15 @@ function MatchAnalystPage() {
                                 </Center>
                             </div>
                             <div className='grid-item' style={{ flexGrow: 1 / 3, flexShrink: 2 / 3, flexBasis: '100%' }}>
-                                <div className='grid-text-item'>Lower Hub (Median): {medianArr(getFields(teamMatchForms, 'lowerCargoAuto'))}</div>
-                                <div className='grid-text-item'>Upper Hub (Median): {medianArr(getFields(teamMatchForms, 'upperCargoAuto'))}</div>
-                                <div className='grid-text-item'>Missed (Median): {medianArr(getFields(teamMatchForms, 'missedAuto'))}</div>
+                                <div className='grid-text-item'>
+                                    Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'lowerCargoAuto')) : averageArr(getFields(teamMatchForms, 'lowerCargoAuto'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'upperCargoAuto')) : averageArr(getFields(teamMatchForms, 'upperCargoAuto'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'missedAuto')) : averageArr(getFields(teamMatchForms, 'missedAuto'))}
+                                </div>
                                 <div className='grid-text-item'>
                                     Hub Percentage:{' '}
                                     {teamMatchForms.find((matchForm) => matchForm.missedAuto > 0 || matchForm.lowerCargoAuto > 0 || matchForm.upperCargoAuto > 0) ? `${roundToHundredth(getHubPercentage(teamMatchForms, 'Auto') * 100)}%` : 'N/A'}
@@ -287,9 +295,15 @@ function MatchAnalystPage() {
                         </div>
                         <div className='grid-column'>
                             <div className='grid-item'>
-                                <div className='grid-text-item'>Lower Hub (Median): {medianArr(getFields(teamMatchForms, 'upperCargoTele'))}</div>
-                                <div className='grid-text-item'>Upper Hub (Median): {medianArr(getFields(teamMatchForms, 'upperCargoTele'))}</div>
-                                <div className='grid-text-item'>Missed (Median): {medianArr(getFields(teamMatchForms, 'missedTele'))}</div>
+                                <div className='grid-text-item'>
+                                    Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'lowerCargoTele')) : averageArr(getFields(teamMatchForms, 'lowerCargoTele'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'upperCargoTele')) : averageArr(getFields(teamMatchForms, 'upperCargoTele'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'missedTele')) : averageArr(getFields(teamMatchForms, 'missedTele'))}
+                                </div>
                                 <div>
                                     Hub Percentage:{' '}
                                     {teamMatchForms.find((matchForm) => matchForm.missedTele > 0 || matchForm.lowerCargoTele > 0 || matchForm.upperCargoTele > 0) ? `${roundToHundredth(getHubPercentage(teamMatchForms, 'Tele') * 100)}%` : 'N/A'}
@@ -298,12 +312,17 @@ function MatchAnalystPage() {
                             <div className='grid-item'>
                                 <div className='grid-text-item'>Climb Success Rate: {getFractionForClimb(teamMatchForms)}</div>
                                 <div className='grid-text-item'>
-                                    Climb Time (Median): {teamMatchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0 ? `${medianArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000} sec` : 'N/A'}
+                                    Climb Time ({dataMedian ? 'Med.' : 'Avg.'}):{' '}
+                                    {teamMatchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0
+                                        ? `${dataMedian ? medianArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000 : averageArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000} sec`
+                                        : 'N/A'}
                                 </div>
                                 <div>Common Rung(s): {getSucessfulClimbRungMode(teamMatchForms)}</div>
                             </div>
                             <div className='grid-item'>
-                                <div className='grid-text-item'>Playing Defense (Median): {medianArr(getDefenseRatings(teamMatchForms))}</div>
+                                <div className='grid-text-item'>
+                                    Playing Defense ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getDefenseRatings(teamMatchForms)) : averageArr(getDefenseRatings(teamMatchForms))}
+                                </div>
                                 <div className='grid-text-item'># of Lose Comm. : {countOccurencesForTFField(teamMatchForms, 'loseCommunication')}</div>
                                 <div className='grid-text-item'># of Robot Break: {countOccurencesForTFField(teamMatchForms, 'robotBreak')}</div>
                                 <div className='grid-text-item'># of Yellow Card: {countOccurencesForTFField(teamMatchForms, 'yellowCard')}</div>
@@ -358,9 +377,15 @@ function MatchAnalystPage() {
                                 </Center>
                             </div>
                             <div className='grid-item'>
-                                <div className='grid-text-item'>Lower Hub (Median): {medianArr(getFields(teamMatchForms, 'lowerCargoAuto'))}</div>
-                                <div className='grid-text-item'>Upper Hub (Median): {medianArr(getFields(teamMatchForms, 'upperCargoAuto'))}</div>
-                                <div className='grid-text-item'>Missed (Median): {medianArr(getFields(teamMatchForms, 'missedAuto'))}</div>
+                                <div className='grid-text-item'>
+                                    Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'lowerCargoAuto')) : averageArr(getFields(teamMatchForms, 'lowerCargoAuto'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'upperCargoAuto')) : averageArr(getFields(teamMatchForms, 'upperCargoAuto'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'missedAuto')) : averageArr(getFields(teamMatchForms, 'missedAuto'))}
+                                </div>
                                 <div className='grid-text-item'>
                                     Hub Percentage:{' '}
                                     {teamMatchForms.find((matchForm) => matchForm.missedAuto > 0 || matchForm.lowerCargoAuto > 0 || matchForm.upperCargoAuto > 0) ? `${roundToHundredth(getHubPercentage(teamMatchForms, 'Auto') * 100)}%` : 'N/A'}
@@ -368,9 +393,15 @@ function MatchAnalystPage() {
                                 <div>Taxi Percentage: {roundToHundredth(getPercentageForTFField(teamMatchForms, 'crossTarmac') * 100)}%</div>
                             </div>
                             <div className='grid-item'>
-                                <div className='grid-text-item'>Lower Hub (Median): {medianArr(getFields(teamMatchForms, 'upperCargoTele'))}</div>
-                                <div className='grid-text-item'>Upper Hub (Median): {medianArr(getFields(teamMatchForms, 'upperCargoTele'))}</div>
-                                <div className='grid-text-item'>Missed (Median): {medianArr(getFields(teamMatchForms, 'missedTele'))}</div>
+                                <div className='grid-text-item'>
+                                    Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'lowerCargoTele')) : averageArr(getFields(teamMatchForms, 'lowerCargoTele'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'upperCargoTele')) : averageArr(getFields(teamMatchForms, 'upperCargoTele'))}
+                                </div>
+                                <div className='grid-text-item'>
+                                    Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(teamMatchForms, 'missedTele')) : averageArr(getFields(teamMatchForms, 'missedTele'))}
+                                </div>
                                 <div>
                                     Hub Percentage:{' '}
                                     {teamMatchForms.find((matchForm) => matchForm.missedTele > 0 || matchForm.lowerCargoTele > 0 || matchForm.upperCargoTele > 0) ? `${roundToHundredth(getHubPercentage(teamMatchForms, 'Tele') * 100)}%` : 'N/A'}
@@ -379,12 +410,17 @@ function MatchAnalystPage() {
                             <div className='grid-item'>
                                 <div className='grid-text-item'>Climb Success Rate: {getFractionForClimb(teamMatchForms)}</div>
                                 <div className='grid-text-item'>
-                                    Climb Time (Median): {teamMatchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0 ? `${medianArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000} sec` : 'N/A'}
+                                    Climb Time ({dataMedian ? 'Med.' : 'Avg.'}):{' '}
+                                    {teamMatchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0
+                                        ? `${dataMedian ? medianArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000 : averageArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000} sec`
+                                        : 'N/A'}
                                 </div>
                                 <div>Common Rung(s): {getSucessfulClimbRungMode(teamMatchForms)}</div>
                             </div>
                             <div className='grid-item'>
-                                <div className='grid-text-item'>Playing Defense (Median): {medianArr(getDefenseRatings(teamMatchForms))}</div>
+                                <div className='grid-text-item'>
+                                    Playing Defense ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getDefenseRatings(teamMatchForms)) : averageArr(getDefenseRatings(teamMatchForms))}
+                                </div>
                                 <div className='grid-text-item'># of Lose Comm. : {countOccurencesForTFField(teamMatchForms, 'loseCommunication')}</div>
                                 <div className='grid-text-item'># of Robot Break: {countOccurencesForTFField(teamMatchForms, 'robotBreak')}</div>
                                 <div className='grid-text-item'># of Yellow Card: {countOccurencesForTFField(teamMatchForms, 'yellowCard')}</div>
@@ -440,6 +476,9 @@ function MatchAnalystPage() {
     return (
         <Box marginBottom={'25px'}>
             <IconButton position={'absolute'} right={'10px'} top={'95px'} _focus={{ outline: 'none' }} size={'sm'} onClick={() => setManualMode(!manualMode)} icon={!manualMode ? <LockIcon /> : <UnlockIcon />}></IconButton>
+            <Button position={'absolute'} minWidth={'36.95px'} right={'10px'} top={`${127 + 15}px`} onClick={() => setDataMedian(!dataMedian)} _focus={{ outline: 'none' }} size='sm'>
+                {dataMedian ? 'M' : 'A'}
+            </Button>
             <Box margin={'0 auto'} marginBottom={'25px'} textAlign='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
                 <Box marginBottom={'15px'}>
                     <Menu placement='bottom'>

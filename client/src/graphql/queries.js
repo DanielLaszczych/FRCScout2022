@@ -154,6 +154,8 @@ export const GET_MATCHFORM_BY_STATION = gql`
             climbTime
             climbRung
             defenseRating
+            receivedDefense
+            autoReject
             loseCommunication
             robotBreak
             yellowCard
@@ -230,6 +232,8 @@ export const GET_TEAMS_MATCHFORMS = gql`
             climbTime
             climbRung
             defenseRating
+            receivedDefense
+            autoReject
             loseCommunication
             robotBreak
             yellowCard
@@ -268,6 +272,8 @@ export const GET_MATCHFORMS_FOR_ANALYSIS = gql`
             climbTime
             climbRung
             defenseRating
+            receivedDefense
+            autoReject
             loseCommunication
             robotBreak
             yellowCard

@@ -27,6 +27,7 @@ import { useParams } from 'react-router-dom';
 import { GET_CURRENT_EVENT, GET_TEAMS_MATCHFORMS, GET_TEAMS_PITFORMS } from '../graphql/queries';
 import { year } from '../util/constants';
 import {
+    averageArr,
     convertMatchKeyToString,
     convertStationKeyToString,
     countOccurencesForTFField,
@@ -65,6 +66,7 @@ function TeamPage() {
     const [currentPopoverData, setCurrentPopoverData] = useState(null);
     const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1200);
     const prevWidth = useRef(window.innerWidth);
+    const [dataMedian, setDataMedian] = useState(true);
 
     useEffect(() => {
         fetch(`/blueAlliance/team/frc${teamNumberParam}/events/${year}/simple`)
@@ -304,13 +306,13 @@ function TeamPage() {
                                 {matchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Lower Hub (Median): {medianArr(getFields(matchForms, 'lowerCargoAuto'))} Cargo
+                                            Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'lowerCargoAuto')) : averageArr(getFields(matchForms, 'lowerCargoAuto'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Upper Hub (Median): {medianArr(getFields(matchForms, 'upperCargoAuto'))} Cargo
+                                            Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'upperCargoAuto')) : averageArr(getFields(matchForms, 'upperCargoAuto'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Missed (Median): {medianArr(getFields(matchForms, 'missedAuto'))} Cargo
+                                            Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'missedAuto')) : averageArr(getFields(matchForms, 'missedAuto'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Hub Percentage:{' '}
@@ -333,13 +335,13 @@ function TeamPage() {
                                 {matchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Lower Hub (Median): {medianArr(getFields(matchForms, 'lowerCargoTele'))} Cargo
+                                            Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'lowerCargoTele')) : averageArr(getFields(matchForms, 'lowerCargoTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Upper Hub (Median): {medianArr(getFields(matchForms, 'upperCargoTele'))} Cargo
+                                            Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'upperCargoTele')) : averageArr(getFields(matchForms, 'upperCargoTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Missed (Median): {medianArr(getFields(matchForms, 'missedTele'))} Cargo
+                                            Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'missedTele')) : averageArr(getFields(matchForms, 'missedTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Hub Percentage:{' '}
@@ -349,7 +351,10 @@ function TeamPage() {
                                             Climb Success Rate: {getFractionForClimb(matchForms)}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Climb Time (Median): {matchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0 ? `${medianArr(getSuccessfulClimbTimes(matchForms)) / 1000} sec` : 'N/A'}
+                                            Climb Time ({dataMedian ? 'Med.' : 'Avg.'}):{' '}
+                                            {matchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0
+                                                ? `${dataMedian ? medianArr(getSuccessfulClimbTimes(matchForms)) / 1000 : averageArr(getSuccessfulClimbTimes(matchForms)) / 1000} sec`
+                                                : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Most Common Rung(s): {getSucessfulClimbRungMode(matchForms)}
@@ -368,7 +373,7 @@ function TeamPage() {
                                 {matchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Played Defense Rating (Median): {medianArr(getDefenseRatings(matchForms))} (1-5)
+                                            Played Defense Rating ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getDefenseRatings(matchForms)) : averageArr(getDefenseRatings(matchForms))} (1-5)
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             # of Lose Communication: {countOccurencesForTFField(matchForms, 'loseCommunication')}
@@ -755,9 +760,9 @@ function TeamPage() {
                             <HeatMap data={matchForms} largeScale={0.2} mediumScale={0.5} smallScale={0.8} maxOccurances={3}></HeatMap>
                         </Center>
                         <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
-                            {matchForms.filter((matchForm) => matchForm.yellowCard || matchForm.redCard || matchForm.robotBreak || matchForm.loseCommunication).length === 0 ? 'No Concerns' : 'Concerns'}
+                            Comments and Concerns
                         </Box>
-                        {sortMatches(matchForms.filter((matchForm) => matchForm.yellowCard || matchForm.redCard || matchForm.robotBreak || matchForm.loseCommunication)).map((match) => (
+                        {sortMatches(matchForms).map((match) => (
                             <div key={match._id} style={{ marginTop: '10px' }} className='grid'>
                                 <div className='grid-column'>
                                     <div className='grid-item header'>
@@ -772,18 +777,24 @@ function TeamPage() {
                                 </div>
                                 <div className='grid-column'>
                                     <div className='grid-item'>
-                                        {match.loseCommunication ? <div style={{ wordBreak: 'break-word' }}>Lost Communication</div> : null}
-                                        {match.robotBreak ? <div>Robot broke</div> : null}
-                                        {match.yellowCard ? <div>Yellow Card Given</div> : null}
-                                        {match.redCard ? <div>Red Card Given</div> : null}
+                                        {!match.loseCommunication && !match.robotBreak && !match.yellowCard & !match.redCard ? (
+                                            <div style={{ wordBreak: 'break-word' }}>None</div>
+                                        ) : (
+                                            <Box>
+                                                {match.loseCommunication ? <div style={{ wordBreak: 'break-word' }}>Lost Communication</div> : null}
+                                                {match.robotBreak ? <div>Robot broke</div> : null}
+                                                {match.yellowCard ? <div>Yellow Card Given</div> : null}
+                                                {match.redCard ? <div>Red Card Given</div> : null}
+                                            </Box>
+                                        )}
                                     </div>
                                     <Box className='grid-item'>
-                                        <Text flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
+                                        <Text flexBasis={match.autoComment ? '120px' : { base: '65px', md: '50px', lg: '50px' }} flexGrow={1} overflowY={'auto'}>
                                             Auto Comment: {match.autoComment || 'None'}
                                         </Text>
                                     </Box>
                                     <Box className='grid-item'>
-                                        <Text flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
+                                        <Text flexBasis={match.endComment ? '120px' : { base: '65px', md: '50px', lg: '50px' }} flexGrow={1} overflowY={'auto'}>
                                             End Comment: {match.endComment || 'None'}
                                         </Text>
                                     </Box>
@@ -813,6 +824,11 @@ function TeamPage() {
                 <div className='tab-indicator' style={{ left: `calc((calc(100% / 4) * ${tab}) + 3.125%)` }}></div>
             </div>
             <Box margin={'0 auto'} marginTop={'25px'} width={tab !== 2 ? { base: '100%', md: '66%', lg: '66%' } : { base: '100%', md: '100%', lg: '100%' }}>
+                {tab === 0 ? (
+                    <Button position={'absolute'} minWidth={'36.95px'} right={'10px'} top={'160px'} onClick={() => setDataMedian(!dataMedian)} _focus={{ outline: 'none' }} size='sm'>
+                        {dataMedian ? 'M' : 'A'}
+                    </Button>
+                ) : null}
                 <Center marginBottom={'25px'}>
                     <Menu placement='bottom'>
                         <MenuButton maxW={'75vw'} onClick={() => setFocusedEvent('')} _focus={{ outline: 'none' }} as={Button} rightIcon={<ChevronDownIcon />}>

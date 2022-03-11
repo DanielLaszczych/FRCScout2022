@@ -29,6 +29,8 @@ module.exports = gql`
         climbTime: Int
         climbRung: String
         defenseRating: Int
+        receivedDefense: Boolean
+        autoReject: Boolean
         loseCommunication: Boolean
         robotBreak: Boolean
         yellowCard: Boolean
@@ -63,6 +65,8 @@ module.exports = gql`
         climbTime: Int
         climbRung: String
         defenseRating: Int
+        receivedDefense: Boolean
+        autoReject: Boolean
         loseCommunication: Boolean
         robotBreak: Boolean
         yellowCard: Boolean

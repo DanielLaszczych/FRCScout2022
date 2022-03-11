@@ -79,6 +79,12 @@ const matchFormSchema = new Schema({
     defenseRating: {
         type: Number,
     },
+    receivedDefense: {
+        type: Boolean,
+    },
+    autoReject: {
+        type: Boolean,
+    },
     loseCommunication: {
         type: Boolean,
     },
