@@ -77,6 +77,7 @@ function NavBar() {
                             }
                         }}
                         type='number'
+                        inputMode='numeric'
                         enterKeyHint='search'
                         value={teamNumber}
                         onChange={(event) => setTeamNumber(event.target.value)}
