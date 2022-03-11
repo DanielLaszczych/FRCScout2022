@@ -78,6 +78,14 @@
                 dataType: tableau.dataTypeEnum.int,
             },
             {
+                id: 'wasDefended',
+                dataType: tableau.dataTypeEnum.int,
+            },
+            {
+                id: 'autoReject',
+                dataType: tableau.dataTypeEnum.int,
+            },
+            {
                 id: 'loseCommunication',
                 dataType: tableau.dataTypeEnum.int,
             },
@@ -136,6 +144,8 @@
                             climbTime: data[i].climbTime,
                             climbRung: data[i].climbRung,
                             defenseRating: data[i].defenseRating,
+                            wasDefended: data[i].receivedDefense,
+                            autoReject: data[i].autoReject,
                             loseCommunication: data[i].loseCommunication,
                             robotBreak: data[i].robotBreak,
                             yellowCard: data[i].yellowCard,
