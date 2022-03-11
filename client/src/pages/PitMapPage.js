@@ -112,6 +112,12 @@ function PitMapPage() {
     }
 
     useEffect(() => {
+        if (localStorage.getItem('PitMapRotation')) {
+            setImageRotation(parseInt(localStorage.getItem('PitMapRotation')));
+        }
+    }, []);
+
+    useEffect(() => {
         if (document.getElementById('imageContainer')) {
             if (imageRotation % 2 === 0) {
                 document.getElementById('imageContainer').childNodes[0].style.marginTop = 0;
@@ -122,6 +128,7 @@ function PitMapPage() {
                 imageElement.style.marginTop = `${value / 2}px`;
             }
         }
+        localStorage.setItem('PitMapRotation', imageRotation);
     }, [imageRotation]);
 
     if (error) {
@@ -142,9 +149,9 @@ function PitMapPage() {
 
     return (
         <Box marginBottom={'25px'}>
-            <IconButton position={'absolute'} left={'10px'} top={'95px'} onClick={() => setImageRotation(imageRotation === 3 ? 0 : imageRotation + 1)} icon={<AiOutlineRotateRight />} _focus={{ outline: 'none' }} size='sm' />
+            <IconButton position={'absolute'} right={'10px'} top={'95px'} onClick={() => setImageRotation(imageRotation === 3 ? 0 : imageRotation + 1)} icon={<AiOutlineRotateRight />} _focus={{ outline: 'none' }} size='sm' />
             {user.admin && (
-                <HStack spacing={'5px'} position={'absolute'} right={'10px'} top={'95px'}>
+                <HStack spacing={'5px'} position={'absolute'} left={'10px'} top={'95px'}>
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     {!tempImage && <IconButton disabled={uploadingPitMap} onClick={() => hiddenImageInput.current.click()} icon={<FiUpload />} _focus={{ outline: 'none' }} size='sm' />}
                     {tempImage && (
@@ -156,6 +163,7 @@ function PitMapPage() {
                                 hiddenImageInput.current.value = '';
                             }}
                             icon={<GiCancel />}
+                            color='red'
                             _focus={{ outline: 'none' }}
                             size='sm'
                         />

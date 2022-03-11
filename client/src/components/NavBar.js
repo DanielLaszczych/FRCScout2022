@@ -76,6 +76,7 @@ function NavBar() {
                                 event.target.blur();
                             }
                         }}
+                        type='number'
                         enterKeyHint='search'
                         value={teamNumber}
                         onChange={(event) => setTeamNumber(event.target.value)}

@@ -92,6 +92,9 @@ function MatchAnalystPage() {
         if (localStorage.getItem('Analysis Match Type')) {
             setMatchType(JSON.parse(localStorage.getItem('Analysis Match Type')));
         }
+        if (localStorage.getItem('DataMedian')) {
+            setDataMedian(localStorage.getItem('DataMedian') === 'true');
+        }
     }, []);
 
     const getMatchKey = useCallback(() => {
@@ -207,6 +210,10 @@ function MatchAnalystPage() {
             { id: uuidv4(), teamNumber: '' },
         ]);
     }, [manualMode]);
+
+    useEffect(() => {
+        localStorage.setItem('DataMedian', dataMedian);
+    }, [dataMedian]);
 
     function renderTeamData(teamNumber, allianceColor, station) {
         let teamMatchForms = matchFormsData.filter((matchForm) => matchForm.teamNumber === teamNumber);
@@ -475,10 +482,12 @@ function MatchAnalystPage() {
 
     return (
         <Box marginBottom={'25px'}>
-            <IconButton position={'absolute'} right={'10px'} top={'95px'} _focus={{ outline: 'none' }} size={'sm'} onClick={() => setManualMode(!manualMode)} icon={!manualMode ? <LockIcon /> : <UnlockIcon />}></IconButton>
-            <Button position={'absolute'} minWidth={'36.95px'} right={'10px'} top={`${127 + 15}px`} onClick={() => setDataMedian(!dataMedian)} _focus={{ outline: 'none' }} size='sm'>
-                {dataMedian ? 'M' : 'A'}
-            </Button>
+            <HStack position={'absolute'} right={'10px'} top={'95px'}>
+                <IconButton _focus={{ outline: 'none' }} size={'sm'} onClick={() => setManualMode(!manualMode)} icon={!manualMode ? <LockIcon /> : <UnlockIcon />}></IconButton>
+                <Button maxWidth={'32px'} onClick={() => setDataMedian(!dataMedian)} _focus={{ outline: 'none' }} size='sm'>
+                    {dataMedian ? 'M' : 'A'}
+                </Button>
+            </HStack>
             <Box margin={'0 auto'} marginBottom={'25px'} textAlign='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
                 <Box marginBottom={'15px'}>
                     <Menu placement='bottom'>

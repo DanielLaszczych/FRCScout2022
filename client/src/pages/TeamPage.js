@@ -246,6 +246,16 @@ function TeamPage() {
         }
     }, [tab, isDesktop, matchForms, drawPopoverImage]);
 
+    useEffect(() => {
+        if (localStorage.getItem('DataMedian')) {
+            setDataMedian(localStorage.getItem('DataMedian') === 'true');
+        }
+    }, []);
+
+    useEffect(() => {
+        localStorage.setItem('DataMedian', dataMedian);
+    }, [dataMedian]);
+
     if (error) {
         return (
             <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
@@ -789,12 +799,12 @@ function TeamPage() {
                                         )}
                                     </div>
                                     <Box className='grid-item'>
-                                        <Text flexBasis={match.autoComment ? '120px' : { base: '65px', md: '50px', lg: '50px' }} flexGrow={1} overflowY={'auto'}>
+                                        <Text flexBasis={match.autoComment ? '120px' : { base: '96px', md: '50px', lg: '50px' }} flexGrow={1} overflowY={'auto'}>
                                             Auto Comment: {match.autoComment || 'None'}
                                         </Text>
                                     </Box>
                                     <Box className='grid-item'>
-                                        <Text flexBasis={match.endComment ? '120px' : { base: '65px', md: '50px', lg: '50px' }} flexGrow={1} overflowY={'auto'}>
+                                        <Text flexBasis={match.endComment ? '100px' : { base: '65px', md: '50px', lg: '50px' }} flexGrow={1} overflowY={'auto'}>
                                             End Comment: {match.endComment || 'None'}
                                         </Text>
                                     </Box>
@@ -825,7 +835,7 @@ function TeamPage() {
             </div>
             <Box margin={'0 auto'} marginTop={'25px'} width={tab !== 2 ? { base: '100%', md: '66%', lg: '66%' } : { base: '100%', md: '100%', lg: '100%' }}>
                 {tab === 0 ? (
-                    <Button position={'absolute'} minWidth={'36.95px'} right={'10px'} top={'160px'} onClick={() => setDataMedian(!dataMedian)} _focus={{ outline: 'none' }} size='sm'>
+                    <Button position={'absolute'} maxWidth={'32px'} right={'10px'} top={'160px'} onClick={() => setDataMedian(!dataMedian)} _focus={{ outline: 'none' }} size='sm'>
                         {dataMedian ? 'M' : 'A'}
                     </Button>
                 ) : null}
