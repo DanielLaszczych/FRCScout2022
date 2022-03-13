@@ -198,3 +198,7 @@ export function roundToHundredth(value) {
 export function roundToTenth(value) {
     return Number(value.toFixed(1));
 }
+
+export function roundToWhole(value) {
+    return Number(value.toFixed());
+}

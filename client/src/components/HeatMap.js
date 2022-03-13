@@ -1,7 +1,7 @@
 import { Center, Spinner } from '@chakra-ui/react';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Field from '../images/Field.png';
-import { getStartingPoints, roundToHundredth } from '../util/helperFunctions';
+import { getStartingPoints, roundToHundredth, roundToWhole } from '../util/helperFunctions';
 import { median, sum } from 'mathjs';
 
 let defaultGradient = {
@@ -129,8 +129,8 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
             ctx.globalAlpha = 1;
             ctx.font = `${25 * scale}px Arial`;
             ctx.textAlign = 'center';
-            ctx.fillStyle = 'white';
-            ctx.strokeStyle = 'black';
+            ctx.fillStyle = 'rgba(255, 255, 255, 1)';
+            ctx.strokeStyle = 'rgba(0, 0, 0, 1)';
             ctx.lineWidth = (25 * scale) / 5;
             let xOffSet = 0 * scale;
             let yOffset = -18 * scale;
@@ -138,9 +138,10 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
                 let totalScored = sum(analyzedPoint.lowerCargoAuto) + sum(analyzedPoint.upperCargoAuto);
                 if (totalScored + sum(analyzedPoint.missedAuto) !== 0) {
                     let percentage = totalScored / (totalScored + sum(analyzedPoint.missedAuto));
-                    percentage = roundToHundredth(percentage);
-                    ctx.strokeText(`${percentage * 100}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
-                    ctx.fillText(`${percentage * 100}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
+                    console.log(percentage);
+                    percentage = roundToWhole(percentage * 100);
+                    ctx.strokeText(`${percentage}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
+                    ctx.fillText(`${percentage}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
                 } else {
                     ctx.strokeText(`N/A`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
                     ctx.fillText(`N/A`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);

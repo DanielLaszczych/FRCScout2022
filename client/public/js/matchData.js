@@ -14,6 +14,10 @@
                 dataType: tableau.dataTypeEnum.string,
             },
             {
+                id: 'matchIndex',
+                dataType: tableau.dataTypeEnum.int,
+            },
+            {
                 id: 'scouter',
                 dataType: tableau.dataTypeEnum.string,
             },
@@ -128,6 +132,7 @@
                         tableData.push({
                             teamNumber: data[i].teamNumber,
                             matchNumber: data[i].matchNumber,
+                            matchIndex: data[i].matchIndex,
                             scouter: data[i].scouter,
                             station: data[i].station,
                             preLoadedCargo: data[i].preLoadedCargo,

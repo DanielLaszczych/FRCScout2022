@@ -10,7 +10,20 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
             return;
         } else {
             try {
-                const matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).exec();
+                let matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).lean().exec();
+
+                let matchFormMap = new Map();
+                for (let matchForm of matchForms) {
+                    if (!matchFormMap.has(matchForm.teamNumber)) {
+                        matchFormMap.set(matchForm.teamNumber, 1);
+                        matchForm.matchIndex = 1;
+                    } else {
+                        let matchIndex = matchFormMap.get(matchForm.teamNumber);
+                        matchForm.matchIndex = matchIndex + 1;
+                        matchFormMap.set(matchForm.teamNumber, matchIndex + 1);
+                    }
+                }
+
                 res.send(matchForms);
             } catch (err) {
                 res.send(err);
@@ -22,7 +35,20 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
             .then(async (result) => {
                 if (result) {
                     try {
-                        const matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).exec();
+                        let matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).lean().exec();
+
+                        let matchFormMap = new Map();
+                        for (let matchForm of matchForms) {
+                            if (!matchFormMap.has(matchForm.teamNumber)) {
+                                matchFormMap.set(matchForm.teamNumber, 1);
+                                matchForm.matchIndex = 1;
+                            } else {
+                                let matchIndex = matchFormMap.get(matchForm.teamNumber);
+                                matchForm.matchIndex = matchIndex + 1;
+                                matchFormMap.set(matchForm.teamNumber, matchIndex + 1);
+                            }
+                        }
+
                         res.send(matchForms);
                     } catch (err) {
                         res.send(err);
