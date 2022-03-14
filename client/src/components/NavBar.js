@@ -68,7 +68,7 @@ function NavBar() {
             </Link>
             <Box className='search' flex={1} h={'75px'}>
                 <HStack width={{ base: '75%', sm: '75%', md: '60%', lg: '50%' }} margin={{ base: 'auto', md: '0 0 0 22%' }} pos={'relative'} top='50%' transform={'translateY(-50%)'} spacing={0}>
-                    <NumberInput value={teamNumber} onChange={(value) => setTeamNumber(value)} precision={0}>
+                    <NumberInput w={'100%'} value={teamNumber} onChange={(value) => setTeamNumber(value)} precision={0}>
                         <NumberInputField
                             h='45px'
                             onKeyPress={(event) => {

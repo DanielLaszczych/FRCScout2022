@@ -292,7 +292,7 @@ function MatchesPage() {
                 </Box>
             ) : (
                 <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
-                    No Match Data For this Event
+                    No Match Data For This Event
                 </Box>
             )}
         </Box>
