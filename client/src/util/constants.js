@@ -1,5 +1,5 @@
 const prod = {
-    API_URL: 'https://scout.robotigers1796.com/',
+    API_URL: 'https://scout.robotigers1796.com',
 };
 const dev = {
     API_URL: 'http://localhost:5000',
