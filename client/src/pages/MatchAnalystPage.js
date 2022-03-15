@@ -1,6 +1,6 @@
 import { useQuery } from '@apollo/client';
 import { ChevronDownIcon, LockIcon, UnlockIcon } from '@chakra-ui/icons';
-import { Box, Button, Center, HStack, IconButton, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Spinner, Text } from '@chakra-ui/react';
+import { Box, Button, Center, HStack, IconButton, Menu, MenuButton, MenuItem, MenuList, NumberInput, NumberInputField, Spinner, Stack, Text } from '@chakra-ui/react';
 import { React, useCallback, useEffect, useState } from 'react';
 import { GET_EVENTS_KEYS_NAMES, GET_MATCHFORMS_FOR_ANALYSIS } from '../graphql/queries';
 import {
@@ -482,12 +482,12 @@ function MatchAnalystPage() {
 
     return (
         <Box marginBottom={'25px'}>
-            <HStack position={'absolute'} right={'10px'} top={'95px'}>
+            <Stack direction={{ base: 'column', sm: 'row' }} position={'absolute'} right={'10px'} top={'95px'}>
                 <IconButton _focus={{ outline: 'none' }} size={'sm'} onClick={() => setManualMode(!manualMode)} icon={!manualMode ? <LockIcon /> : <UnlockIcon />}></IconButton>
                 <Button maxWidth={'32px'} onClick={() => setDataMedian(!dataMedian)} _focus={{ outline: 'none' }} size='sm'>
                     {dataMedian ? 'M' : 'A'}
                 </Button>
-            </HStack>
+            </Stack>
             <Box margin={'0 auto'} marginBottom={'25px'} textAlign='center' width={{ base: '85%', md: '66%', lg: '50%' }}>
                 <Box marginBottom={'15px'}>
                     <Menu placement='bottom'>

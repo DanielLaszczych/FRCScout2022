@@ -151,7 +151,7 @@ function PitMapPage() {
         <Box marginBottom={'25px'}>
             <IconButton position={'absolute'} right={'10px'} top={'95px'} onClick={() => setImageRotation(imageRotation === 3 ? 0 : imageRotation + 1)} icon={<AiOutlineRotateRight />} _focus={{ outline: 'none' }} size='sm' />
             {user.admin && (
-                <HStack spacing={'5px'} position={'absolute'} left={'10px'} top={'95px'}>
+                <HStack spacing={'0px'} position={'absolute'} left={'10px'} top={'95px'}>
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     {!tempImage && <IconButton disabled={uploadingPitMap} onClick={() => hiddenImageInput.current.click()} icon={<FiUpload />} _focus={{ outline: 'none' }} size='sm' />}
                     {tempImage && (
