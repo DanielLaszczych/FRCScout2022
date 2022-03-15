@@ -24,6 +24,7 @@ import {
     Spinner,
     Text,
     Textarea,
+    useDisclosure,
     useToast,
 } from '@chakra-ui/react';
 import { GET_MATCHFORM_BY_STATION } from '../graphql/queries';
@@ -38,6 +39,7 @@ import StopWatch from '../components/StopWatch';
 import { UPDATE_MATCHFORM } from '../graphql/mutations';
 import { AiOutlineRotateRight } from 'react-icons/ai';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
+import { MdOutlineDoNotDisturbAlt } from 'react-icons/md';
 
 let tabs = ['Pre-Auto', 'Auto', 'Post-Auto', 'Teleop', 'Post-Game'];
 let rotations = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
@@ -68,6 +70,9 @@ function MatchForm() {
     const swiper = useRef(null);
     const cancelRef = useRef(null);
     const prevWidth = useRef(window.innerWidth);
+
+    const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
+    const cancelAlertRef = useRef();
 
     const [activeSlider, setActiveSlider] = useState(null);
     const [teamNumber, setTeamNumber] = useState(null);
@@ -103,6 +108,7 @@ function MatchForm() {
         endComment: '',
         followUp: false,
         followUpComment: '',
+        noShow: false,
         loading: true,
     });
     const [error, setError] = useState(null);
@@ -229,6 +235,7 @@ function MatchForm() {
                 endComment: matchForm.endComment,
                 followUp: matchForm.followUp,
                 followUpComment: matchForm.followUpComment,
+                noShow: matchForm.noShow,
                 loading: false,
             });
             setActiveSlider(0);
@@ -398,7 +405,7 @@ function MatchForm() {
 
     function submit() {
         setSubmitAttempted(true);
-        if (!matchFormData.followUp) {
+        if (!matchFormData.followUp && !matchFormData.noShow) {
             let toastText = [];
             if (!validPreAuto()) {
                 toastText.push('Pre-Auto');
@@ -422,7 +429,7 @@ function MatchForm() {
                 });
                 return;
             }
-        } else if (matchFormData.followUpComment.trim() === '') {
+        } else if (!matchFormData.noShow && matchFormData.followUpComment.trim() === '') {
             toast({
                 title: 'Missing fields',
                 description: 'Leave a follow up comment',
@@ -461,8 +468,9 @@ function MatchForm() {
                     yellowCard: matchFormData.yellowCard,
                     redCard: matchFormData.redCard,
                     endComment: matchFormData.endComment.trim(),
-                    followUp: matchFormData.followUp,
-                    followUpComment: matchFormData.followUp ? matchFormData.followUpComment.trim() : '',
+                    followUp: !matchFormData.noShow && matchFormData.followUp,
+                    followUpComment: !matchFormData.noShow && matchFormData.followUp ? matchFormData.followUpComment.trim() : '',
+                    noShow: matchFormData.noShow,
                 },
             },
         });
@@ -479,7 +487,7 @@ function MatchForm() {
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
-                                    outline={matchFormData.preLoadedCargo === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.preLoadedCargo === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
                                     colorScheme={matchFormData.preLoadedCargo === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, preLoadedCargo: true })}
@@ -487,7 +495,7 @@ function MatchForm() {
                                     Yes
                                 </Button>
                                 <Button
-                                    outline={matchFormData.preLoadedCargo === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.preLoadedCargo === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
                                     colorScheme={matchFormData.preLoadedCargo === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, preLoadedCargo: false })}
@@ -506,7 +514,7 @@ function MatchForm() {
                                 <canvas
                                     width={414 * calculateImageScale()}
                                     height={414 * calculateImageScale()}
-                                    style={{ zIndex: 2, outline: matchFormData.startingPosition.x === null && submitAttempted && !matchFormData.followUp ? '4px solid red' : 'none' }}
+                                    style={{ zIndex: 2, outline: matchFormData.startingPosition.x === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '4px solid red' : 'none' }}
                                     onClick={(event) => {
                                         let bounds = event.target.getBoundingClientRect();
                                         let x = event.clientX - bounds.left;
@@ -588,7 +596,7 @@ function MatchForm() {
                             </Text>
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
-                                    outline={matchFormData.crossTarmac === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.crossTarmac === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
                                     colorScheme={matchFormData.crossTarmac === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, crossTarmac: true })}
@@ -596,7 +604,7 @@ function MatchForm() {
                                     Yes
                                 </Button>
                                 <Button
-                                    outline={matchFormData.crossTarmac === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.crossTarmac === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
                                     colorScheme={matchFormData.crossTarmac === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, crossTarmac: false })}
@@ -680,7 +688,7 @@ function MatchForm() {
                                         <Flex flexWrap={'wrap'} marginBottom={'2px'} justifyContent={'center'}>
                                             {rungs.map((rung) => (
                                                 <Button
-                                                    outline={matchFormData.climbRung === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                                    outline={matchFormData.climbRung === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                                     maxW={'125px'}
                                                     minW={'125px'}
                                                     margin={'8px'}
@@ -725,7 +733,7 @@ function MatchForm() {
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.receivedDefense === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.receivedDefense === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.receivedDefense === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, receivedDefense: true })}
                                 >
@@ -733,7 +741,7 @@ function MatchForm() {
                                 </Button>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.receivedDefense === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.receivedDefense === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.receivedDefense === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, receivedDefense: false })}
                                 >
@@ -746,7 +754,7 @@ function MatchForm() {
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.autoReject === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.autoReject === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.autoReject === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, autoReject: true })}
                                 >
@@ -754,7 +762,7 @@ function MatchForm() {
                                 </Button>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.autoReject === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.autoReject === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.autoReject === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, autoReject: false })}
                                 >
@@ -767,7 +775,7 @@ function MatchForm() {
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.loseCommunication === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.loseCommunication === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.loseCommunication === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, loseCommunication: true })}
                                 >
@@ -775,7 +783,7 @@ function MatchForm() {
                                 </Button>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.loseCommunication === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.loseCommunication === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.loseCommunication === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, loseCommunication: false })}
                                 >
@@ -788,7 +796,7 @@ function MatchForm() {
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.robotBreak === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.robotBreak === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.robotBreak === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, robotBreak: true })}
                                 >
@@ -796,7 +804,7 @@ function MatchForm() {
                                 </Button>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.robotBreak === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.robotBreak === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.robotBreak === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, robotBreak: false })}
                                 >
@@ -809,7 +817,7 @@ function MatchForm() {
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.yellowCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.yellowCard === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.yellowCard === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, yellowCard: true })}
                                 >
@@ -817,7 +825,7 @@ function MatchForm() {
                                 </Button>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.yellowCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.yellowCard === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.yellowCard === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, yellowCard: false })}
                                 >
@@ -830,7 +838,7 @@ function MatchForm() {
                             <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.redCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.redCard === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.redCard === true ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, redCard: true })}
                                 >
@@ -838,7 +846,7 @@ function MatchForm() {
                                 </Button>
                                 <Button
                                     _focus={{ outline: 'none' }}
-                                    outline={matchFormData.redCard === null && submitAttempted && !matchFormData.followUp ? '2px solid red' : 'none'}
+                                    outline={matchFormData.redCard === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     colorScheme={matchFormData.redCard === false ? 'green' : 'gray'}
                                     onClick={() => setMatchFormData({ ...matchFormData, redCard: false })}
                                 >
@@ -857,23 +865,25 @@ function MatchForm() {
                                     w={'85%'}
                                 ></Textarea>
                             </Center>
-                            <Center>
-                                <Checkbox
-                                    marginTop={'10px'}
-                                    //removes the blue outline on focus
-                                    css={`
-                                        > span:first-of-type {
-                                            box-shadow: unset;
-                                        }
-                                    `}
-                                    colorScheme={'green'}
-                                    isChecked={matchFormData.followUp}
-                                    onChange={() => setMatchFormData({ ...matchFormData, followUp: !matchFormData.followUp })}
-                                >
-                                    Mark For Follow Up
-                                </Checkbox>
-                            </Center>
-                            {matchFormData.followUp ? (
+                            {!matchFormData.noShow && (
+                                <Center>
+                                    <Checkbox
+                                        marginTop={'10px'}
+                                        //removes the blue outline on focus
+                                        css={`
+                                            > span:first-of-type {
+                                                box-shadow: unset;
+                                            }
+                                        `}
+                                        colorScheme={'green'}
+                                        isChecked={matchFormData.followUp}
+                                        onChange={() => setMatchFormData({ ...matchFormData, followUp: !matchFormData.followUp })}
+                                    >
+                                        Mark For Follow Up
+                                    </Checkbox>
+                                </Center>
+                            )}
+                            {matchFormData.followUp && !matchFormData.noShow ? (
                                 <Center marginTop={'10px'}>
                                     <Textarea
                                         isInvalid={matchFormData.followUp && submitAttempted && matchFormData.followUpComment.trim() === ''}
@@ -977,6 +987,7 @@ function MatchForm() {
                                         endComment: matchForm.endComment,
                                         followUp: matchForm.followUp,
                                         followUpComment: matchForm.followUpComment,
+                                        noShow: matchForm.noShow,
                                         loading: false,
                                     });
                                     setActiveSlider(0);
@@ -1001,12 +1012,55 @@ function MatchForm() {
 
     return (
         <Box margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
+            <IconButton
+                position={'absolute'}
+                right={'10px'}
+                top={'95px'}
+                onClick={onAlertOpen}
+                icon={<MdOutlineDoNotDisturbAlt />}
+                colorScheme={matchFormData.noShow ? 'red' : 'black'}
+                variant={matchFormData.noShow ? 'solid' : 'outline'}
+                _focus={{ outline: 'none' }}
+                size='sm'
+            />
+            <AlertDialog isOpen={isAlertOpen} leastDestructiveRef={cancelAlertRef} onClose={onAlertClose} closeOnEsc={false}>
+                <AlertDialogOverlay>
+                    <AlertDialogContent margin={0} w={{ base: '75%', md: '40%', lg: '30%' }} top='25%'>
+                        <AlertDialogHeader color='black' fontSize='lg' fontWeight='bold'>
+                            {(matchFormData.noShow ? 'Unmark' : 'Mark') + ' this team as a no show'}
+                        </AlertDialogHeader>
+
+                        <AlertDialogBody>{`Make sure the team is ${matchFormData.noShow ? 'on' : 'not on'} the field`}</AlertDialogBody>
+
+                        <AlertDialogFooter>
+                            <Button ref={cancelAlertRef} onClick={onAlertClose} _focus={{ outline: 'none' }}>
+                                Cancel
+                            </Button>
+                            <Button
+                                _focus={{ outline: 'none' }}
+                                colorScheme={matchFormData.noShow ? 'green' : 'red'}
+                                onClick={() => {
+                                    if (matchFormData.noShow) {
+                                        setMatchFormData({ ...matchFormData, followUp: false, followUpComment: '', noShow: !matchFormData.noShow });
+                                    } else {
+                                        setMatchFormData({ ...matchFormData, noShow: !matchFormData.noShow });
+                                    }
+                                    onAlertClose();
+                                }}
+                                ml={3}
+                            >
+                                {matchFormData.noShow ? 'Unmark' : 'Mark'}
+                            </Button>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialogOverlay>
+            </AlertDialog>
             <Center>
                 <HStack marginBottom={'25px'} spacing={'10px'}>
                     <IconButton icon={<ChevronLeftIcon />} disabled={activeSlider === 0 || activeSlider === null} className='slider-button-prev' _focus={{ outline: 'none' }}>
                         Prev
                     </IconButton>
-                    <Text textAlign={'center'} color={submitAttempted && !matchFormData.followUp && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
+                    <Text textAlign={'center'} color={submitAttempted && !matchFormData.followUp && !matchFormData.noShow && !validateTab(tabs[activeSlider]) ? 'red' : 'black'} minW={'90px'} fontWeight={'bold'} fontSize={'110%'}>
                         {tabs[activeSlider]} · {teamNumber}
                     </Text>
                     <IconButton icon={<ChevronRightIcon />} className='slider-button-next' _focus={{ outline: 'none' }}>

@@ -38,6 +38,7 @@ module.exports = gql`
         endComment: String
         followUp: Boolean!
         followUpComment: String
+        noShow: Boolean!
     }
 
     input StartingPositionInput {
@@ -74,6 +75,7 @@ module.exports = gql`
         endComment: String
         followUp: Boolean!
         followUpComment: String
+        noShow: Boolean!
     }
 
     extend type Query {

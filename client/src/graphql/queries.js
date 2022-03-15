@@ -62,6 +62,7 @@ export const GET_EVENTS_MATCHFORMS = gql`
             station
             followUp
             followUpComment
+            noShow
         }
     }
 `;
@@ -163,6 +164,7 @@ export const GET_MATCHFORM_BY_STATION = gql`
             endComment
             followUp
             followUpComment
+            noShow
         }
     }
 `;
@@ -240,6 +242,7 @@ export const GET_TEAMS_MATCHFORMS = gql`
             redCard
             endComment
             followUp
+            noShow
         }
     }
 `;

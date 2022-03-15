@@ -27,6 +27,9 @@ import { React, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { GET_EVENTS_KEYS_NAMES, GET_EVENTS_MATCHFORMS } from '../graphql/queries';
 import { convertMatchKeyToString, convertStationKeyToString, sortMatches, sortRegisteredEvents } from '../util/helperFunctions';
+import { MdOutlineDoNotDisturbAlt } from 'react-icons/md';
+
+let filters = ['none', 'followUp', 'noShow'];
 
 function MatchesPage() {
     const [error, setError] = useState(null);
@@ -35,7 +38,7 @@ function MatchesPage() {
     const [matchFilter, setMatchFilter] = useState('');
     const [teamFilter, setTeamFilter] = useState('');
     const [scouterFilter, setScouterFilter] = useState('');
-    const [followUpFilter, setFollowUpFilter] = useState(false);
+    const [matchFormFilter, setMatchFormFilter] = useState(0);
 
     const {
         loading: loadingEvents,
@@ -102,10 +105,10 @@ function MatchesPage() {
                 position={'absolute'}
                 right={'10px'}
                 top={'95px'}
-                onClick={() => setFollowUpFilter(!followUpFilter)}
-                icon={<WarningIcon />}
-                colorScheme={followUpFilter ? 'yellow' : 'black'}
-                variant={followUpFilter ? 'solid' : 'outline'}
+                onClick={() => setMatchFormFilter(matchFormFilter === 2 ? 0 : matchFormFilter + 1)}
+                icon={matchFormFilter === 2 ? <MdOutlineDoNotDisturbAlt /> : <WarningIcon />}
+                colorScheme={matchFormFilter === 0 ? 'black' : matchFormFilter === 1 ? 'yellow' : 'red'}
+                variant={matchFormFilter !== 0 ? 'solid' : 'outline'}
                 _focus={{ outline: 'none' }}
                 size='sm'
             />
@@ -232,7 +235,7 @@ function MatchesPage() {
                         </GridItem>
                     </Grid>
                     {sortMatches(
-                        (followUpFilter ? matchForms.filter((match) => match.followUp) : matchForms)
+                        (matchFormFilter === 1 ? matchForms.filter((match) => match.followUp) : matchFormFilter === 2 ? matchForms.filter((match) => match.noShow) : matchForms)
                             .filter((match) => match.matchNumber.match(new RegExp(`^${matchFilter}`, 'gim')))
                             .filter((match) => match.teamNumber.toString().match(new RegExp(`${teamFilter}`, 'gim')))
                             .filter((match) => match.scouter.match(new RegExp(`^${scouterFilter}`, 'gim')))
@@ -254,10 +257,20 @@ function MatchesPage() {
                                 </Text>
                             </GridItem>
                             <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                {!match.followUp ? (
+                                {!match.followUp && !match.noShow ? (
                                     <IconButton
                                         icon={<CheckCircleIcon />}
                                         colorScheme={'green'}
+                                        _focus={{ outline: 'none' }}
+                                        size='sm'
+                                        as={Link}
+                                        to={`/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}/${match.teamNumber}`}
+                                        state={{ previousRoute: 'matches' }}
+                                    />
+                                ) : match.noShow ? (
+                                    <IconButton
+                                        icon={<MdOutlineDoNotDisturbAlt />}
+                                        colorScheme={'red'}
                                         _focus={{ outline: 'none' }}
                                         size='sm'
                                         as={Link}

@@ -10,7 +10,7 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
             return;
         } else {
             try {
-                let matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).lean().exec();
+                let matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false, noShow: false }).lean().exec();
 
                 let matchFormMap = new Map();
                 for (let matchForm of matchForms) {
@@ -35,7 +35,7 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
             .then(async (result) => {
                 if (result) {
                     try {
-                        let matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false }).lean().exec();
+                        let matchForms = await MatchForm.find({ eventKey: req.params.eventKey, followUp: false, noShow: false }).lean().exec();
 
                         let matchFormMap = new Map();
                         for (let matchForm of matchForms) {

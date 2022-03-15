@@ -107,6 +107,11 @@ const matchFormSchema = new Schema({
     followUpComment: {
         type: String,
     },
+    noShow: {
+        type: Boolean,
+        required: true,
+        default: false,
+    },
 });
 
 const MatchForm = model('MatchForm', matchFormSchema);

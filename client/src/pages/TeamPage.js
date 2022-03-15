@@ -62,6 +62,7 @@ function TeamPage() {
     const [focusedEvent, setFocusedEvent] = useState('');
     const [pitForm, setPitForm] = useState(null);
     const [matchForms, setMatchForms] = useState(null);
+    const [filteredMatchForms, setFilteredMatchForms] = useState(null);
     const [tab, setTab] = useState(0);
     const [currentPopoverData, setCurrentPopoverData] = useState(null);
     const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1200);
@@ -133,6 +134,7 @@ function TeamPage() {
                 let event = events[events.length - 1];
                 setPitForm(pitFormsData.find((pitForm) => pitForm.eventKey === event.key));
                 setMatchForms(matchFormsData.filter((matchForm) => matchForm.eventKey === event.key));
+                setFilteredMatchForms(matchFormsData.filter((matchForm) => !matchForm.noShow && matchForm.eventKey === event.key));
                 setCurrentEvent({ name: event.name, key: event.key });
                 setFocusedEvent(event.name);
                 setError(false);
@@ -148,6 +150,7 @@ function TeamPage() {
             }
             setPitForm(pitFormsData.find((pitForm) => pitForm.eventKey === event.key));
             setMatchForms(matchFormsData.filter((matchForm) => matchForm.eventKey === event.key));
+            setFilteredMatchForms(matchFormsData.filter((matchForm) => !matchForm.noShow && matchForm.eventKey === event.key));
             setCurrentEvent({ name: event.name, key: event.key });
             setFocusedEvent(event.name);
         },
@@ -225,13 +228,13 @@ function TeamPage() {
                 if (isDesktop && currentPopoverData !== null) {
                     doResize = setTimeout(() => drawPopoverImage(currentPopoverData.point, currentPopoverData.id), 250);
                 } else {
-                    doResize = setTimeout(() => sortMatches(matchForms).map((match) => drawPopoverImage(match.startingPosition, match._id)), 250);
+                    doResize = setTimeout(() => sortMatches(filteredMatchForms).map((match) => drawPopoverImage(match.startingPosition, match._id)), 250);
                 }
             }
         } else {
             clearTimeout(doResize);
         }
-    }, [drawPopoverImage, currentPopoverData, tab, isDesktop, matchForms]);
+    }, [drawPopoverImage, currentPopoverData, tab, isDesktop, filteredMatchForms]);
 
     useEffect(() => {
         window.addEventListener('resize', resizePopover);
@@ -242,9 +245,9 @@ function TeamPage() {
     useEffect(() => {
         if (tab === 2 && !isDesktop) {
             prevWidth.current = window.innerWidth;
-            sortMatches(matchForms).map((match) => drawPopoverImage(match.startingPosition, match._id));
+            sortMatches(filteredMatchForms).map((match) => drawPopoverImage(match.startingPosition, match._id));
         }
-    }, [tab, isDesktop, matchForms, drawPopoverImage]);
+    }, [tab, isDesktop, filteredMatchForms, drawPopoverImage]);
 
     useEffect(() => {
         if (localStorage.getItem('DataMedian')) {
@@ -313,23 +316,25 @@ function TeamPage() {
                                 <Text textAlign={'center'} marginBottom={'5px'} textDecoration={'underline'} fontWeight={'bold'} fontSize={'125%'}>
                                     Auto:
                                 </Text>
-                                {matchForms.length > 0 ? (
+                                {filteredMatchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'lowerCargoAuto')) : averageArr(getFields(matchForms, 'lowerCargoAuto'))} Cargo
+                                            Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(filteredMatchForms, 'lowerCargoAuto')) : averageArr(getFields(filteredMatchForms, 'lowerCargoAuto'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'upperCargoAuto')) : averageArr(getFields(matchForms, 'upperCargoAuto'))} Cargo
+                                            Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(filteredMatchForms, 'upperCargoAuto')) : averageArr(getFields(filteredMatchForms, 'upperCargoAuto'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'missedAuto')) : averageArr(getFields(matchForms, 'missedAuto'))} Cargo
+                                            Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(filteredMatchForms, 'missedAuto')) : averageArr(getFields(filteredMatchForms, 'missedAuto'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Hub Percentage:{' '}
-                                            {matchForms.find((matchForm) => matchForm.missedAuto > 0 || matchForm.lowerCargoAuto > 0 || matchForm.upperCargoAuto > 0) ? `${roundToHundredth(getHubPercentage(matchForms, 'Auto') * 100)}%` : 'N/A'}
+                                            {filteredMatchForms.find((matchForm) => matchForm.missedAuto > 0 || matchForm.lowerCargoAuto > 0 || matchForm.upperCargoAuto > 0)
+                                                ? `${roundToHundredth(getHubPercentage(filteredMatchForms, 'Auto') * 100)}%`
+                                                : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Taxi Percentage: {roundToHundredth(getPercentageForTFField(matchForms, 'crossTarmac') * 100)}%
+                                            Taxi Percentage: {roundToHundredth(getPercentageForTFField(filteredMatchForms, 'crossTarmac') * 100)}%
                                         </Text>
                                     </Box>
                                 ) : (
@@ -342,32 +347,34 @@ function TeamPage() {
                                 <Text textAlign={'center'} marginBottom={'5px'} textDecoration={'underline'} fontWeight={'bold'} fontSize={'125%'}>
                                     Teleop:
                                 </Text>
-                                {matchForms.length > 0 ? (
+                                {filteredMatchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'lowerCargoTele')) : averageArr(getFields(matchForms, 'lowerCargoTele'))} Cargo
+                                            Lower Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(filteredMatchForms, 'lowerCargoTele')) : averageArr(getFields(filteredMatchForms, 'lowerCargoTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'upperCargoTele')) : averageArr(getFields(matchForms, 'upperCargoTele'))} Cargo
+                                            Upper Hub ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(filteredMatchForms, 'upperCargoTele')) : averageArr(getFields(filteredMatchForms, 'upperCargoTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(matchForms, 'missedTele')) : averageArr(getFields(matchForms, 'missedTele'))} Cargo
+                                            Missed ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getFields(filteredMatchForms, 'missedTele')) : averageArr(getFields(filteredMatchForms, 'missedTele'))} Cargo
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Hub Percentage:{' '}
-                                            {matchForms.find((matchForm) => matchForm.missedTele > 0 || matchForm.lowerCargoTele > 0 || matchForm.upperCargoTele > 0) ? `${roundToHundredth(getHubPercentage(matchForms, 'Tele') * 100)}%` : 'N/A'}
-                                        </Text>
-                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Climb Success Rate: {getFractionForClimb(matchForms)}
-                                        </Text>
-                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Climb Time ({dataMedian ? 'Med.' : 'Avg.'}):{' '}
-                                            {matchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0
-                                                ? `${dataMedian ? medianArr(getSuccessfulClimbTimes(matchForms)) / 1000 : averageArr(getSuccessfulClimbTimes(matchForms)) / 1000} sec`
+                                            {filteredMatchForms.find((matchForm) => matchForm.missedTele > 0 || matchForm.lowerCargoTele > 0 || matchForm.upperCargoTele > 0)
+                                                ? `${roundToHundredth(getHubPercentage(filteredMatchForms, 'Tele') * 100)}%`
                                                 : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Most Common Rung(s): {getSucessfulClimbRungMode(matchForms)}
+                                            Climb Success Rate: {getFractionForClimb(filteredMatchForms)}
+                                        </Text>
+                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                            Climb Time ({dataMedian ? 'Med.' : 'Avg.'}):{' '}
+                                            {filteredMatchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0
+                                                ? `${dataMedian ? medianArr(getSuccessfulClimbTimes(filteredMatchForms)) / 1000 : averageArr(getSuccessfulClimbTimes(filteredMatchForms)) / 1000} sec`
+                                                : 'N/A'}
+                                        </Text>
+                                        <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                            Most Common Rung(s): {getSucessfulClimbRungMode(filteredMatchForms)}
                                         </Text>
                                     </Box>
                                 ) : (
@@ -380,22 +387,22 @@ function TeamPage() {
                                 <Text textAlign={'center'} marginBottom={'5px'} textDecoration={'underline'} fontWeight={'bold'} fontSize={'125%'}>
                                     Post:
                                 </Text>
-                                {matchForms.length > 0 ? (
+                                {filteredMatchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Played Defense Rating ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getDefenseRatings(matchForms)) : averageArr(getDefenseRatings(matchForms))} (1-5)
+                                            Played Defense Rating ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getDefenseRatings(filteredMatchForms)) : averageArr(getDefenseRatings(filteredMatchForms))} (1-5)
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            # of Lose Communication: {countOccurencesForTFField(matchForms, 'loseCommunication')}
+                                            # of Lose Communication: {countOccurencesForTFField(filteredMatchForms, 'loseCommunication')}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            # of Robot Break: {countOccurencesForTFField(matchForms, 'robotBreak')}
+                                            # of Robot Break: {countOccurencesForTFField(filteredMatchForms, 'robotBreak')}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            # of Yellow Card: {countOccurencesForTFField(matchForms, 'yellowCard')}
+                                            # of Yellow Card: {countOccurencesForTFField(filteredMatchForms, 'yellowCard')}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            # of Red Card: {countOccurencesForTFField(matchForms, 'redCard')}
+                                            # of Red Card: {countOccurencesForTFField(filteredMatchForms, 'redCard')}
                                         </Text>
                                     </Box>
                                 ) : (
@@ -518,62 +525,76 @@ function TeamPage() {
                 return matchForms.length > 0 ? (
                     <Box marginBottom={'25px'}>
                         {!isDesktop ? (
-                            sortMatches(matchForms).map((match) => (
-                                <div key={match._id} className='grid'>
-                                    <div className='grid-column'>
-                                        <div className='grid-item header'>
-                                            {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                            sortMatches(matchForms).map((match) =>
+                                match.noShow ? (
+                                    <div key={match._id} className='grid'>
+                                        <div className='grid-column'>
+                                            <div className='grid-item header'>
+                                                {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                            </div>
+                                            <div className='grid-item header'>{`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}</div>
                                         </div>
-                                        <div className='grid-item header'>{`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}</div>
-                                    </div>
-                                    <div className='grid-column'>
-                                        <div className='grid-item header'>Pre-Auto</div>
-                                        <div className='grid-item header'>Auto</div>
-                                        <div className='grid-item header'>Post-Auto</div>
-                                    </div>
-                                    <div className='grid-column'>
-                                        <div className='grid-item'>
-                                            <Center paddingTop={'5px'} paddingBottom={'5px'} pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                                <Spinner pos={'absolute'} zIndex={-1}></Spinner>
-                                                <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 0 }}></canvas>
-                                            </Center>
-                                        </div>
-                                        <div className='grid-item'>
-                                            <div className='grid-text-item'>Lower Hub: {match.lowerCargoAuto}</div>
-                                            <div className='grid-text-item'>Upper Hub: {match.upperCargoAuto}</div>
-                                            <div>Missed: {match.missedAuto}</div>
-                                        </div>
-                                        <Box className='grid-item'>
-                                            <div className='grid-text-item'>Taxi: {match.crossTarmac ? 'Yes' : 'No'}</div>
-                                            <Text className='grid-comment-item' flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
-                                                Auto Comment: {match.autoComment || 'None'}
-                                            </Text>
-                                        </Box>
-                                    </div>
-                                    <div className='grid-column'>
-                                        <div className='grid-item header'>Teleop</div>
-                                        <div className='grid-item header'>End-Game</div>
-                                        <div className='grid-item header'>Post-Game</div>
-                                    </div>
-                                    <div className='grid-column'>
-                                        <div className='grid-item'>
-                                            <div className='grid-text-item'>Lower Hub: {match.lowerCargoTele}</div>
-                                            <div className='grid-text-item'>Upper Hub: {match.upperCargoTele}</div>
-                                            <div>Missed: {match.missedTele}</div>
-                                        </div>
-                                        <div className='grid-item'>
-                                            <div className='grid-text-item'>Climb Time: {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}</div>
-                                            <div>Rung: {match.climbTime > 0 ? match.climbRung : 'N/A'}</div>
-                                        </div>
-                                        <div className='grid-item'>
-                                            <div className='grid-text-item'>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
-                                            <Text className='grid-comment-item' flexBasis={'100px'} flexGrow={2} overflowY={'auto'}>
-                                                End Comment: {match.endComment || 'None'}
-                                            </Text>
+                                        <div className='grid-column' style={{ textAlign: 'center' }}>
+                                            <div className='grid-item'>No Show</div>
                                         </div>
                                     </div>
-                                </div>
-                            ))
+                                ) : (
+                                    <div key={match._id} className='grid'>
+                                        <div className='grid-column'>
+                                            <div className='grid-item header'>
+                                                {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                            </div>
+                                            <div className='grid-item header'>{`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}</div>
+                                        </div>
+                                        <div className='grid-column'>
+                                            <div className='grid-item header'>Pre-Auto</div>
+                                            <div className='grid-item header'>Auto</div>
+                                            <div className='grid-item header'>Post-Auto</div>
+                                        </div>
+                                        <div className='grid-column'>
+                                            <div className='grid-item'>
+                                                <Center paddingTop={'5px'} paddingBottom={'5px'} pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                    <Spinner pos={'absolute'} zIndex={-1}></Spinner>
+                                                    <canvas id={match._id} width={414 * calculatePopoverImageScale()} height={414 * calculatePopoverImageScale()} style={{ zIndex: 0 }}></canvas>
+                                                </Center>
+                                            </div>
+                                            <div className='grid-item'>
+                                                <div className='grid-text-item'>Lower Hub: {match.lowerCargoAuto}</div>
+                                                <div className='grid-text-item'>Upper Hub: {match.upperCargoAuto}</div>
+                                                <div>Missed: {match.missedAuto}</div>
+                                            </div>
+                                            <Box className='grid-item'>
+                                                <div className='grid-text-item'>Taxi: {match.crossTarmac ? 'Yes' : 'No'}</div>
+                                                <Text className='grid-comment-item' flexBasis={'120px'} flexGrow={1} overflowY={'auto'}>
+                                                    Auto Comment: {match.autoComment || 'None'}
+                                                </Text>
+                                            </Box>
+                                        </div>
+                                        <div className='grid-column'>
+                                            <div className='grid-item header'>Teleop</div>
+                                            <div className='grid-item header'>End-Game</div>
+                                            <div className='grid-item header'>Post-Game</div>
+                                        </div>
+                                        <div className='grid-column'>
+                                            <div className='grid-item'>
+                                                <div className='grid-text-item'>Lower Hub: {match.lowerCargoTele}</div>
+                                                <div className='grid-text-item'>Upper Hub: {match.upperCargoTele}</div>
+                                                <div>Missed: {match.missedTele}</div>
+                                            </div>
+                                            <div className='grid-item'>
+                                                <div className='grid-text-item'>Climb Time: {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}</div>
+                                                <div>Rung: {match.climbTime > 0 ? match.climbRung : 'N/A'}</div>
+                                            </div>
+                                            <div className='grid-item'>
+                                                <div className='grid-text-item'>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
+                                                <Text className='grid-comment-item' flexBasis={'100px'} flexGrow={2} overflowY={'auto'}>
+                                                    End Comment: {match.endComment || 'None'}
+                                                </Text>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )
+                            )
                         ) : (
                             <Box>
                                 <Grid margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
@@ -767,7 +788,7 @@ function TeamPage() {
                 return matchForms.length > 0 ? (
                     <Box marginBottom={'25px'}>
                         <Center marginBottom={'10px'}>
-                            <HeatMap data={matchForms} largeScale={0.2} mediumScale={0.5} smallScale={0.8} maxOccurances={3}></HeatMap>
+                            <HeatMap data={filteredMatchForms} largeScale={0.2} mediumScale={0.5} smallScale={0.8} maxOccurances={3}></HeatMap>
                         </Center>
                         <Box textAlign={'center'} fontSize={'25px'} fontWeight={'medium'} margin={'0 auto'} width={{ base: '85%', md: '66%', lg: '50%' }}>
                             Comments and Concerns
@@ -787,7 +808,9 @@ function TeamPage() {
                                 </div>
                                 <div className='grid-column'>
                                     <div className='grid-item'>
-                                        {!match.loseCommunication && !match.robotBreak && !match.yellowCard & !match.redCard ? (
+                                        {match.noShow ? (
+                                            <div style={{ wordBreak: 'break-word' }}>No Show</div>
+                                        ) : !match.loseCommunication && !match.robotBreak && !match.yellowCard & !match.redCard ? (
                                             <div style={{ wordBreak: 'break-word' }}>None</div>
                                         ) : (
                                             <Box>
@@ -860,6 +883,7 @@ function TeamPage() {
                                         setCurrentEvent({ name: eventItem.name, key: eventItem.key });
                                         setPitForm(pitFormsData.find((pitForm) => pitForm.eventKey === eventItem.key));
                                         setMatchForms(matchFormsData.filter((matchForm) => matchForm.eventKey === eventItem.key));
+                                        setFilteredMatchForms(matchFormsData.filter((matchForm) => !matchForm.noShow && matchForm.eventKey === eventItem.key));
                                     }}
                                 >
                                     {eventItem.name}

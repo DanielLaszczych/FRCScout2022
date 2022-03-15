@@ -57,7 +57,7 @@ module.exports = {
                 throw new Error('You must be logged in');
             }
             try {
-                const matchForms = await MatchForm.find({ eventKey: eventKey, teamNumber: { $in: teams }, followUp: false }).exec();
+                const matchForms = await MatchForm.find({ eventKey: eventKey, teamNumber: { $in: teams }, followUp: false, noShow: false }).exec();
                 return matchForms;
             } catch (err) {
                 throw new Error(err);
