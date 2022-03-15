@@ -100,7 +100,8 @@ async function startServer() {
     if (process.env.NODE_ENV === 'production') {
         app.use(express.static('../client/build'));
         app.get('*', (request, response) => {
-            if (request.url === 'scout.robotigers1796.com') {
+            let url = url.parse(request.url, true);
+            if (url.pathname === 'scout.robotigers1796.com') {
                 response.redirect(process.env.CLIENT_URL);
             }
             response.sendFile(path.join(__dirname, '../client/build', 'index.html'));
