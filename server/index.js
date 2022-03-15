@@ -99,6 +99,9 @@ async function startServer() {
 
     if (process.env.NODE_ENV === 'production') {
         app.use(express.static('../client/build'));
+        app.get('scout.robotigers1796.com', (request, response) => {
+            res.redirect(process.env.CLIENT_URL);
+        });
         app.get('*', (request, response) => {
             response.sendFile(path.join(__dirname, '../client/build', 'index.html'));
         });
