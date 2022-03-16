@@ -55,8 +55,6 @@ let defenseRatings = [
     { value: 1, id: uuidv4() },
     { value: 2, id: uuidv4() },
     { value: 3, id: uuidv4() },
-    { value: 4, id: uuidv4() },
-    { value: 5, id: uuidv4() },
 ];
 let doResize;
 
@@ -715,7 +713,7 @@ function MatchForm() {
                                 Played Defense:
                             </Text>
                             <Center marginBottom={'40px'}>
-                                <Slider className='swiper-no-swiping' colorScheme={'green'} w={'80%'} value={matchFormData.defenseRating} min={0} max={5} step={1} onChange={(value) => setMatchFormData({ ...matchFormData, defenseRating: value })}>
+                                <Slider className='swiper-no-swiping' colorScheme={'green'} w={'80%'} value={matchFormData.defenseRating} min={0} max={3} step={1} onChange={(value) => setMatchFormData({ ...matchFormData, defenseRating: value })}>
                                     {defenseRatings.map((rating) => (
                                         <SliderMark mr={rating.value === 0 ? 'px' : '0px'} mt={'10px'} key={rating.id} value={rating.value}>
                                             {rating.value === 0 ? 'None' : rating.value}

@@ -390,7 +390,7 @@ function TeamPage() {
                                 {filteredMatchForms.length > 0 ? (
                                     <Box>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
-                                            Played Defense Rating ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getDefenseRatings(filteredMatchForms)) : averageArr(getDefenseRatings(filteredMatchForms))} (1-5)
+                                            Played Defense Rating ({dataMedian ? 'Med.' : 'Avg.'}): {dataMedian ? medianArr(getDefenseRatings(filteredMatchForms)) : averageArr(getDefenseRatings(filteredMatchForms))} (1-3)
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             # of Lose Communication: {countOccurencesForTFField(filteredMatchForms, 'loseCommunication')}
@@ -586,7 +586,7 @@ function TeamPage() {
                                                 <div>Rung: {match.climbTime > 0 ? match.climbRung : 'N/A'}</div>
                                             </div>
                                             <div className='grid-item'>
-                                                <div className='grid-text-item'>Played Defense (1-5): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
+                                                <div className='grid-text-item'>Played Defense (1-3): {match.defenseRating > 0 ? match.defenseRating : 'N/A'}</div>
                                                 <Text className='grid-comment-item' flexBasis={'100px'} flexGrow={2} overflowY={'auto'}>
                                                     End Comment: {match.endComment || 'None'}
                                                 </Text>
@@ -660,7 +660,7 @@ function TeamPage() {
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                            Played Defense (1-5)
+                                            Played Defense (1-3)
                                         </Text>
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
