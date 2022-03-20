@@ -62,7 +62,7 @@ let motorsList = [
     { label: 'NEO', id: uuidv4() },
     { label: 'CIM', id: uuidv4() },
     { label: 'Mini-CIM', id: uuidv4() },
-    { label: 'NEO 500', id: uuidv4() },
+    { label: 'NEO 550', id: uuidv4() },
     { label: '775 Pro', id: uuidv4() },
 ];
 let wheelsList = [
