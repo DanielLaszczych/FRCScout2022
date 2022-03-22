@@ -1,7 +1,7 @@
 import { React, useContext } from 'react';
 import { ChakraProvider, theme } from '@chakra-ui/react';
 import { AuthContext } from './context/auth';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, HashRouter } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import PitForm from './pages/PitForm';
 import PitPage from './pages/PitsPage';
@@ -51,7 +51,7 @@ function App() {
         <ChakraProvider theme={customTheme}>
             <Router>
                 <NavBar />
-                <Routes>
+                <HashRouter>
                     <Route exact path='/' element={<HomePage />} />
                     <Route exact path='/pits' element={<PitPage />} />
                     <Route exact path='matches' element={<MatchesPage />} />
@@ -64,7 +64,7 @@ function App() {
                     <Route exact path='/admin' element={user.admin ? <AdminPage /> : <AdminErrorPage />} />
                     <Route exact path='/tableau' element={<WebDataConnector />} />
                     <Route path='*' element={<NotFoundPage />} />
-                </Routes>
+                </HashRouter>
             </Router>
         </ChakraProvider>
     );
