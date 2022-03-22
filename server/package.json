@@ -1,6 +1,5 @@
 {
     "name": "server",
-    "homepage": ".",
     "version": "1.0.0",
     "description": "Server",
     "main": "index.js",
