@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 import './index.css';
 import App from './App';
 import { ApolloProvider, ApolloClient, InMemoryCache } from '@apollo/client';
-import { unregister } from './registerServiceWorker';
 
 // import { ColorModeScript } from '@chakra-ui/react';
 // import theme from './theme';
@@ -46,8 +45,6 @@ const client = new ApolloClient({
     credentials: 'include',
     cache: cache,
 });
-
-unregister();
 
 ReactDOM.render(
     <React.StrictMode>
