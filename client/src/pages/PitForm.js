@@ -1214,21 +1214,13 @@ function PitForm() {
                         w={'85%'}
                     ></Textarea>
                 </Center>
-                <VStack marginTop={'20px'}>
-                    {/* <img
-                        style={{
-                            objectFit: 'cover',
-                            width: '100px',
-                            height: '100px',
-                        }}
-                        src={image}
-                    /> */}
+                {/* <VStack marginTop={'20px'}>
                     <Image w={{ base: '60%', md: '35%', lg: '35%' }} maxW={{ base: '60%', md: '35%', lg: '35%' }} src={pitFormData.image} />
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     <Button variant='outline' borderColor='gray.300' _focus={{ outline: 'none' }} onClick={() => hiddenImageInput.current.click()}>
                         Upload Image
                     </Button>
-                </VStack>
+                </VStack> */}
                 <Center>
                     <Checkbox
                         marginTop={'20px'}
