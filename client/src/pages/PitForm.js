@@ -474,7 +474,7 @@ function PitForm() {
                 abilities: pitForm.abilities,
                 holdingCapacity: pitForm.holdingCapacity,
                 workingComment: pitForm.workingComment,
-                closingComment: pitForm.workingComment,
+                closingComment: pitForm.closingComment,
                 image: pitForm.image,
                 followUp: pitForm.followUp,
                 followUpComment: pitForm.followUpComment,
@@ -645,7 +645,7 @@ function PitForm() {
                                         abilities: pitForm.abilities,
                                         holdingCapacity: pitForm.holdingCapacity,
                                         workingComment: pitForm.workingComment,
-                                        closingComment: pitForm.workingComment,
+                                        closingComment: pitForm.closingComment,
                                         image: pitForm.image,
                                         followUp: pitForm.followUp,
                                         followUpComment: pitForm.followUpComment,
@@ -1169,7 +1169,7 @@ function PitForm() {
                 <Text marginTop={'20px'} marginBottom={'10px'} marginLeft={'10px'} fontWeight={'600'}>
                     Cargo Capacity:
                 </Text>
-                <RadioGroup marginLeft={'15px'} onChange={(value) => setPitFormData({ ...pitFormData, holdingCapacity: value })} value={pitFormData.holdingCapacity}>
+                <RadioGroup marginLeft={'15px'} onChange={(value) => setPitFormData({ ...pitFormData, holdingCapacity: value })} value={pitFormData.holdingCapacity === null ? null : '' + pitFormData.holdingCapacity}>
                     <Stack direction={['column', 'row']}>
                         {holdingCapacitiesList.map((holdingCapacity) => (
                             <Radio

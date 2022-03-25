@@ -482,21 +482,27 @@ function TeamPage() {
                                 <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Intake:
                                 </Text>
-                                {pitForm.abilities.slice(0, 3).map((ability, index) => (
-                                    <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
-                                ))}
+                                {pitForm.abilities
+                                    .filter((ability) => ability.charAt(0) === 'D' || ability.charAt(0) === 'R' || ability.charAt(0) === 'P')
+                                    .map((ability, index) => (
+                                        <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
+                                    ))}
                                 <Text marginTop={'5px'} marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Shooting:
                                 </Text>
-                                {pitForm.abilities.slice(3, 5).map((ability, index) => (
-                                    <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
-                                ))}
+                                {pitForm.abilities
+                                    .filter((ability) => ability.charAt(0) === 'S')
+                                    .map((ability, index) => (
+                                        <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
+                                    ))}
                                 <Text marginTop={'5px'} marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Climb:
                                 </Text>
-                                {pitForm.abilities.slice(5).map((ability, index) => (
-                                    <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
-                                ))}
+                                {pitForm.abilities
+                                    .filter((ability) => ability.charAt(0) === 'H')
+                                    .map((ability, index) => (
+                                        <Text marginLeft={'15px'} key={index} fontWeight={'600'} fontSize={'100%'}>{`${ability}`}</Text>
+                                    ))}
                                 <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Cargo Capacity: {pitForm.holdingCapacity}
                                 </Text>
