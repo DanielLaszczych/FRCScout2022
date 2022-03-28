@@ -92,10 +92,10 @@ function PitPage() {
         },
     });
 
-    function getPitFormStatusIcon(teamName) {
+    function getPitFormStatusIcon(teamNumber) {
         let pitForm = null;
         for (const pitFormData of pitForms) {
-            if (pitFormData.teamName === teamName) {
+            if (pitFormData.teamNumber === teamNumber) {
                 pitForm = pitFormData;
                 break;
             }
@@ -109,10 +109,10 @@ function PitPage() {
         }
     }
 
-    function getPitFormStatusColor(teamName) {
+    function getPitFormStatusColor(teamNumber) {
         let pitForm = null;
         for (const pitFormData of pitForms) {
-            if (pitFormData.teamName === teamName) {
+            if (pitFormData.teamNumber === teamNumber) {
                 pitForm = pitFormData;
                 break;
             }
@@ -126,9 +126,9 @@ function PitPage() {
         }
     }
 
-    function getPitFormScouter(teamName) {
+    function getPitFormScouter(teamNumber) {
         for (const pitFormData of pitForms) {
-            if (pitFormData.teamName === teamName) {
+            if (pitFormData.teamNumber === teamNumber) {
                 let nameArr = pitFormData.scouter.split(' ');
                 return nameArr[0] + ' ' + nameArr[1].charAt(0) + '.';
             }
@@ -136,9 +136,9 @@ function PitPage() {
         return 'N/A';
     }
 
-    function getPitFormFollowUpComment(teamName) {
+    function getPitFormFollowUpComment(teamNumber) {
         for (const pitFormData of pitForms) {
-            if (pitFormData.teamName === teamName) {
+            if (pitFormData.teamNumber === teamNumber) {
                 return pitFormData.followUpComment;
             }
         }
@@ -205,7 +205,7 @@ function PitPage() {
                 </Center>
             ) : (
                 <Box marginBottom={'25px'}>
-                    {(followUpFilter ? event.teams.filter((team) => getPitFormStatusColor(team.name) !== 'green') : event.teams)
+                    {(followUpFilter ? event.teams.filter((team) => getPitFormStatusColor(team.number) !== 'green') : event.teams)
                         .sort((a, b) => a.number - b.number)
                         .map((team, index) => (
                             <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={team.key} templateColumns='1fr 2fr 1fr 1fr' gap={'5px'}>
@@ -221,14 +221,14 @@ function PitPage() {
                                 </GridItem>
                                 <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                     <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {getPitFormScouter(team.name)}
+                                        {getPitFormScouter(team.number)}
                                     </Text>
                                 </GridItem>
                                 <GridItem padding={'10px 0px 10px 0px'} marginRight={'10px'} marginLeft={'10px'} textAlign={'center'}>
-                                    {getPitFormStatusColor(team.name) !== 'yellow' ? (
+                                    {getPitFormStatusColor(team.number) !== 'yellow' ? (
                                         <IconButton
-                                            icon={getPitFormStatusIcon(team.name)}
-                                            colorScheme={getPitFormStatusColor(team.name)}
+                                            icon={getPitFormStatusIcon(team.number)}
+                                            colorScheme={getPitFormStatusColor(team.number)}
                                             _focus={{ outline: 'none' }}
                                             size='sm'
                                             as={Link}
@@ -238,7 +238,7 @@ function PitPage() {
                                     ) : (
                                         <Popover flip={true} placement='bottom'>
                                             <PopoverTrigger>
-                                                <IconButton icon={getPitFormStatusIcon(team.name)} colorScheme={getPitFormStatusColor(team.name)} _focus={{ outline: 'none' }} size='sm' />
+                                                <IconButton icon={getPitFormStatusIcon(team.number)} colorScheme={getPitFormStatusColor(team.number)} _focus={{ outline: 'none' }} size='sm' />
                                             </PopoverTrigger>
                                             <PopoverContent maxWidth={'50vw'} _focus={{ outline: 'none' }}>
                                                 <PopoverArrow />
@@ -247,7 +247,7 @@ function PitPage() {
                                                     Follow Up Comment
                                                 </PopoverHeader>
                                                 <PopoverBody maxHeight={'125px'} overflowY={'auto'}>
-                                                    <Text>{getPitFormFollowUpComment(team.name)}</Text>
+                                                    <Text>{getPitFormFollowUpComment(team.number)}</Text>
                                                 </PopoverBody>
                                                 <PopoverFooter>
                                                     <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`} state={{ previousRoute: 'pits' }}>
