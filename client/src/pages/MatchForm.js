@@ -41,7 +41,7 @@ import { AiOutlineRotateRight } from 'react-icons/ai';
 import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { MdOutlineDoNotDisturbAlt } from 'react-icons/md';
 
-let tabs = ['Pre-Auto', 'Auto', 'Post-Auto', 'Teleop', 'Post-Game'];
+let tabs = ['Pre-Auto', 'Auto', 'Teleop', 'Post-Game'];
 let rotations = [0, Math.PI / 2, Math.PI, (3 * Math.PI) / 2];
 let rungs = [
     { label: 'Low Rung', id: uuidv4() },
@@ -347,7 +347,7 @@ function MatchForm() {
         return matchFormData.preLoadedCargo !== null && matchFormData.startingPosition.x !== null && matchFormData.startingPosition.y !== null;
     }
 
-    function validPostAuto() {
+    function validAuto() {
         return matchFormData.crossTarmac !== null;
     }
 
@@ -362,8 +362,8 @@ function MatchForm() {
     function validateTab(tab) {
         if (tab === 'Pre-Auto') {
             return validPreAuto();
-        } else if (tab === 'Post-Auto') {
-            return validPostAuto();
+        } else if (tab === 'Auto') {
+            return validAuto();
         } else if (tab === 'Teleop') {
             return validTele();
         } else if (tab === 'Post-Game') {
@@ -408,8 +408,8 @@ function MatchForm() {
             if (!validPreAuto()) {
                 toastText.push('Pre-Auto');
             }
-            if (!validPostAuto()) {
-                toastText.push('Post-Auto');
+            if (!validAuto()) {
+                toastText.push('Auto');
             }
             if (!validTele()) {
                 toastText.push('Teleop');
@@ -573,7 +573,7 @@ function MatchForm() {
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Missed:
                             </Text>
-                            <Center marginBottom={'10px'}>
+                            <Center marginBottom={'20px'}>
                                 <HStack>
                                     <CustomMinusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, missedAuto: matchFormData.missedAuto === 0 ? 0 : matchFormData.missedAuto - 1 })} />
                                     <Text minW={{ base: '54px', md: '54px', lg: '54px' }} fontSize={'50px'} textAlign={'center'}>
@@ -582,17 +582,10 @@ function MatchForm() {
                                     <CustomPlusButton fontSize={{ base: '30px', md: '40px', lg: '40px' }} onClick={() => setMatchFormData({ ...matchFormData, missedAuto: matchFormData.missedAuto + 1 })} />
                                 </HStack>
                             </Center>
-                        </Box>
-                    </Box>
-                );
-            case 'Post-Auto':
-                return (
-                    <Box minH={'calc(100vh - 200px)'}>
-                        <Box border={'black solid'} borderRadius={'10px'} padding={'10px'} marginBottom={'30px'}>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Taxi (Cross Tarmac):
                             </Text>
-                            <HStack marginBottom={'20px'} marginLeft={'25px'} spacing={'30px'}>
+                            <HStack marginBottom={'10px'} marginLeft={'25px'} spacing={'30px'}>
                                 <Button
                                     outline={matchFormData.crossTarmac === null && submitAttempted && !matchFormData.followUp && !matchFormData.noShow ? '2px solid red' : 'none'}
                                     _focus={{ outline: 'none' }}
@@ -610,18 +603,6 @@ function MatchForm() {
                                     No
                                 </Button>
                             </HStack>
-                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
-                                Auto Comment:
-                            </Text>
-                            <Center marginBottom={'10px'}>
-                                <Textarea
-                                    _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
-                                    onChange={(event) => setMatchFormData({ ...matchFormData, autoComment: event.target.value })}
-                                    value={matchFormData.autoComment}
-                                    placeholder='Any comments about auto'
-                                    w={'85%'}
-                                ></Textarea>
-                            </Center>
                         </Box>
                     </Box>
                 );
@@ -851,6 +832,18 @@ function MatchForm() {
                                     No
                                 </Button>
                             </HStack>
+                            <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Auto Comment:
+                            </Text>
+                            <Center marginBottom={'20px'}>
+                                <Textarea
+                                    _focus={{ outline: 'none', boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px' }}
+                                    onChange={(event) => setMatchFormData({ ...matchFormData, autoComment: event.target.value })}
+                                    value={matchFormData.autoComment}
+                                    placeholder='Any comments about auto'
+                                    w={'85%'}
+                                ></Textarea>
+                            </Center>
                             <Text marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
                                 Ending Comment:
                             </Text>
@@ -1083,7 +1076,6 @@ function MatchForm() {
             >
                 <SwiperSlide> {renderTab('Pre-Auto')}</SwiperSlide>
                 <SwiperSlide> {renderTab('Auto')}</SwiperSlide>
-                <SwiperSlide> {renderTab('Post-Auto')}</SwiperSlide>
                 <SwiperSlide> {renderTab('Teleop')}</SwiperSlide>
                 <SwiperSlide> {renderTab('Post')}</SwiperSlide>
             </Swiper>

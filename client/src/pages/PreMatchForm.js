@@ -34,7 +34,9 @@ function PreMatchForm() {
     const [matchNumber1, setMatchNumber1] = useState('');
     const [tieBreaker, setTieBreaker] = useState(false);
     const [fetchingTeam, setFetchingTeam] = useState(false);
+    const [fetchingName, setFetchingName] = useState(false);
     const [teamNumber, setTeamNumber] = useState('');
+    const [teamName, setTeamName] = useState('');
     const [teamNumberError, setTeamNumberError] = useState('');
     const [manualMode, setManualMode] = useState(false);
 
@@ -111,6 +113,7 @@ function PreMatchForm() {
     useEffect(() => {
         function getTeamNumber() {
             setTeamNumber('');
+            setTeamName('');
             if (station === '' || matchType === '') return;
             let matchKey = getMatchKey();
             if (matchKey === null) {
@@ -129,8 +132,27 @@ function PreMatchForm() {
                             teamNumber = data.alliances.blue.team_keys[stationNumber].substring(3);
                         }
                         setTeamNumber(teamNumber);
+                        setFetchingName(true);
+                        fetch(`/blueAlliance/team/frc${teamNumber}/simple`)
+                            .then((response) => response.json())
+                            .then((data) => {
+                                if (!data.Error) {
+                                    setTeamName(data.nickname);
+                                } else {
+                                    setTeamNumber('');
+                                    setTeamName('');
+                                    setTeamNumberError(`Error: (${data.Error})`);
+                                    // setError(data.Error);
+                                }
+                                setFetchingName(false);
+                            })
+                            .catch((error) => {
+                                setFetchingName(false);
+                                setError(error);
+                            });
                     } else {
                         setTeamNumber('');
+                        setTeamName('');
                         setTeamNumberError(`Error: (${data.Error})`);
                         // setError(data.Error);
                     }
@@ -144,6 +166,7 @@ function PreMatchForm() {
         setTeamNumberError('');
         if (!manualMode) {
             setTeamNumber('');
+            setTeamName('');
             clearTimeout(doGetTeam);
             doGetTeam = setTimeout(() => getTeamNumber(), 350);
         }
@@ -274,6 +297,19 @@ function PreMatchForm() {
                         )}
                         {fetchingTeam && !manualMode ? <Spinner position={'absolute'} left={'120px'} bottom={'10px'} fontSize={'50px'} /> : null}
                     </HStack>
+                    {!manualMode ? (
+                        <HStack spacing={'25px'} pos={'relative'}>
+                            <Text marginTop={'10px'} marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                Team Name: {teamName}
+                            </Text>
+                            {teamNumberError !== '' && (
+                                <Text color={'red.500'} marginTop={'10px'} marginBottom={'10px'} fontWeight={'bold'} fontSize={'110%'}>
+                                    {teamNumberError}
+                                </Text>
+                            )}
+                            {fetchingName ? <Spinner position={'absolute'} left={'100px'} bottom={'10px'} fontSize={'50px'} /> : null}
+                        </HStack>
+                    ) : null}
                     {manualMode ? (
                         <NumberInput
                             marginLeft={'10px'}
