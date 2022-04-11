@@ -130,11 +130,11 @@ export const medianArr = (x) => {
     return sortedx.length % 2 ? sortedx[Math.floor(sortedx.length / 2.0)] : (sortedx[halfIndex - 1] + sortedx[halfIndex]) / 2.0;
 };
 
-export const averageArr = (x, roundToHundredth = false) => {
+export const averageArr = (x, round = true, roundToHundredthBoolean = false) => {
     if (x.length === 0) {
         return 'N/A';
     }
-    return roundToHundredth ? roundToHundredth(mean(x)) : roundToTenth(mean(x));
+    return round ? (roundToHundredthBoolean ? roundToHundredth(mean(x)) : roundToTenth(mean(x))) : mean(x);
 };
 
 export function getPercentageForTFField(arr, field) {
@@ -192,11 +192,13 @@ export function getHubPercentage(arr, gameStage) {
 }
 
 export function roundToHundredth(value) {
-    return Number(value.toFixed(2));
+    const stringValue = value.toString();
+    return Number(stringValue).toFixed(2);
 }
 
 export function roundToTenth(value) {
-    return Number(value.toFixed(1));
+    const stringValue = value.toString();
+    return Number(stringValue).toFixed(1);
 }
 
 export function roundToWhole(value) {

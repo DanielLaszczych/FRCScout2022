@@ -370,7 +370,7 @@ function TeamPage() {
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                             Climb Time ({dataMedian ? 'Med.' : 'Avg.'}):{' '}
                                             {filteredMatchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0
-                                                ? `${dataMedian ? medianArr(getSuccessfulClimbTimes(filteredMatchForms)) / 1000 : averageArr(getSuccessfulClimbTimes(filteredMatchForms)) / 1000} sec`
+                                                ? `${dataMedian ? roundToHundredth(medianArr(getSuccessfulClimbTimes(filteredMatchForms)) / 1000) : roundToHundredth(averageArr(getSuccessfulClimbTimes(filteredMatchForms), false) / 1000)} sec`
                                                 : 'N/A'}
                                         </Text>
                                         <Text marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
@@ -588,7 +588,7 @@ function TeamPage() {
                                                 <div>Missed: {match.missedTele}</div>
                                             </div>
                                             <div className='grid-item'>
-                                                <div className='grid-text-item'>Climb Time: {match.climbTime > 0 ? match.climbTime / 1000 : 'N/A'}</div>
+                                                <div className='grid-text-item'>Climb Time: {match.climbTime > 0 ? `${roundToHundredth(match.climbTime / 1000)} sec` : 'N/A'}</div>
                                                 <div>Rung: {match.climbTime > 0 ? match.climbRung : 'N/A'}</div>
                                             </div>
                                             <div className='grid-item'>

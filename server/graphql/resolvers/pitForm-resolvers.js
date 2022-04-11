@@ -59,6 +59,26 @@ module.exports = {
                 }
                 pitFormInput.image = imageUrl;
                 pitFormInput.scouter = context.req.user.displayName;
+                pitFormInput.driveStats = [];
+
+                if (!pitFormInput.followUp && pitFormInput.motors.length > 0 && pitFormInput.wheels.length > 0) {
+                    let motorStats = motorMap.get(pitFormInput.motors[0].label);
+                    for (const gearRatio of pitFormInput.gearRatios) {
+                        let freeSpeed = ((motorStats.freeSpeed * (((pitFormInput.wheels[0].size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60)) * (gearRatio.drivenGear / gearRatio.drivingGear);
+                        let pushingPower =
+                            ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
+                                (((((pitFormInput.weight * 1.1) / 1) * 4.44822161526 * pitFormInput.wheels[0].size * 0.0254) / 2 / 0.9 / pitFormInput.wheels[0].value) * (gearRatio.drivenGear / gearRatio.drivingGear)) +
+                            motorStats.freeCurrent;
+                        let stat = {
+                            drivingGear: gearRatio.drivingGear,
+                            drivenGear: gearRatio.drivenGear,
+                            freeSpeed: freeSpeed,
+                            pushingPower: pushingPower,
+                        };
+                        console.log(stat);
+                        pitFormInput.driveStats.push(stat);
+                    }
+                }
 
                 const pitForm = await PitForm.findOneAndUpdate({ eventKey: pitFormInput.eventKey, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true }).exec();
                 return pitForm;
@@ -68,3 +88,20 @@ module.exports = {
         },
     },
 };
+
+class MotorStats {
+    constructor(freeSpeed, stallTorque, stallCurrent, freeCurrent) {
+        this.freeSpeed = freeSpeed;
+        this.stallTorque = stallTorque;
+        this.stallCurrent = stallCurrent;
+        this.freeCurrent = freeCurrent;
+    }
+}
+
+const motorMap = new Map();
+motorMap.set('Falcon 500', new MotorStats(6380, 4.69, 257, 1.5));
+motorMap.set('NEO', new MotorStats(5676, 2.6, 105, 1.8));
+motorMap.set('CIM', new MotorStats(5330, 2.41, 131, 2.7));
+motorMap.set('Mini-CIM', new MotorStats(5840, 1.41, 89, 3));
+motorMap.set('NEO 550', new MotorStats(11000, 0.97, 100, 1.4));
+motorMap.set('775 Pro', new MotorStats(18730, 0.71, 134, 0.7));

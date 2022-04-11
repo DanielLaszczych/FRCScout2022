@@ -26,6 +26,25 @@ const wheelSchema = new Schema({
     },
 });
 
+const driveStatsSchema = new Schema({
+    drivingGear: {
+        type: Number,
+        required: true,
+    },
+    drivenGear: {
+        type: Number,
+        required: true,
+    },
+    freeSpeed: {
+        type: Number,
+        required: true,
+    },
+    pushingPower: {
+        type: Number,
+        required: true,
+    },
+});
+
 const pitFormSchema = new Schema(
     {
         eventKey: {
@@ -62,6 +81,9 @@ const pitFormSchema = new Schema(
         },
         wheels: {
             type: [wheelSchema],
+        },
+        driveStats: {
+            type: [driveStatsSchema],
         },
         driveTrainComment: {
             type: String,

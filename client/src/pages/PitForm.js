@@ -124,6 +124,7 @@ function PitForm() {
         driveTrain: null,
         motors: [],
         wheels: [],
+        gearRatios: [],
         driveTrainComment: '',
         programmingLanguage: null,
         startingPosition: null,
@@ -145,6 +146,7 @@ function PitForm() {
     const [deletingMotors, setDeletingMotors] = useState(false);
     const { isOpen: isWheelsOpen, onOpen: onWheelsOpen, onClose: onWheelsClose } = useDisclosure();
     const [deletingWheels, setDeletingWheels] = useState(false);
+    const [deletingGearRatios, setDeleteGearRatios] = useState(false);
 
     useEffect(() => {
         if (localStorage.getItem('PitFormData')) {
@@ -363,6 +365,101 @@ function PitForm() {
         });
     }
 
+    function handleAddGearRatio() {
+        let newGearRatios = [
+            ...pitFormData.gearRatios,
+            {
+                label: 'Gear Ratio: ' + pitFormData.gearRatios.length + 1,
+                drivingGear: '',
+                drivenGear: '',
+                id: uuidv4(),
+            },
+        ];
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+    }
+
+    function handleRemoveGearRatio(id) {
+        let newGearRatios = [...pitFormData.gearRatios].filter((gearRatio) => gearRatio.id !== id);
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+        if (newGearRatios.length === 0) {
+            setDeleteGearRatios(false);
+        }
+    }
+
+    function handleDrivingRatio(id, ratio) {
+        let newGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            if (gearRatio.id === id) {
+                return {
+                    ...gearRatio,
+                    drivingGear: ratio,
+                };
+            } else {
+                return gearRatio;
+            }
+        });
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+    }
+
+    function handleDrivingRatioBlur(id, ratio) {
+        let newGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            if (gearRatio.id === id && ratio.trim() !== '') {
+                return {
+                    ...gearRatio,
+                    drivingGear: twoPrecision(parseFloat(ratio)),
+                };
+            } else {
+                return gearRatio;
+            }
+        });
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+    }
+
+    function handleDrivenRatio(id, ratio) {
+        let newGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            if (gearRatio.id === id) {
+                return {
+                    ...gearRatio,
+                    drivenGear: ratio,
+                };
+            } else {
+                return gearRatio;
+            }
+        });
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+    }
+
+    function handleDrivenRatioBlur(id, ratio) {
+        let newGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            if (gearRatio.id === id && ratio.trim() !== '') {
+                return {
+                    ...gearRatio,
+                    drivenGear: twoPrecision(parseFloat(ratio)),
+                };
+            } else {
+                return gearRatio;
+            }
+        });
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+    }
+
     function handleAddAbility(abilityLabel) {
         if (pitFormData.abilities.includes(abilityLabel)) {
             setPitFormData({
@@ -414,6 +511,15 @@ function PitForm() {
         return true;
     }
 
+    function validGearRatios() {
+        for (const gearRatio of pitFormData.gearRatios) {
+            if (gearRatio.drivingGear === 0 || gearRatio.drivingGear === '' || gearRatio.drivenGear === 0 || gearRatio.drivenGear === '') {
+                return false;
+            }
+        }
+        return true;
+    }
+
     function validForm() {
         return (
             pitFormData.weight !== null &&
@@ -421,6 +527,7 @@ function PitForm() {
             pitFormData.driveTrain !== null &&
             validMotors() &&
             validWheels() &&
+            validGearRatios() &&
             pitFormData.programmingLanguage !== null &&
             pitFormData.startingPosition !== null &&
             pitFormData.taxi !== null &&
@@ -460,12 +567,20 @@ function PitForm() {
                     id: uuidv4(),
                 };
             });
+            let modifiedGearRatios = pitForm.driveStats.map((stat) => {
+                return {
+                    drivingGear: stat.drivingGear,
+                    drivenGear: stat.drivenGear,
+                    id: uuidv4(),
+                };
+            });
             setPitFormData({
                 weight: pitForm.weight,
                 height: pitForm.height,
                 driveTrain: pitForm.driveTrain,
                 motors: modifiedMotors,
                 wheels: modifiedWheels,
+                gearRatios: modifiedGearRatios,
                 driveTrainComment: pitForm.driveTrainComment,
                 programmingLanguage: pitForm.programmingLanguage,
                 startingPosition: pitForm.startingPosition,
@@ -546,6 +661,13 @@ function PitForm() {
                 value: wheel.value,
             };
         });
+        let modifiedGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            console.log(gearRatio);
+            return {
+                drivingGear: parseFloat(gearRatio.drivingGear),
+                drivenGear: parseFloat(gearRatio.drivenGear),
+            };
+        });
         updatePitForm({
             variables: {
                 pitFormInput: {
@@ -558,6 +680,7 @@ function PitForm() {
                     driveTrain: pitFormData.driveTrain,
                     motors: modifiedMotors,
                     wheels: modifiedWheels,
+                    gearRatios: modifiedGearRatios,
                     driveTrainComment: pitFormData.driveTrainComment.trim(),
                     programmingLanguage: pitFormData.programmingLanguage,
                     startingPosition: pitFormData.startingPosition,
@@ -637,6 +760,7 @@ function PitForm() {
                                         driveTrain: pitForm.driveTrain,
                                         motors: pitForm.motors,
                                         wheels: pitForm.wheels,
+                                        gearRatios: pitForm.gearRatios,
                                         driveTrainComment: pitForm.driveTrainComment,
                                         programmingLanguage: pitForm.programmingLanguage,
                                         startingPosition: pitForm.startingPosition,
@@ -1019,6 +1143,94 @@ function PitForm() {
                         </PopoverContent>
                     </Popover>
                 </Center>
+                <HStack pos={'relative'} marginTop={'20px'} marginBottom={'10px'}>
+                    <Text marginLeft={'10px'} fontWeight={'600'}>
+                        Gear Ratios:
+                    </Text>
+                    {pitFormData.gearRatios.length > 0 ? (
+                        !deletingGearRatios ? (
+                            <DeleteIcon onClick={() => setDeleteGearRatios(true)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></DeleteIcon>
+                        ) : (
+                            <CloseIcon onClick={() => setDeleteGearRatios(false)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></CloseIcon>
+                        )
+                    ) : null}
+                </HStack>
+                <VStack>
+                    {pitFormData.gearRatios.map((gearRatio) => (
+                        <HStack key={gearRatio.id}>
+                            <Center>
+                                <NumberInput
+                                    onChange={(value) => handleDrivingRatio(gearRatio.id, value)}
+                                    onBlur={(event) => handleDrivingRatioBlur(gearRatio.id, event.target.value)}
+                                    value={gearRatio.drivingGear}
+                                    min={0}
+                                    max={20}
+                                    precision={2}
+                                    width={'33%'}
+                                    isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivingGear === ''}
+                                    // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
+                                >
+                                    <NumberInputField
+                                        onKeyPress={(event) => {
+                                            if (event.key === 'Enter') {
+                                                event.target.blur();
+                                            }
+                                        }}
+                                        enterKeyHint='done'
+                                        _focus={{
+                                            outline: 'none',
+                                            boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
+                                        }}
+                                        textAlign={'center'}
+                                        padding={'0px 0px 0px 0px'}
+                                        fontSize={{
+                                            base: '80%',
+                                            md: '100%',
+                                            lg: '100%',
+                                        }}
+                                        placeholder='Driving Gear'
+                                    />
+                                </NumberInput>
+                                <Text margin={'0 5px 0 5px'}>:</Text>
+                                <NumberInput
+                                    onChange={(value) => handleDrivenRatio(gearRatio.id, value)}
+                                    onBlur={(event) => handleDrivenRatioBlur(gearRatio.id, event.target.value)}
+                                    value={gearRatio.drivenGear}
+                                    min={0}
+                                    max={20}
+                                    precision={2}
+                                    width={'33%'}
+                                    isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivenGear === ''}
+                                    // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
+                                >
+                                    <NumberInputField
+                                        onKeyPress={(event) => {
+                                            if (event.key === 'Enter') {
+                                                event.target.blur();
+                                            }
+                                        }}
+                                        enterKeyHint='done'
+                                        _focus={{
+                                            outline: 'none',
+                                            boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
+                                        }}
+                                        textAlign={'center'}
+                                        padding={'0px 0px 0px 0px'}
+                                        fontSize={{
+                                            base: '80%',
+                                            md: '100%',
+                                            lg: '100%',
+                                        }}
+                                        placeholder='Driven Gear'
+                                    />
+                                </NumberInput>
+                            </Center>
+                        </HStack>
+                    ))}
+                    <Button size={'sm'} _focus={{ outline: 'none' }} onClick={() => handleAddGearRatio()}>
+                        Add Ratio
+                    </Button>
+                </VStack>
                 <Center marginTop={'20px'}>
                     <Textarea
                         _focus={{

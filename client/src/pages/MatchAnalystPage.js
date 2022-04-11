@@ -321,7 +321,7 @@ function MatchAnalystPage() {
                                 <div className='grid-text-item'>
                                     Climb Time ({dataMedian ? 'Med.' : 'Avg.'}):{' '}
                                     {teamMatchForms.filter((a) => a.climbTime > 0 && a.climbRung !== 'Failed').length > 0
-                                        ? `${dataMedian ? medianArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000 : averageArr(getSuccessfulClimbTimes(teamMatchForms)) / 1000} sec`
+                                        ? `${dataMedian ? roundToHundredth(medianArr(getSuccessfulClimbTimes(teamMatchForms, false)) / 1000) : roundToHundredth(averageArr(getSuccessfulClimbTimes(teamMatchForms, false)) / 1000)} sec`
                                         : 'N/A'}
                                 </div>
                                 <div>Common Rung(s): {getSucessfulClimbRungMode(teamMatchForms)}</div>

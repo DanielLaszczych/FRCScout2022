@@ -14,6 +14,13 @@ module.exports = gql`
         value: Int!
     }
 
+    type DriveStats {
+        drivingGear: Float!
+        drivenGear: Float!
+        freeSpeed: Float!
+        pushingPower: Float!
+    }
+
     type PitForm {
         _id: ID!
         eventKey: String!
@@ -26,6 +33,7 @@ module.exports = gql`
         driveTrain: String
         motors: [Motor]
         wheels: [Wheel]
+        driveStats: [DriveStats]
         driveTrainComment: String
         programmingLanguage: String
         startingPosition: String
@@ -52,6 +60,11 @@ module.exports = gql`
         value: Int!
     }
 
+    input GearRatioInput {
+        drivingGear: Float!
+        drivenGear: Float!
+    }
+
     input PitFormInput {
         eventKey: String!
         eventName: String!
@@ -62,6 +75,7 @@ module.exports = gql`
         driveTrain: String
         motors: [MotorInput]
         wheels: [WheelInput]
+        gearRatios: [GearRatioInput]
         driveTrainComment: String
         programmingLanguage: String
         startingPosition: String

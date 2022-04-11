@@ -19,6 +19,10 @@ export const GET_PITFORM = gql`
                 size
                 value
             }
+            driveStats {
+                drivingGear
+                drivenGear
+            }
             driveTrainComment
             programmingLanguage
             startingPosition
