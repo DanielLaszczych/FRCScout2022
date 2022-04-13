@@ -48,7 +48,7 @@ import {
     AlertDialogFooter,
 } from '@chakra-ui/react';
 import { year } from '../util/constants';
-import { AddIcon, CloseIcon, DeleteIcon } from '@chakra-ui/icons';
+import { AddIcon, CloseIcon, DeleteIcon, RepeatIcon } from '@chakra-ui/icons';
 import { v4 as uuidv4 } from 'uuid';
 
 let driveTrainsList = [
@@ -662,7 +662,6 @@ function PitForm() {
             };
         });
         let modifiedGearRatios = pitFormData.gearRatios.map((gearRatio) => {
-            console.log(gearRatio);
             return {
                 drivingGear: parseFloat(gearRatio.drivingGear),
                 drivenGear: parseFloat(gearRatio.drivenGear),
@@ -1144,9 +1143,12 @@ function PitForm() {
                     </Popover>
                 </Center>
                 <HStack pos={'relative'} marginTop={'20px'} marginBottom={'10px'}>
-                    <Text marginLeft={'10px'} fontWeight={'600'}>
-                        Gear Ratios:
-                    </Text>
+                    <HStack>
+                        <Text marginLeft={'10px'} fontWeight={'600'}>
+                            Gear Ratios:
+                        </Text>
+                        <RepeatIcon onClick={() => setDeleteGearRatios(true)} _hover={{ color: 'gray' }} cursor={'pointer'}></RepeatIcon>
+                    </HStack>
                     {pitFormData.gearRatios.length > 0 ? (
                         !deletingGearRatios ? (
                             <DeleteIcon onClick={() => setDeleteGearRatios(true)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></DeleteIcon>

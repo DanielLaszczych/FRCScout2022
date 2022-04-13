@@ -451,6 +451,16 @@ function TeamPage() {
                                     <Text marginLeft={'15px'} key={wheel._id} fontWeight={'600'} fontSize={'100%'}>{`${wheel.label} (${wheel.value}), ${wheel.size} in`}</Text>
                                 ))}
                                 <Text marginTop={'5px'} marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
+                                    Stats:
+                                </Text>
+                                {pitForm.driveStats.map((stat) => (
+                                    <Box key={stat._id}>
+                                        <Text marginLeft={'15px'} fontWeight={'600'} fontSize={'100%'} textDecoration={'underline'}>{`Ratio - ${stat.drivingGear} : ${stat.drivenGear}`}</Text>
+                                        <Text marginLeft={'25px'} fontWeight={'600'} fontSize={'100%'}>{`Free Speed: ${roundToHundredth(stat.freeSpeed)} ft/s`}</Text>
+                                        <Text marginLeft={'25px'} fontWeight={'600'} fontSize={'100%'}>{`Pushing Power: ${roundToHundredth(stat.pushingPower)} Amps`}</Text>
+                                    </Box>
+                                ))}
+                                <Text marginTop={'5px'} marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
                                     Comment: <span style={{ fontWeight: '600', fontSize: '95%' }}>{pitForm.driveTrainComment}</span>
                                 </Text>
                             </Box>

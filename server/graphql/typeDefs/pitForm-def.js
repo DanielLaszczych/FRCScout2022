@@ -15,6 +15,7 @@ module.exports = gql`
     }
 
     type DriveStats {
+        _id: ID!
         drivingGear: Float!
         drivenGear: Float!
         freeSpeed: Float!

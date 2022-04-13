@@ -195,6 +195,13 @@ export const GET_TEAMS_PITFORMS = gql`
                 size
                 value
             }
+            driveStats {
+                _id
+                drivingGear
+                drivenGear
+                freeSpeed
+                pushingPower
+            }
             driveTrainComment
             programmingLanguage
             startingPosition
