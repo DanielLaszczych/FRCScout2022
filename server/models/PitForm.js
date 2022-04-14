@@ -43,6 +43,10 @@ const driveStatsSchema = new Schema({
         type: Number,
         required: true,
     },
+    preferRatio: {
+        type: Boolean,
+        required: true,
+    },
 });
 
 const pitFormSchema = new Schema(

@@ -138,7 +138,6 @@ function HeatMap({ data, maxOccurances, smallScale, mediumScale, largeScale }) {
                 let totalScored = sum(analyzedPoint.lowerCargoAuto) + sum(analyzedPoint.upperCargoAuto);
                 if (totalScored + sum(analyzedPoint.missedAuto) !== 0) {
                     let percentage = totalScored / (totalScored + sum(analyzedPoint.missedAuto));
-                    console.log(percentage);
                     percentage = roundToWhole(percentage * 100);
                     ctx.strokeText(`${percentage}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);
                     ctx.fillText(`${percentage}%`, analyzedPoint.point.x + xOffSet, analyzedPoint.point.y + yOffset);

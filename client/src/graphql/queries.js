@@ -22,6 +22,8 @@ export const GET_PITFORM = gql`
             driveStats {
                 drivingGear
                 drivenGear
+                freeSpeed
+                preferRatio
             }
             driveTrainComment
             programmingLanguage

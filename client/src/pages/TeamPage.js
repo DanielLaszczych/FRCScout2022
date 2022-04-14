@@ -484,7 +484,7 @@ function TeamPage() {
                                 </Text>
                                 {pitForm.driveStats.map((stat) => (
                                     <Box key={stat._id}>
-                                        <Text marginLeft={'15px'} fontWeight={'600'} fontSize={'100%'} textDecoration={'underline'}>{`Ratio - ${stat.drivenGear} : ${stat.drivingGear}`}</Text>
+                                        <Text marginLeft={'15px'} fontWeight={'600'} fontSize={'100%'} textDecoration={'underline'}>{`Ratio - ${roundToHundredth(stat.drivenGear)} : ${stat.drivingGear}`}</Text>
                                         <Text marginLeft={'25px'} fontWeight={'600'} fontSize={'100%'}>{`Free Speed: ${roundToHundredth(stat.freeSpeed)} ft/s`}</Text>
                                         <Text marginLeft={'25px'} fontWeight={'600'} fontSize={'100%'}>{`Pushing Power (0-100): ${roundToHundredth(stat.pushingPower)}`}</Text>
                                     </Box>

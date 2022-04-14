@@ -70,7 +70,6 @@ module.exports = {
                         }
                         numOfMotors += motors.value;
                     }
-                    console.log(motorStats);
                     motorStats = motorMap.get(motorStats.label);
                     let wheelStats = null;
                     for (const wheels of pitFormInput.wheels) {
@@ -78,21 +77,43 @@ module.exports = {
                             wheelStats = wheels;
                         }
                     }
+                    let speedLossConstant = 1.0;
+                    let weightOnWheels = 1.0;
+                    let wheelCoeff = 1.1;
+                    // 1 gearbox vs numOfMotors
+                    let numOfGearBoxes = 1;
+                    let driveTrainEfficiency = 0.9;
                     for (const gearRatio of pitFormInput.gearRatios) {
-                        let freeSpeed = ((motorStats.freeSpeed * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60)) * (gearRatio.drivingGear / gearRatio.drivenGear);
-                        let pushingPower =
-                            ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
-                                (((((pitFormInput.weight * 1.1) / 1) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / 0.9 / numOfMotors) * (gearRatio.drivingGear / gearRatio.drivenGear)) +
-                            motorStats.freeCurrent;
-                        let stat = {
-                            drivingGear: gearRatio.drivingGear,
-                            drivenGear: gearRatio.drivenGear,
-                            freeSpeed: freeSpeed,
-                            pushingPower: 100 - pushingPower,
-                        };
+                        let stat = null;
+                        if (gearRatio.preferRatio) {
+                            let freeSpeed = (((motorStats.freeSpeed * speedLossConstant * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60)) * gearRatio.drivingGear) / gearRatio.drivenGear;
+                            let pushingPower =
+                                ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
+                                    ((((((pitFormInput.weight * weightOnWheels * wheelCoeff) / numOfGearBoxes) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / driveTrainEfficiency / numOfMotors) * gearRatio.drivingGear) / gearRatio.drivenGear) +
+                                motorStats.freeCurrent;
+                            stat = {
+                                drivingGear: gearRatio.drivingGear,
+                                drivenGear: gearRatio.drivenGear,
+                                freeSpeed: freeSpeed,
+                                pushingPower: 100 - pushingPower,
+                                preferRatio: gearRatio.preferRatio,
+                            };
+                        } else {
+                            let retrievedGearRatio = gearRatio.freeSpeed / ((motorStats.freeSpeed * speedLossConstant * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60));
+                            let pushingPower =
+                                ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
+                                    (((((pitFormInput.weight * weightOnWheels * wheelCoeff) / numOfGearBoxes) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / driveTrainEfficiency / numOfMotors) * retrievedGearRatio) +
+                                motorStats.freeCurrent;
+                            stat = {
+                                drivingGear: 1,
+                                drivenGear: 1 / retrievedGearRatio,
+                                freeSpeed: gearRatio.freeSpeed,
+                                pushingPower: 100 - pushingPower,
+                                preferRatio: gearRatio.preferRatio,
+                            };
+                        }
                         pitFormInput.driveStats.push(stat);
                     }
-                    console.log(pitFormInput.driveStats);
                 }
 
                 const pitForm = await PitForm.findOneAndUpdate({ eventKey: pitFormInput.eventKey, teamNumber: pitFormInput.teamNumber }, pitFormInput, { new: true, upsert: true }).exec();

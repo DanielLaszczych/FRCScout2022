@@ -20,6 +20,7 @@ module.exports = gql`
         drivenGear: Float!
         freeSpeed: Float!
         pushingPower: Float!
+        preferRatio: Boolean!
     }
 
     type PitForm {
@@ -64,6 +65,8 @@ module.exports = gql`
     input GearRatioInput {
         drivingGear: Float!
         drivenGear: Float!
+        freeSpeed: Float!
+        preferRatio: Boolean!
     }
 
     input PitFormInput {

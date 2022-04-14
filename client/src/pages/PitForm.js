@@ -1,4 +1,4 @@
-import { React, useEffect, useRef, useState } from 'react';
+import { Fragment, React, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useMutation, useQuery } from '@apollo/client';
 import { GET_PITFORM } from '../graphql/queries';
@@ -371,6 +371,8 @@ function PitForm() {
             {
                 drivingGear: '',
                 drivenGear: '',
+                freeSpeed: '',
+                preferRatio: true,
                 id: uuidv4(),
             },
         ];
@@ -389,6 +391,23 @@ function PitForm() {
         if (newGearRatios.length === 0) {
             setDeleteGearRatios(false);
         }
+    }
+
+    function handleGearRatioSwap(id) {
+        let newGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            if (gearRatio.id === id) {
+                return {
+                    ...gearRatio,
+                    preferRatio: !gearRatio.preferRatio,
+                };
+            } else {
+                return gearRatio;
+            }
+        });
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
     }
 
     function handleDrivingRatio(id, ratio) {
@@ -459,6 +478,40 @@ function PitForm() {
         });
     }
 
+    function handleFreeSpeed(id, freeSpeed) {
+        let newGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            if (gearRatio.id === id) {
+                return {
+                    ...gearRatio,
+                    freeSpeed: freeSpeed,
+                };
+            } else {
+                return gearRatio;
+            }
+        });
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+    }
+
+    function handleFreeSpeedBlur(id, freeSpeed) {
+        let newGearRatios = pitFormData.gearRatios.map((gearRatio) => {
+            if (gearRatio.id === id && freeSpeed.trim() !== '') {
+                return {
+                    ...gearRatio,
+                    freeSpeed: twoPrecision(parseFloat(freeSpeed)),
+                };
+            } else {
+                return gearRatio;
+            }
+        });
+        setPitFormData({
+            ...pitFormData,
+            gearRatios: newGearRatios,
+        });
+    }
+
     function handleAddAbility(abilityLabel) {
         if (pitFormData.abilities.includes(abilityLabel)) {
             setPitFormData({
@@ -512,8 +565,14 @@ function PitForm() {
 
     function validGearRatios() {
         for (const gearRatio of pitFormData.gearRatios) {
-            if (gearRatio.drivingGear === 0 || gearRatio.drivingGear === '' || gearRatio.drivenGear === 0 || gearRatio.drivenGear === '') {
-                return false;
+            if (gearRatio.preferRatio) {
+                if (gearRatio.drivingGear === 0 || gearRatio.drivingGear === '' || gearRatio.drivenGear === 0 || gearRatio.drivenGear === '') {
+                    return false;
+                }
+            } else {
+                if (gearRatio.freeSpeed === 0 || gearRatio.freeSpeed === '') {
+                    return false;
+                }
             }
         }
         return true;
@@ -568,8 +627,10 @@ function PitForm() {
             });
             let modifiedGearRatios = pitForm.driveStats.map((stat) => {
                 return {
-                    drivingGear: stat.drivingGear,
-                    drivenGear: stat.drivenGear,
+                    drivingGear: stat.preferRatio ? stat.drivingGear : '',
+                    drivenGear: stat.preferRatio ? stat.drivenGear : '',
+                    freeSpeed: !stat.preferRatio ? stat.freeSpeed : '',
+                    preferRatio: stat.preferRatio,
                     id: uuidv4(),
                 };
             });
@@ -662,8 +723,10 @@ function PitForm() {
         });
         let modifiedGearRatios = pitFormData.gearRatios.map((gearRatio) => {
             return {
-                drivingGear: parseFloat(gearRatio.drivingGear),
-                drivenGear: parseFloat(gearRatio.drivenGear),
+                drivingGear: gearRatio.preferRatio ? parseFloat(gearRatio.drivingGear) : -1,
+                drivenGear: gearRatio.preferRatio ? parseFloat(gearRatio.drivenGear) : -1,
+                freeSpeed: !gearRatio.preferRatio ? parseFloat(gearRatio.freeSpeed) : -1,
+                preferRatio: gearRatio.preferRatio,
             };
         });
         updatePitForm({
@@ -1144,7 +1207,7 @@ function PitForm() {
                 <HStack pos={'relative'} marginTop={'20px'} marginBottom={'10px'}>
                     <HStack>
                         <Text marginLeft={'10px'} fontWeight={'600'}>
-                            Gear Ratios:
+                            Gear Ratios/Free Speeds:
                         </Text>
                     </HStack>
                     {pitFormData.gearRatios.length > 0 ? (
@@ -1160,7 +1223,7 @@ function PitForm() {
                         <HStack key={gearRatio.id} position='relative'>
                             <Text
                                 position='absolute'
-                                left={'10px'}
+                                left={gearRatio.preferRatio ? '10px' : '-10px'}
                                 fontSize={{
                                     base: '90%',
                                     md: '100%',
@@ -1168,88 +1231,131 @@ function PitForm() {
                                 }}
                             >{`${index + 1}.`}</Text>
                             <Center>
-                                <NumberInput
-                                    onChange={(value) => handleDrivenRatio(gearRatio.id, value)}
-                                    onBlur={(event) => handleDrivenRatioBlur(gearRatio.id, event.target.value)}
-                                    value={gearRatio.drivenGear}
-                                    min={0}
-                                    max={100}
-                                    precision={2}
-                                    width={'33%'}
-                                    isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivenGear === ''}
-                                    // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
-                                >
-                                    <NumberInputField
-                                        onKeyPress={(event) => {
-                                            if (event.key === 'Enter') {
-                                                event.target.blur();
-                                            }
-                                        }}
-                                        enterKeyHint='done'
-                                        _focus={{
-                                            outline: 'none',
-                                            boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
-                                        }}
-                                        textAlign={'center'}
-                                        padding={'0px 0px 0px 0px'}
-                                        fontSize={{
-                                            base: '90%',
-                                            md: '100%',
-                                            lg: '100%',
-                                        }}
-                                        placeholder='Driven Gear'
-                                    />
-                                </NumberInput>
-                                <Text
-                                    margin={'0 5px 0 5px'}
-                                    fontSize={{
-                                        base: '90%',
-                                        md: '100%',
-                                        lg: '100%',
-                                    }}
-                                >
-                                    :
-                                </Text>
-                                <NumberInput
-                                    onChange={(value) => handleDrivingRatio(gearRatio.id, value)}
-                                    onBlur={(event) => handleDrivingRatioBlur(gearRatio.id, event.target.value)}
-                                    value={gearRatio.drivingGear}
-                                    min={0}
-                                    max={100}
-                                    precision={2}
-                                    width={'33%'}
-                                    isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivingGear === ''}
-                                    // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
-                                >
-                                    <NumberInputField
-                                        onKeyPress={(event) => {
-                                            if (event.key === 'Enter') {
-                                                event.target.blur();
-                                            }
-                                        }}
-                                        enterKeyHint='done'
-                                        _focus={{
-                                            outline: 'none',
-                                            boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
-                                        }}
-                                        textAlign={'center'}
-                                        padding={'0px 0px 0px 0px'}
-                                        fontSize={{
-                                            base: '90%',
-                                            md: '100%',
-                                            lg: '100%',
-                                        }}
-                                        placeholder='Driving Gear'
-                                    />
-                                </NumberInput>
+                                {gearRatio.preferRatio ? (
+                                    <Fragment>
+                                        <NumberInput
+                                            onChange={(value) => handleDrivenRatio(gearRatio.id, value)}
+                                            onBlur={(event) => handleDrivenRatioBlur(gearRatio.id, event.target.value)}
+                                            value={gearRatio.drivenGear}
+                                            min={0}
+                                            max={100}
+                                            precision={2}
+                                            width={'33%'}
+                                            isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivenGear === ''}
+                                            // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
+                                        >
+                                            <NumberInputField
+                                                onKeyPress={(event) => {
+                                                    if (event.key === 'Enter') {
+                                                        event.target.blur();
+                                                    }
+                                                }}
+                                                enterKeyHint='done'
+                                                _focus={{
+                                                    outline: 'none',
+                                                    boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
+                                                }}
+                                                textAlign={'center'}
+                                                padding={'0px 0px 0px 0px'}
+                                                fontSize={{
+                                                    base: '90%',
+                                                    md: '100%',
+                                                    lg: '100%',
+                                                }}
+                                                placeholder='Driven Gear'
+                                            />
+                                        </NumberInput>
+                                        <Text
+                                            margin={'0 5px 0 5px'}
+                                            fontSize={{
+                                                base: '90%',
+                                                md: '100%',
+                                                lg: '100%',
+                                            }}
+                                        >
+                                            :
+                                        </Text>
+                                        <NumberInput
+                                            onChange={(value) => handleDrivingRatio(gearRatio.id, value)}
+                                            onBlur={(event) => handleDrivingRatioBlur(gearRatio.id, event.target.value)}
+                                            value={gearRatio.drivingGear}
+                                            min={0}
+                                            max={100}
+                                            precision={2}
+                                            width={'33%'}
+                                            isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivingGear === ''}
+                                            // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
+                                        >
+                                            <NumberInputField
+                                                onKeyPress={(event) => {
+                                                    if (event.key === 'Enter') {
+                                                        event.target.blur();
+                                                    }
+                                                }}
+                                                enterKeyHint='done'
+                                                _focus={{
+                                                    outline: 'none',
+                                                    boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
+                                                }}
+                                                textAlign={'center'}
+                                                padding={'0px 0px 0px 0px'}
+                                                fontSize={{
+                                                    base: '90%',
+                                                    md: '100%',
+                                                    lg: '100%',
+                                                }}
+                                                placeholder='Driving Gear'
+                                            />
+                                        </NumberInput>
+                                    </Fragment>
+                                ) : (
+                                    <Fragment>
+                                        <NumberInput
+                                            onChange={(value) => handleFreeSpeed(gearRatio.id, value)}
+                                            onBlur={(event) => handleFreeSpeedBlur(gearRatio.id, event.target.value)}
+                                            value={gearRatio.freeSpeed}
+                                            min={0}
+                                            max={100}
+                                            precision={2}
+                                            width={'75%'}
+                                            isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.freeSpeed === ''}
+                                            // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
+                                        >
+                                            <NumberInputField
+                                                onKeyPress={(event) => {
+                                                    if (event.key === 'Enter') {
+                                                        event.target.blur();
+                                                    }
+                                                }}
+                                                enterKeyHint='done'
+                                                _focus={{
+                                                    outline: 'none',
+                                                    boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
+                                                }}
+                                                textAlign={'center'}
+                                                padding={'0px 0px 0px 0px'}
+                                                fontSize={{
+                                                    base: '90%',
+                                                    md: '100%',
+                                                    lg: '100%',
+                                                }}
+                                                placeholder='Free Speed'
+                                            />
+                                        </NumberInput>
+                                    </Fragment>
+                                )}
                             </Center>
-                            {deletingGearRatios && <DeleteIcon onClick={() => handleRemoveGearRatio(gearRatio.id)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></DeleteIcon>}
+                            {deletingGearRatios ? (
+                                <DeleteIcon onClick={() => handleRemoveGearRatio(gearRatio.id)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={gearRatio.preferRatio ? 0 : '-10px'}></DeleteIcon>
+                            ) : (
+                                <RepeatIcon onClick={() => handleGearRatioSwap(gearRatio.id)} cursor={'pointer'} position={'absolute'} right={gearRatio.preferRatio ? 0 : '-10px'}></RepeatIcon>
+                            )}
                         </HStack>
                     ))}
                 </VStack>
                 <Center marginTop={pitFormData.gearRatios.length > 0 ? '10px' : '0px'}>
                     <Button size={'sm'} _focus={{ outline: 'none' }} onClick={() => handleAddGearRatio()}>
-                        Add Ratio
+                        Add Ratio/Speed
                     </Button>
                 </Center>
                 <Center marginTop={'20px'}>
