@@ -1348,7 +1348,7 @@ function PitForm() {
                             {deletingGearRatios ? (
                                 <DeleteIcon onClick={() => handleRemoveGearRatio(gearRatio.id)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={gearRatio.preferRatio ? 0 : '-10px'}></DeleteIcon>
                             ) : (
-                                <RepeatIcon onClick={() => handleGearRatioSwap(gearRatio.id)} cursor={'pointer'} position={'absolute'} right={gearRatio.preferRatio ? 0 : '-10px'}></RepeatIcon>
+                                <RepeatIcon onClick={() => handleGearRatioSwap(gearRatio.id)} cursor={'pointer'} _hover={{ color: 'gray' }} position={'absolute'} right={gearRatio.preferRatio ? 0 : '-10px'}></RepeatIcon>
                             )}
                         </HStack>
                     ))}
