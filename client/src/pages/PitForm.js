@@ -369,7 +369,6 @@ function PitForm() {
         let newGearRatios = [
             ...pitFormData.gearRatios,
             {
-                label: 'Gear Ratio: ' + pitFormData.gearRatios.length + 1,
                 drivingGear: '',
                 drivenGear: '',
                 id: uuidv4(),
@@ -1147,7 +1146,6 @@ function PitForm() {
                         <Text marginLeft={'10px'} fontWeight={'600'}>
                             Gear Ratios:
                         </Text>
-                        <RepeatIcon onClick={() => setDeleteGearRatios(true)} _hover={{ color: 'gray' }} cursor={'pointer'}></RepeatIcon>
                     </HStack>
                     {pitFormData.gearRatios.length > 0 ? (
                         !deletingGearRatios ? (
@@ -1158,15 +1156,24 @@ function PitForm() {
                     ) : null}
                 </HStack>
                 <VStack>
-                    {pitFormData.gearRatios.map((gearRatio) => (
-                        <HStack key={gearRatio.id}>
+                    {pitFormData.gearRatios.map((gearRatio, index) => (
+                        <HStack key={gearRatio.id} position='relative'>
+                            <Text
+                                position='absolute'
+                                left={'10px'}
+                                fontSize={{
+                                    base: '90%',
+                                    md: '100%',
+                                    lg: '100%',
+                                }}
+                            >{`${index + 1}.`}</Text>
                             <Center>
                                 <NumberInput
                                     onChange={(value) => handleDrivenRatio(gearRatio.id, value)}
                                     onBlur={(event) => handleDrivenRatioBlur(gearRatio.id, event.target.value)}
                                     value={gearRatio.drivenGear}
                                     min={0}
-                                    max={20}
+                                    max={100}
                                     precision={2}
                                     width={'33%'}
                                     isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivenGear === ''}
@@ -1186,20 +1193,29 @@ function PitForm() {
                                         textAlign={'center'}
                                         padding={'0px 0px 0px 0px'}
                                         fontSize={{
-                                            base: '80%',
+                                            base: '90%',
                                             md: '100%',
                                             lg: '100%',
                                         }}
                                         placeholder='Driven Gear'
                                     />
                                 </NumberInput>
-                                <Text margin={'0 5px 0 5px'}>:</Text>
+                                <Text
+                                    margin={'0 5px 0 5px'}
+                                    fontSize={{
+                                        base: '90%',
+                                        md: '100%',
+                                        lg: '100%',
+                                    }}
+                                >
+                                    :
+                                </Text>
                                 <NumberInput
                                     onChange={(value) => handleDrivingRatio(gearRatio.id, value)}
                                     onBlur={(event) => handleDrivingRatioBlur(gearRatio.id, event.target.value)}
                                     value={gearRatio.drivingGear}
                                     min={0}
-                                    max={20}
+                                    max={100}
                                     precision={2}
                                     width={'33%'}
                                     isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivingGear === ''}
@@ -1219,7 +1235,7 @@ function PitForm() {
                                         textAlign={'center'}
                                         padding={'0px 0px 0px 0px'}
                                         fontSize={{
-                                            base: '80%',
+                                            base: '90%',
                                             md: '100%',
                                             lg: '100%',
                                         }}
@@ -1227,12 +1243,15 @@ function PitForm() {
                                     />
                                 </NumberInput>
                             </Center>
+                            {deletingGearRatios && <DeleteIcon onClick={() => handleRemoveGearRatio(gearRatio.id)} _hover={{ color: 'red' }} cursor={'pointer'} position={'absolute'} right={0}></DeleteIcon>}
                         </HStack>
                     ))}
+                </VStack>
+                <Center marginTop={pitFormData.gearRatios.length > 0 ? '10px' : '0px'}>
                     <Button size={'sm'} _focus={{ outline: 'none' }} onClick={() => handleAddGearRatio()}>
                         Add Ratio
                     </Button>
-                </VStack>
+                </Center>
                 <Center marginTop={'20px'}>
                     <Textarea
                         _focus={{

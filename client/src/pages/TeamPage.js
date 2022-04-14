@@ -68,6 +68,8 @@ function TeamPage() {
     const [isDesktop, setIsDesktop] = useState(window.innerWidth > 1200);
     const prevWidth = useRef(window.innerWidth);
     const [dataMedian, setDataMedian] = useState(true);
+    const [loadingImage, setLoadingImage] = useState(true);
+    const [blueAllianceImage, setBlueAllianceImage] = useState(null);
 
     useEffect(() => {
         fetch(`/blueAlliance/team/frc${teamNumberParam}/events/${year}/simple`)
@@ -93,6 +95,25 @@ function TeamPage() {
             })
             .catch((error) => {
                 setError(error);
+            });
+        fetch(`/blueAlliance/team/frc${teamNumberParam}/media/${year}`)
+            .then((response) => response.json())
+            .then((data) => {
+                if (!data.Error) {
+                    for (let media of data) {
+                        if (media.type !== 'avatar' && media.type !== 'youtube' && media.type !== 'youtube-channel') {
+                            setBlueAllianceImage(media.direct_url);
+                            break;
+                        }
+                    }
+                } else {
+                    setError(data.Error);
+                }
+                setLoadingImage(false);
+            })
+            .catch((error) => {
+                setError(error);
+                setLoadingImage(false);
             });
     }, [teamNumberParam]);
 
@@ -275,7 +296,7 @@ function TeamPage() {
         );
     }
 
-    if (loadingMatchForms || loadingPitForms || loadingCurrentEvent || events === null || teamName === null || currentEvent.key === '' || ((pitFormsError || matchFormsError || currentEventError) && error !== false)) {
+    if (loadingMatchForms || loadingPitForms || loadingCurrentEvent || events === null || teamName === null || currentEvent.key === '' || ((pitFormsError || matchFormsError || currentEventError) && error !== false) || loadingImage) {
         return (
             <Center>
                 <Spinner></Spinner>
@@ -305,6 +326,14 @@ function TeamPage() {
                             </Box>
                             {pitForm && pitForm.image !== '' ? (
                                 <ChakraImage margin={'0 auto'} w={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} minW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} maxW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }} src={pitForm.image} />
+                            ) : blueAllianceImage !== null ? (
+                                <ChakraImage
+                                    margin={'0 auto'}
+                                    w={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }}
+                                    minW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }}
+                                    maxW={{ base: '75%', sm: '75%', md: '75%', lg: '75%' }}
+                                    src={blueAllianceImage}
+                                />
                             ) : (
                                 <Box w={{ base: '90%', sm: '75%' }} margin={'0 auto'} boxShadow={'rgba(0, 0, 0, 0.35) 0px 3px 8px'} textAlign={'center'} border={'2px black solid'} borderRadius={'10px'} padding={'10px'}>
                                     No Image Available
