@@ -109,6 +109,14 @@
                 id: 'endComment',
                 dataType: tableau.dataTypeEnum.string,
             },
+            {
+                id: 'freeSpeed',
+                dataType: tableau.dataTypeEnum.float,
+            },
+            {
+                id: 'pushingPower',
+                dataType: tableau.dataTypeEnum.float,
+            },
         ];
 
         var tableSchema = {
@@ -156,6 +164,8 @@
                             yellowCard: data[i].yellowCard,
                             redCard: data[i].redCard,
                             endComment: data[i].endComment,
+                            freeSpeed: data[i].freeSpeed,
+                            pushingPower: data[i].pushingPower,
                         });
                     }
                     table.appendRows(tableData);

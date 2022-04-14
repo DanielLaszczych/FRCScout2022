@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const MatchForm = require('../models/MatchForm');
 const bcrypt = require('bcrypt');
+const PitForm = require('../models/PitForm');
 
 router.use('/getEventData/:eventKey/:password?', async (req, res) => {
     if (req.params.password === undefined) {
@@ -17,6 +18,24 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
                     if (!matchFormMap.has(matchForm.teamNumber)) {
                         matchFormMap.set(matchForm.teamNumber, 1);
                         matchForm.matchIndex = 1;
+                        let pitForm = await PitForm.findOne({ eventKey: req.params.eventKey, followUp: false, teamNumber: matchForm.teamNumber }).lean().exec();
+                        if (pitForm !== null && pitForm.driveStats.length > 0) {
+                            let maxFreeSpeed = null;
+                            let maxPushingPower = null;
+                            for (let stat of pitForm.driveStats) {
+                                if (maxFreeSpeed === null || stat.freeSpeed > maxFreeSpeed) {
+                                    maxFreeSpeed = stat.freeSpeed;
+                                }
+                                if (maxPushingPower === null || stat.pushingPower > maxPushingPower) {
+                                    maxPushingPower = stat.pushingPower;
+                                }
+                            }
+                            matchForm.freeSpeed = maxFreeSpeed;
+                            matchForm.pushingPower = maxPushingPower;
+                        } else {
+                            matchForm.freeSpeed = null;
+                            matchForm.pushingPower = null;
+                        }
                     } else {
                         let matchIndex = matchFormMap.get(matchForm.teamNumber);
                         matchForm.matchIndex = matchIndex + 1;
@@ -42,6 +61,24 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
                             if (!matchFormMap.has(matchForm.teamNumber)) {
                                 matchFormMap.set(matchForm.teamNumber, 1);
                                 matchForm.matchIndex = 1;
+                                let pitForm = await PitForm.findOne({ eventKey: req.params.eventKey, followUp: false, teamNumber: matchForm.teamNumber }).lean().exec();
+                                if (pitForm !== null && pitForm.driveStats.length > 0) {
+                                    let maxFreeSpeed = null;
+                                    let maxPushingPower = null;
+                                    for (let stat of pitForm.driveStats) {
+                                        if (maxFreeSpeed === null || stat.freeSpeed > maxFreeSpeed) {
+                                            maxFreeSpeed = stat.freeSpeed;
+                                        }
+                                        if (maxPushingPower === null || stat.pushingPower > maxPushingPower) {
+                                            maxPushingPower = stat.pushingPower;
+                                        }
+                                    }
+                                    matchForm.freeSpeed = maxFreeSpeed;
+                                    matchForm.pushingPower = maxPushingPower;
+                                } else {
+                                    matchForm.freeSpeed = null;
+                                    matchForm.pushingPower = null;
+                                }
                             } else {
                                 let matchIndex = matchFormMap.get(matchForm.teamNumber);
                                 matchForm.matchIndex = matchIndex + 1;

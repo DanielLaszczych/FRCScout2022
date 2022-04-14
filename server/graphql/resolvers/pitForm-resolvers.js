@@ -63,33 +63,32 @@ module.exports = {
 
                 if (!pitFormInput.followUp && pitFormInput.motors.length > 0 && pitFormInput.wheels.length > 0) {
                     let motorStats = null;
+                    let numOfMotors = 0;
                     for (const motors of pitFormInput.motors) {
                         if (motorStats === null || motors.value > motorStats.value) {
                             motorStats = motors;
                         }
+                        numOfMotors += motors.value;
                     }
                     console.log(motorStats);
                     motorStats = motorMap.get(motorStats.label);
                     let wheelStats = null;
-                    let numOfWheels = 0;
                     for (const wheels of pitFormInput.wheels) {
                         if (wheelStats === null || wheels.value > wheelStats.value) {
                             wheelStats = wheels;
                         }
-                        numOfWheels += wheels.value;
                     }
-                    console.log(wheelStats);
                     for (const gearRatio of pitFormInput.gearRatios) {
-                        let freeSpeed = ((motorStats.freeSpeed * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60)) * (gearRatio.drivenGear / gearRatio.drivingGear);
+                        let freeSpeed = ((motorStats.freeSpeed * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60)) * (gearRatio.drivingGear / gearRatio.drivenGear);
                         let pushingPower =
                             ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
-                                (((((pitFormInput.weight * 1.1) / 1) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / 0.9 / numOfWheels) * (gearRatio.drivenGear / gearRatio.drivingGear)) +
+                                (((((pitFormInput.weight * 1.1) / 1) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / 0.9 / numOfMotors) * (gearRatio.drivingGear / gearRatio.drivenGear)) +
                             motorStats.freeCurrent;
                         let stat = {
                             drivingGear: gearRatio.drivingGear,
                             drivenGear: gearRatio.drivenGear,
                             freeSpeed: freeSpeed,
-                            pushingPower: pushingPower,
+                            pushingPower: 100 - pushingPower,
                         };
                         pitFormInput.driveStats.push(stat);
                     }

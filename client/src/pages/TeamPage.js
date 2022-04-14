@@ -157,7 +157,7 @@ function TeamPage() {
     });
 
     const updateDesktop = () => {
-        setIsDesktop(window.innerWidth > 1200);
+        setIsDesktop(window.innerWidth > 1300);
     };
 
     useEffect(() => {
@@ -455,9 +455,9 @@ function TeamPage() {
                                 </Text>
                                 {pitForm.driveStats.map((stat) => (
                                     <Box key={stat._id}>
-                                        <Text marginLeft={'15px'} fontWeight={'600'} fontSize={'100%'} textDecoration={'underline'}>{`Ratio - ${stat.drivingGear} : ${stat.drivenGear}`}</Text>
+                                        <Text marginLeft={'15px'} fontWeight={'600'} fontSize={'100%'} textDecoration={'underline'}>{`Ratio - ${stat.drivenGear} : ${stat.drivingGear}`}</Text>
                                         <Text marginLeft={'25px'} fontWeight={'600'} fontSize={'100%'}>{`Free Speed: ${roundToHundredth(stat.freeSpeed)} ft/s`}</Text>
-                                        <Text marginLeft={'25px'} fontWeight={'600'} fontSize={'100%'}>{`Pushing Power: ${roundToHundredth(stat.pushingPower)} Amps`}</Text>
+                                        <Text marginLeft={'25px'} fontWeight={'600'} fontSize={'100%'}>{`Pushing Power (0-100): ${roundToHundredth(stat.pushingPower)}`}</Text>
                                     </Box>
                                 ))}
                                 <Text marginTop={'5px'} marginBottom={'5px'} fontWeight={'600'} fontSize={'110%'}>
@@ -595,7 +595,8 @@ function TeamPage() {
                                             <div className='grid-item'>
                                                 <div className='grid-text-item'>Lower Hub: {match.lowerCargoTele}</div>
                                                 <div className='grid-text-item'>Upper Hub: {match.upperCargoTele}</div>
-                                                <div>Missed: {match.missedTele}</div>
+                                                <div className='grid-text-item'>Missed: {match.missedTele}</div>
+                                                <div>Was Defended: {match.receivedDefense ? 'Yes' : 'No'}</div>
                                             </div>
                                             <div className='grid-item'>
                                                 <div className='grid-text-item'>Climb Time: {match.climbTime > 0 ? `${roundToHundredth(match.climbTime / 1000)} sec` : 'N/A'}</div>
@@ -613,7 +614,7 @@ function TeamPage() {
                             )
                         ) : (
                             <Box>
-                                <Grid margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
+                                <Grid margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={'gray.300'} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                             Match # : Station
@@ -666,6 +667,11 @@ function TeamPage() {
                                     </GridItem>
                                     <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                         <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                            Was Defended
+                                        </Text>
+                                    </GridItem>
+                                    <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                        <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                             Climb Time
                                         </Text>
                                     </GridItem>
@@ -686,7 +692,14 @@ function TeamPage() {
                                     </GridItem>
                                 </Grid>
                                 {sortMatches(matchForms).map((match, index) => (
-                                    <Grid margin={'0 auto'} borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={match._id} templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr' gap={'5px'}>
+                                    <Grid
+                                        margin={'0 auto'}
+                                        borderTop={'1px solid black'}
+                                        backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'}
+                                        key={match._id}
+                                        templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
+                                        gap={'5px'}
+                                    >
                                         <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
                                             <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                                 {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
@@ -756,6 +769,11 @@ function TeamPage() {
                                         <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                             <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                                 {match.missedTele}
+                                            </Text>
+                                        </GridItem>
+                                        <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
+                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
+                                                {match.receivedDefense ? 'Yes' : 'No'}
                                             </Text>
                                         </GridItem>
                                         <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>

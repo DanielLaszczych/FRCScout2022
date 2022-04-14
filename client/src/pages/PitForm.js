@@ -1162,39 +1162,6 @@ function PitForm() {
                         <HStack key={gearRatio.id}>
                             <Center>
                                 <NumberInput
-                                    onChange={(value) => handleDrivingRatio(gearRatio.id, value)}
-                                    onBlur={(event) => handleDrivingRatioBlur(gearRatio.id, event.target.value)}
-                                    value={gearRatio.drivingGear}
-                                    min={0}
-                                    max={20}
-                                    precision={2}
-                                    width={'33%'}
-                                    isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivingGear === ''}
-                                    // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
-                                >
-                                    <NumberInputField
-                                        onKeyPress={(event) => {
-                                            if (event.key === 'Enter') {
-                                                event.target.blur();
-                                            }
-                                        }}
-                                        enterKeyHint='done'
-                                        _focus={{
-                                            outline: 'none',
-                                            boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
-                                        }}
-                                        textAlign={'center'}
-                                        padding={'0px 0px 0px 0px'}
-                                        fontSize={{
-                                            base: '80%',
-                                            md: '100%',
-                                            lg: '100%',
-                                        }}
-                                        placeholder='Driving Gear'
-                                    />
-                                </NumberInput>
-                                <Text margin={'0 5px 0 5px'}>:</Text>
-                                <NumberInput
                                     onChange={(value) => handleDrivenRatio(gearRatio.id, value)}
                                     onBlur={(event) => handleDrivenRatioBlur(gearRatio.id, event.target.value)}
                                     value={gearRatio.drivenGear}
@@ -1224,6 +1191,39 @@ function PitForm() {
                                             lg: '100%',
                                         }}
                                         placeholder='Driven Gear'
+                                    />
+                                </NumberInput>
+                                <Text margin={'0 5px 0 5px'}>:</Text>
+                                <NumberInput
+                                    onChange={(value) => handleDrivingRatio(gearRatio.id, value)}
+                                    onBlur={(event) => handleDrivingRatioBlur(gearRatio.id, event.target.value)}
+                                    value={gearRatio.drivingGear}
+                                    min={0}
+                                    max={20}
+                                    precision={2}
+                                    width={'33%'}
+                                    isInvalid={submitAttempted && !pitFormData.followUp && gearRatio.drivingGear === ''}
+                                    // fontSize={{ base: '80%', md: '100%', lg: '100%' }}
+                                >
+                                    <NumberInputField
+                                        onKeyPress={(event) => {
+                                            if (event.key === 'Enter') {
+                                                event.target.blur();
+                                            }
+                                        }}
+                                        enterKeyHint='done'
+                                        _focus={{
+                                            outline: 'none',
+                                            boxShadow: 'rgba(0, 0, 0, 0.35) 0px 3px 8px',
+                                        }}
+                                        textAlign={'center'}
+                                        padding={'0px 0px 0px 0px'}
+                                        fontSize={{
+                                            base: '80%',
+                                            md: '100%',
+                                            lg: '100%',
+                                        }}
+                                        placeholder='Driving Gear'
                                     />
                                 </NumberInput>
                             </Center>
