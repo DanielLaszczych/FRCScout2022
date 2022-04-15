@@ -19,7 +19,7 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
                         matchFormMap.set(matchForm.teamNumber, 1);
                         matchForm.matchIndex = 1;
                         let pitForm = await PitForm.findOne({ eventKey: req.params.eventKey, followUp: false, teamNumber: matchForm.teamNumber }).lean().exec();
-                        if (pitForm !== null && pitForm.driveStats.length > 0) {
+                        if (pitForm !== null && pitForm.driveStats !== undefined && pitForm.driveStats.length > 0) {
                             let maxFreeSpeed = null;
                             let maxPushingPower = null;
                             for (let stat of pitForm.driveStats) {
@@ -62,7 +62,7 @@ router.use('/getEventData/:eventKey/:password?', async (req, res) => {
                                 matchFormMap.set(matchForm.teamNumber, 1);
                                 matchForm.matchIndex = 1;
                                 let pitForm = await PitForm.findOne({ eventKey: req.params.eventKey, followUp: false, teamNumber: matchForm.teamNumber }).lean().exec();
-                                if (pitForm !== null && pitForm.driveStats.length > 0) {
+                                if (pitForm !== null && pitForm.driveStats !== undefined && pitForm.driveStats.length > 0) {
                                     let maxFreeSpeed = null;
                                     let maxPushingPower = null;
                                     for (let stat of pitForm.driveStats) {
