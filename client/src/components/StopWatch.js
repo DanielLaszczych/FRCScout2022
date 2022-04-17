@@ -1,24 +1,24 @@
 import { Box, Button, Center, HStack, Text } from '@chakra-ui/react';
 import { React, useEffect, useRef, useState } from 'react';
 
-function StopWatch({ setMatchFormData, initTime }) {
+let interval;
+function StopWatch({ setMatchFormData, initTimeParam }) {
     const [time, setTime] = useState(null);
     const [running, setRunning] = useState(false);
     const skippedFirstSet = useRef(false);
 
     useEffect(() => {
         if (!skippedFirstSet.current) {
-            setTime(() => initTime);
+            setTime(() => initTimeParam);
         }
-    }, [initTime]);
+    }, [initTimeParam]);
 
     useEffect(() => {
-        let interval;
+        let startTime = Date.now() - time;
         if (running) {
             interval = setInterval(() => {
-                setTime((prevTime) => {
-                    return prevTime + 10;
-                });
+                let newTime = Date.now() - startTime;
+                setTime(() => newTime);
             }, 10);
         } else if (!running) {
             clearInterval(interval);
@@ -38,9 +38,9 @@ function StopWatch({ setMatchFormData, initTime }) {
         <Box className='stopwatch'>
             <Center>
                 <HStack spacing={'5px'} className='numbers'>
-                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTime) / 60000) % 60)).slice(-2)}:</Text>
-                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTime) / 1000) % 60)).slice(-2)}:</Text>
-                    <Text fontSize={'30px'}>{('0' + (((skippedFirstSet.current ? time : initTime) / 10) % 100)).slice(-2)}</Text>
+                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTimeParam) / 60000) % 60)).slice(-2)}:</Text>
+                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTimeParam) / 1000) % 60)).slice(-2)}:</Text>
+                    <Text fontSize={'30px'}>{(skippedFirstSet.current ? time : initTimeParam) % 1000 === 0 ? '00' : ('0' + Math.round(((skippedFirstSet.current ? time : initTimeParam) % 1000) / 10)).slice(-2)}</Text>
                 </HStack>
             </Center>
             <Center>

@@ -656,7 +656,7 @@ function MatchForm() {
                                 Climb:
                             </Text>
                             <Center marginBottom={'10px'}>
-                                <StopWatch setMatchFormData={setMatchFormData} initTime={matchFormData.climbTime}></StopWatch>
+                                <StopWatch setMatchFormData={setMatchFormData} initTimeParam={matchFormData.climbTime}></StopWatch>
                             </Center>
                             {matchFormData.climbTime > 0 ? (
                                 <Box>
