@@ -78,7 +78,7 @@ function TeamPage() {
             .then((response) => response.json())
             .then((data) => {
                 if (!data.Error) {
-                    setEvents(sortBlueAllianceEvents(data));
+                    setEvents(sortBlueAllianceEvents(data.filter((event) => event.key !== '2022cmptx')));
                 } else {
                     setError(data.Error);
                 }
