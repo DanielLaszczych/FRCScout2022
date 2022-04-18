@@ -22,7 +22,7 @@ import {
     Spinner,
     Text,
 } from '@chakra-ui/react';
-import { React, useCallback, useEffect, useRef, useState } from 'react';
+import { React, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { GET_CURRENT_EVENT, GET_TEAMS_MATCHFORMS, GET_TEAMS_PITFORMS } from '../graphql/queries';
 import { year } from '../util/constants';
@@ -49,10 +49,12 @@ import Field from '../images/Field.png';
 import { BiCommentEdit } from 'react-icons/bi';
 import HeatMap from '../components/HeatMap';
 import { v4 as uuidv4 } from 'uuid';
+import { AuthContext } from '../context/auth';
 
 let doResize;
 
 function TeamPage() {
+    const { user } = useContext(AuthContext);
     const { teamNumber: teamNumberParam } = useParams();
 
     const [error, setError] = useState(null);
@@ -586,9 +588,11 @@ function TeamPage() {
                                 ) : (
                                     <div key={match._id} className='grid'>
                                         <div className='grid-column'>
-                                            <div className='grid-item header'>
-                                                {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
-                                            </div>
+                                            <a style={{ padding: '0px' }} className='grid-item header' href={user.admin ? `/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}/${teamNumberParam}` : null}>
+                                                <Box _hover={{ background: user.admin ? 'gray.400' : 'none' }}>
+                                                    {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                                </Box>
+                                            </a>
                                             <div className='grid-item header'>{`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}</div>
                                         </div>
                                         <div className='grid-column'>
@@ -729,11 +733,13 @@ function TeamPage() {
                                         templateColumns='2fr 1fr 1fr 1fr 1fr 0.5fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr 1fr'
                                         gap={'5px'}
                                     >
-                                        <GridItem padding={'10px 0px 10px 0px'} textAlign={'center'}>
-                                            <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                                {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
-                                            </Text>
-                                        </GridItem>
+                                        <a href={user.admin ? `/matchForm/${currentEvent.key}/${match.matchNumber}/${match.station}/${teamNumberParam}` : null}>
+                                            <GridItem padding={'10px 0px 10px 0px'} pos={'relative'} top={'50%'} transform={'translateY(-50%)'} textAlign={'center'} _hover={{ background: user.admin ? 'gray.200' : 'none' }}>
+                                                <Text>
+                                                    {convertMatchKeyToString(match.matchNumber)} : {convertStationKeyToString(match.station)}
+                                                </Text>
+                                            </GridItem>
+                                        </a>
                                         <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
                                             <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
                                                 {`${match.scouter.split(' ')[0]}  ${match.scouter.split(' ')[1].charAt(0)}.`}
