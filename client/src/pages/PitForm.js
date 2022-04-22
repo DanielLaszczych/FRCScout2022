@@ -566,11 +566,11 @@ function PitForm() {
     function validGearRatios() {
         for (const gearRatio of pitFormData.gearRatios) {
             if (gearRatio.preferRatio) {
-                if (gearRatio.drivingGear === 0 || gearRatio.drivingGear === '' || gearRatio.drivenGear === 0 || gearRatio.drivenGear === '') {
+                if (gearRatio.drivingGear === '' || gearRatio.drivenGear === '') {
                     return false;
                 }
             } else {
-                if (gearRatio.freeSpeed === 0 || gearRatio.freeSpeed === '') {
+                if (gearRatio.freeSpeed === '') {
                     return false;
                 }
             }

@@ -86,31 +86,52 @@ module.exports = {
                     for (const gearRatio of pitFormInput.gearRatios) {
                         let stat = null;
                         if (gearRatio.preferRatio) {
-                            let freeSpeed = (((motorStats.freeSpeed * speedLossConstant * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60)) * gearRatio.drivingGear) / gearRatio.drivenGear;
-                            let pushingPower =
-                                ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
-                                    ((((((pitFormInput.weight * weightOnWheels * wheelCoeff) / numOfGearBoxes) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / driveTrainEfficiency / numOfMotors) * gearRatio.drivingGear) / gearRatio.drivenGear) +
-                                motorStats.freeCurrent;
-                            stat = {
-                                drivingGear: gearRatio.drivingGear,
-                                drivenGear: gearRatio.drivenGear,
-                                freeSpeed: freeSpeed,
-                                pushingPower: 100 - pushingPower,
-                                preferRatio: gearRatio.preferRatio,
-                            };
+                            if (gearRatio.drivingGear <= 0 || gearRatio.drivenGear <= 0) {
+                                stat = {
+                                    drivingGear: gearRatio.drivingGear,
+                                    drivenGear: gearRatio.drivenGear,
+                                    freeSpeed: 0,
+                                    pushingPower: 0,
+                                    preferRatio: gearRatio.preferRatio,
+                                };
+                            } else {
+                                let freeSpeed = (((motorStats.freeSpeed * speedLossConstant * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60)) * gearRatio.drivingGear) / gearRatio.drivenGear;
+                                let pushingPower =
+                                    ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
+                                        ((((((pitFormInput.weight * weightOnWheels * wheelCoeff) / numOfGearBoxes) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / driveTrainEfficiency / numOfMotors) * gearRatio.drivingGear) /
+                                            gearRatio.drivenGear) +
+                                    motorStats.freeCurrent;
+                                stat = {
+                                    drivingGear: gearRatio.drivingGear,
+                                    drivenGear: gearRatio.drivenGear,
+                                    freeSpeed: freeSpeed,
+                                    pushingPower: 100 - pushingPower,
+                                    preferRatio: gearRatio.preferRatio,
+                                };
+                            }
                         } else {
-                            let retrievedGearRatio = gearRatio.freeSpeed / ((motorStats.freeSpeed * speedLossConstant * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60));
-                            let pushingPower =
-                                ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
-                                    (((((pitFormInput.weight * weightOnWheels * wheelCoeff) / numOfGearBoxes) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / driveTrainEfficiency / numOfMotors) * retrievedGearRatio) +
-                                motorStats.freeCurrent;
-                            stat = {
-                                drivingGear: 1,
-                                drivenGear: 1 / retrievedGearRatio,
-                                freeSpeed: gearRatio.freeSpeed,
-                                pushingPower: 100 - pushingPower,
-                                preferRatio: gearRatio.preferRatio,
-                            };
+                            if (gearRatio.freeSpeed <= 0) {
+                                stat = {
+                                    drivingGear: 0,
+                                    drivenGear: 0,
+                                    freeSpeed: gearRatio.freeSpeed,
+                                    pushingPower: 0,
+                                    preferRatio: gearRatio.preferRatio,
+                                };
+                            } else {
+                                let retrievedGearRatio = gearRatio.freeSpeed / ((motorStats.freeSpeed * speedLossConstant * (((wheelStats.size * 0.0254) / 2) * 2 * Math.PI)) / (0.3048 * 60));
+                                let pushingPower =
+                                    ((motorStats.stallCurrent - motorStats.freeCurrent) / motorStats.stallTorque) *
+                                        (((((pitFormInput.weight * weightOnWheels * wheelCoeff) / numOfGearBoxes) * 4.44822161526 * wheelStats.size * 0.0254) / 2 / driveTrainEfficiency / numOfMotors) * retrievedGearRatio) +
+                                    motorStats.freeCurrent;
+                                stat = {
+                                    drivingGear: 1,
+                                    drivenGear: 1 / retrievedGearRatio,
+                                    freeSpeed: gearRatio.freeSpeed,
+                                    pushingPower: 100 - pushingPower,
+                                    preferRatio: gearRatio.preferRatio,
+                                };
+                            }
                         }
                         pitFormInput.driveStats.push(stat);
                     }
