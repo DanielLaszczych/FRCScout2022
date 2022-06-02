@@ -24,7 +24,7 @@ import {
     Stack,
     Spinner,
     useToast,
-    Image,
+    Image as ChakraImage,
     useDisclosure,
     Popover,
     PopoverTrigger,
@@ -526,13 +526,59 @@ function PitForm() {
         }
     }
 
+    function resizeMe(img) {
+        var canvas = document.createElement('canvas');
+
+        var width = img.width;
+        var height = img.height;
+
+        // calculate the width and height, constraining the proportions
+        if (width > height) {
+            if (width > 620) {
+                //height *= 620 / width;
+                height = Math.round((height *= 620 / width));
+                width = 620;
+            }
+        } else {
+            if (height > 620) {
+                //width *= 620 / height;
+                width = Math.round((width *= 620 / height));
+                height = 620;
+            }
+        }
+
+        // resize the canvas and draw the image data into it
+        canvas.width = width;
+        canvas.height = height;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        return canvas.toDataURL('image/jpeg', 0.7); // get the data from canvas as 70% JPG (can be also PNG, etc.)
+    }
+
     function updateImage(event) {
         if (event.target.files && event.target.files[0] && event.target.files[0].type.split('/')[0] === 'image') {
             var FR = new FileReader();
-            FR.readAsDataURL(event.target.files[0]);
-            FR.onload = () => {
+            FR.readAsArrayBuffer(event.target.files[0]);
+            console.log('waiting for FR');
+            FR.onload = (e) => {
                 setImgHeader('New Image');
-                setPitFormData({ ...pitFormData, image: FR.result });
+                var blob = new Blob([e.target.result]); // create blob...
+                window.URL = window.URL || window.webkitURL;
+                var blobURL = window.URL.createObjectURL(blob); // and get it's URL
+                // helper Image object
+                console.log(blobURL);
+                var image = new Image();
+                image.src = blobURL;
+                //preview.appendChild(image); // preview commented out, I am using the canvas instead
+                console.log('post blob');
+                image.onload = function () {
+                    console.log('post iamge load');
+                    // have to wait till it's loaded
+                    var resized = resizeMe(image); // send it to canvas
+                    console.log(resized);
+                    setPitFormData({ ...pitFormData, image: resized });
+                };
                 FR.abort();
             };
         }
@@ -1555,7 +1601,7 @@ function PitForm() {
                     ></Textarea>
                 </Center>
                 <VStack marginTop={'20px'}>
-                    <Image w={{ base: '60%', md: '35%', lg: '35%' }} maxW={{ base: '60%', md: '35%', lg: '35%' }} src={pitFormData.image} />
+                    <ChakraImage w={{ base: '60%', md: '35%', lg: '35%' }} maxW={{ base: '60%', md: '35%', lg: '35%' }} src={pitFormData.image} />
                     <input type='file' accept='image/*' style={{ display: 'none' }} ref={hiddenImageInput} onChange={(event) => updateImage(event)} />
                     <Button variant='outline' borderColor='gray.300' _focus={{ outline: 'none' }} onClick={() => hiddenImageInput.current.click()}>
                         Upload Image
