@@ -84,6 +84,7 @@ app.use('/checkTableauPass/:password', async (req, res) => {
 app.use('/getuser', (req, res) => {
     res.send(req.user);
 });
+app.use('/groupMeBot', require('./routes/groupMeBot'));
 
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME,

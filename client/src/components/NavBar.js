@@ -1,7 +1,7 @@
 import { React, useContext, useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/auth';
-import { Button, Icon, Input, HStack, Box, Image, Text, Avatar, Menu, MenuButton, MenuList, MenuItem, Flex, NumberInputField, NumberInput } from '@chakra-ui/react';
+import { Button, Icon, HStack, Box, Image, Text, Avatar, Menu, MenuButton, MenuList, MenuItem, Flex, NumberInputField, NumberInput } from '@chakra-ui/react';
 import { BsSearch } from 'react-icons/bs';
 import logo from '../images/TigerOnlyLogo.png';
 import { config } from '../util/constants';
@@ -17,6 +17,7 @@ let titleMap = [
     { path: '/matchAnalysis', title: 'Match Analysis' },
     { path: '/team', title: 'Team' },
     { path: '/admin', title: 'Admin' },
+    { path: '/tableau', title: 'Tableau' },
 ];
 
 function NavBar() {

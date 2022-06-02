@@ -1,37 +1,18 @@
-import { React, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { React, useCallback, useEffect, useState } from 'react';
 import { useQuery } from '@apollo/client';
-import {
-    Button,
-    Center,
-    Box,
-    Grid,
-    GridItem,
-    Menu,
-    MenuButton,
-    MenuList,
-    MenuItem,
-    Spinner,
-    Text,
-    IconButton,
-    Popover,
-    PopoverTrigger,
-    PopoverContent,
-    PopoverArrow,
-    PopoverCloseButton,
-    PopoverHeader,
-    PopoverBody,
-    PopoverFooter,
-} from '@chakra-ui/react';
+import { Button, Center, Box, Menu, MenuButton, MenuList, MenuItem, Spinner, IconButton } from '@chakra-ui/react';
 import { GET_EVENT, GET_EVENTS_KEYS_NAMES, GET_EVENTS_PITFORMS } from '../graphql/queries';
-import { CheckCircleIcon, ChevronDownIcon, EditIcon, WarningIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, WarningIcon } from '@chakra-ui/icons';
 import { sortRegisteredEvents } from '../util/helperFunctions';
+import PitsMemo from '../components/PitsMemo';
 
 function PitPage() {
     const [error, setError] = useState(null);
     const [currentEvent, setCurrentEvent] = useState({ name: '', key: '' });
     const [focusedEvent, setFocusedEvent] = useState('');
     const [followUpFilter, setFollowUpFilter] = useState(false);
+    const [filteredPitList, setFilteredPitList] = useState([]);
+    const [pitListVersion, setPitListVersion] = useState(0);
 
     const {
         loading: loadingEvents,
@@ -92,58 +73,34 @@ function PitPage() {
         },
     });
 
-    function getPitFormStatusIcon(teamNumber) {
-        let pitForm = null;
-        for (const pitFormData of pitForms) {
-            if (pitFormData.teamNumber === teamNumber) {
-                pitForm = pitFormData;
-                break;
+    const getPitFormStatusColor = useCallback(
+        (teamNumber) => {
+            let pitForm = null;
+            for (const pitFormData of pitForms) {
+                if (pitFormData.teamNumber === teamNumber) {
+                    pitForm = pitFormData;
+                    break;
+                }
             }
-        }
-        if (pitForm === null) {
-            return <EditIcon />;
-        } else if (pitForm.followUp) {
-            return <WarningIcon />;
-        } else {
-            return <CheckCircleIcon />;
-        }
-    }
+            if (pitForm === null) {
+                return 'gray';
+            } else if (pitForm.followUp) {
+                return 'yellow';
+            } else {
+                return 'green';
+            }
+        },
+        [pitForms]
+    );
 
-    function getPitFormStatusColor(teamNumber) {
-        let pitForm = null;
-        for (const pitFormData of pitForms) {
-            if (pitFormData.teamNumber === teamNumber) {
-                pitForm = pitFormData;
-                break;
-            }
+    useEffect(() => {
+        let newPitList = [];
+        if (!loadingEvent && !loadingPitForms && event && pitForms) {
+            newPitList = (followUpFilter ? event.teams.filter((team) => getPitFormStatusColor(team.number) !== 'green') : event.teams).sort((a, b) => a.number - b.number);
         }
-        if (pitForm === null) {
-            return 'gray';
-        } else if (pitForm.followUp) {
-            return 'yellow';
-        } else {
-            return 'green';
-        }
-    }
-
-    function getPitFormScouter(teamNumber) {
-        for (const pitFormData of pitForms) {
-            if (pitFormData.teamNumber === teamNumber) {
-                let nameArr = pitFormData.scouter.split(' ');
-                return nameArr[0] + ' ' + nameArr[1].charAt(0) + '.';
-            }
-        }
-        return 'N/A';
-    }
-
-    function getPitFormFollowUpComment(teamNumber) {
-        for (const pitFormData of pitForms) {
-            if (pitFormData.teamNumber === teamNumber) {
-                return pitFormData.followUpComment;
-            }
-        }
-        return 'No Comment';
-    }
+        setFilteredPitList(newPitList);
+        setPitListVersion((prevVersion) => prevVersion + 1);
+    }, [event, pitForms, followUpFilter, getPitFormStatusColor, loadingEvent, loadingPitForms]);
 
     if (error) {
         return (
@@ -205,61 +162,7 @@ function PitPage() {
                 </Center>
             ) : (
                 <Box marginBottom={'25px'}>
-                    {(followUpFilter ? event.teams.filter((team) => getPitFormStatusColor(team.number) !== 'green') : event.teams)
-                        .sort((a, b) => a.number - b.number)
-                        .map((team, index) => (
-                            <Grid borderTop={'1px solid black'} backgroundColor={index % 2 === 0 ? '#f9f9f9' : 'white'} key={team.key} templateColumns='1fr 2fr 1fr 1fr' gap={'5px'}>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {team.number}
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {team.name}
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'0px 0px 0px 0px'} textAlign={'center'}>
-                                    <Text pos={'relative'} top={'50%'} transform={'translateY(-50%)'}>
-                                        {getPitFormScouter(team.number)}
-                                    </Text>
-                                </GridItem>
-                                <GridItem padding={'10px 0px 10px 0px'} marginRight={'10px'} marginLeft={'10px'} textAlign={'center'}>
-                                    {getPitFormStatusColor(team.number) !== 'yellow' ? (
-                                        <IconButton
-                                            icon={getPitFormStatusIcon(team.number)}
-                                            colorScheme={getPitFormStatusColor(team.number)}
-                                            _focus={{ outline: 'none' }}
-                                            size='sm'
-                                            as={Link}
-                                            to={`/pitForm/${currentEvent.key}/${team.number}`}
-                                            state={{ previousRoute: 'pits' }}
-                                        />
-                                    ) : (
-                                        <Popover flip={true} placement='bottom'>
-                                            <PopoverTrigger>
-                                                <IconButton icon={getPitFormStatusIcon(team.number)} colorScheme={getPitFormStatusColor(team.number)} _focus={{ outline: 'none' }} size='sm' />
-                                            </PopoverTrigger>
-                                            <PopoverContent maxWidth={'50vw'} _focus={{ outline: 'none' }}>
-                                                <PopoverArrow />
-                                                <PopoverCloseButton />
-                                                <PopoverHeader margin={'0 auto'} maxWidth={'165px'} color='black' fontSize='md' fontWeight='bold'>
-                                                    Follow Up Comment
-                                                </PopoverHeader>
-                                                <PopoverBody maxHeight={'125px'} overflowY={'auto'}>
-                                                    <Text>{getPitFormFollowUpComment(team.number)}</Text>
-                                                </PopoverBody>
-                                                <PopoverFooter>
-                                                    <Button _focus={{ outline: 'none' }} size='sm' as={Link} to={`/pitForm/${currentEvent.key}/${team.number}`} state={{ previousRoute: 'pits' }}>
-                                                        Go To
-                                                    </Button>
-                                                </PopoverFooter>
-                                            </PopoverContent>
-                                        </Popover>
-                                    )}
-                                </GridItem>
-                            </Grid>
-                        ))}
+                    <PitsMemo eventData={filteredPitList} pitForms={pitForms} version={pitListVersion} currentEvent={currentEvent}></PitsMemo>
                 </Box>
             )}
         </Box>
