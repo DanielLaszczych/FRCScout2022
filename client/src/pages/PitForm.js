@@ -532,18 +532,21 @@ function PitForm() {
         var width = img.width;
         var height = img.height;
 
+        const maxWidth = 1280;
+        const maxHeight = 1280;
+
         // calculate the width and height, constraining the proportions
         if (width > height) {
-            if (width > 620) {
-                //height *= 620 / width;
-                height = Math.round((height *= 620 / width));
-                width = 620;
+            if (width > maxWidth) {
+                //height *= maxWidth / width;
+                height = Math.round((height *= maxWidth / width));
+                width = maxWidth;
             }
         } else {
-            if (height > 620) {
-                //width *= 620 / height;
-                width = Math.round((width *= 620 / height));
-                height = 620;
+            if (height > maxHeight) {
+                //width *= maxHeight / height;
+                width = Math.round((width *= maxHeight / height));
+                height = maxHeight;
             }
         }
 
@@ -560,23 +563,18 @@ function PitForm() {
         if (event.target.files && event.target.files[0] && event.target.files[0].type.split('/')[0] === 'image') {
             var FR = new FileReader();
             FR.readAsArrayBuffer(event.target.files[0]);
-            console.log('waiting for FR');
             FR.onload = (e) => {
                 setImgHeader('New Image');
                 var blob = new Blob([e.target.result]); // create blob...
                 window.URL = window.URL || window.webkitURL;
                 var blobURL = window.URL.createObjectURL(blob); // and get it's URL
                 // helper Image object
-                console.log(blobURL);
                 var image = new Image();
                 image.src = blobURL;
                 //preview.appendChild(image); // preview commented out, I am using the canvas instead
-                console.log('post blob');
                 image.onload = function () {
-                    console.log('post iamge load');
                     // have to wait till it's loaded
                     var resized = resizeMe(image); // send it to canvas
-                    console.log(resized);
                     setPitFormData({ ...pitFormData, image: resized });
                 };
                 FR.abort();
