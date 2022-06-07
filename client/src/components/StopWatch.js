@@ -3,44 +3,38 @@ import { React, useEffect, useRef, useState } from 'react';
 
 let interval;
 function StopWatch({ setMatchFormData, initTimeParam }) {
+    const timeRef = useRef(null);
     const [time, setTime] = useState(null);
     const [running, setRunning] = useState(false);
-    const skippedFirstSet = useRef(false);
 
     useEffect(() => {
-        if (!skippedFirstSet.current) {
-            setTime(() => initTimeParam);
-        }
+        setTime(initTimeParam);
+        timeRef.current = initTimeParam;
     }, [initTimeParam]);
 
     useEffect(() => {
-        let startTime = Date.now() - time;
         if (running) {
+            let startTime = Date.now() - timeRef.current;
             interval = setInterval(() => {
                 let newTime = Date.now() - startTime;
-                setTime(() => newTime);
+                setTime(newTime);
+                timeRef.current = newTime;
             }, 10);
         } else if (!running) {
+            console.log(timeRef.current);
             clearInterval(interval);
+            setMatchFormData((prevState) => ({ ...prevState, climbTime: timeRef.current }));
         }
         return () => clearInterval(interval);
-    }, [running]);
-
-    useEffect(() => {
-        if (!running && skippedFirstSet.current) {
-            setMatchFormData((prevState) => ({ ...prevState, climbTime: time }));
-        } else if (time !== null) {
-            skippedFirstSet.current = true;
-        }
-    }, [running, time, setMatchFormData]);
+    }, [running, setMatchFormData]);
 
     return (
         <Box className='stopwatch'>
             <Center>
                 <HStack spacing={'5px'} className='numbers'>
-                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTimeParam) / 60000) % 60)).slice(-2)}:</Text>
-                    <Text fontSize={'30px'}>{('0' + Math.floor(((skippedFirstSet.current ? time : initTimeParam) / 1000) % 60)).slice(-2)}:</Text>
-                    <Text fontSize={'30px'}>{(skippedFirstSet.current ? time : initTimeParam) % 1000 === 0 ? '00' : ('0' + Math.round(((skippedFirstSet.current ? time : initTimeParam) % 1000) / 10)).slice(-2)}</Text>
+                    <Text fontSize={'30px'}>{('0' + Math.floor(((time === 0 ? time : time || initTimeParam) / 60000) % 60)).slice(-2)}:</Text>
+                    <Text fontSize={'30px'}>{('0' + Math.floor(((time === 0 ? time : time || initTimeParam) / 1000) % 60)).slice(-2)}:</Text>
+                    <Text fontSize={'30px'}>{(time === 0 ? time : time || initTimeParam) % 1000 === 0 ? '00' : ('0' + Math.round(((time === 0 ? time : time || initTimeParam) % 1000) / 10)).slice(-2)}</Text>
                 </HStack>
             </Center>
             <Center>
@@ -54,9 +48,9 @@ function StopWatch({ setMatchFormData, initTimeParam }) {
                         colorScheme={'red'}
                         minW={'75px'}
                         onClick={() => {
-                            setRunning(false);
+                            timeRef.current = 0;
                             setTime(0);
-                            setMatchFormData((prevState) => ({ ...prevState, climbTime: 0, climbRung: null }));
+                            setMatchFormData((prevState) => ({ ...prevState, climbTime: timeRef.current }));
                         }}
                     >
                         Reset
